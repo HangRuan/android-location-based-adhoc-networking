@@ -1,7 +1,7 @@
 package edu.cs895;
 
 
-import edu.cs895.interest.InterestEngine;
+
 import edu.cs895.message.TransferQueue;
 import android.app.Application;
 import android.content.Context;
@@ -12,7 +12,7 @@ public class MyApplication extends Application {
 	private LocationManager locMgr;
 	private ApplicationLocationListener locHolder;
 	private TransferQueue transferQ;
-	private InterestEngine interestEngine;
+
 	
 	@Override
 	public void onCreate()
@@ -31,8 +31,6 @@ public class MyApplication extends Application {
 		transferQ = new TransferQueue();
 		
 		locHolder = new ApplicationLocationListener();
-		interestEngine = InterestEngine.getInstance();
-		interestEngine.init(transferQ, locHolder, this);
 	}
 
 	@Override
