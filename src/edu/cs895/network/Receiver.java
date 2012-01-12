@@ -1,0 +1,23 @@
+package edu.cs895.network;
+
+import android.location.Location;
+
+public interface Receiver {
+
+	/**
+	 * 
+	 * This method will be called asynchronously by the network thread whenever a packet is received
+	 * from the network.  Do as little work as possible in this method since taking too long will cause the
+	 * network to stop reading data.
+	 * 
+	 * @param loc location that the packet was addressed to
+	 * @param buff data received in the packet.
+	 */
+	public void receiveMessage(Location targetLocation, Location originatingLocation, byte[] buff);
+	
+	public void receiveMessage(Location targetUpperLeft, Location targetLowerRight, 
+			Location originatingLocation, byte[] buff);
+	
+	public void receiveMessage(Location center, double radius, Location originatingLocation, byte[] buff);
+	
+}

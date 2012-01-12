@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical" android:layout_width="fill_parent"
+	android:layout_height="fill_parent" android:layout_gravity="center|center_horizontal"
+	android:layout_marginTop="50dip">
+
+
+	<TextView android:layout_width="wrap_content" android:id="@+id/textView1"
+		android:layout_height="wrap_content" android:gravity="center_horizontal"
+		android:text="Buttons to do stuff" android:layout_gravity="center_horizontal"
+		android:textSize="20dp"></TextView>
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:orientation="horizontal" android:layout_width="fill_parent"
+		android:layout_height="wrap_content" android:gravity="center|center_horizontal"
+		android:layout_marginTop="50dip">
+		
+		<Button android:text="@string/fireLabel" android:id="@+id/fire"
+			android:layout_width="wrap_content" android:layout_height="wrap_content"
+			android:layout_marginRight="5dp"></Button>
+		<Button android:text="@string/evacPointLabel" android:id="@+id/evacPoint"
+			android:layout_width="wrap_content" android:layout_height="wrap_content"
+			android:layout_marginRight="5dp" android:layout_marginLeft="5dp"></Button>
+		<Button android:layout_width="wrap_content" android:id="@+id/evacAll"
+			android:layout_height="wrap_content" android:layout_gravity="center_horizontal"
+			android:text="@string/evacAllLabel" android:layout_marginLeft="5dp"></Button>
+	</LinearLayout>
+	<EditText android:layout_width="fill_parent" android:id="@+id/editText1"
+		android:layout_height="fill_parent" android:focusable="false"
+		android:clickable="false">
+	</EditText>
+
+
+</LinearLayout>

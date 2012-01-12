@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
+  android:layout_gravity="center_horizontal">
+    <Button android:id="@+id/start_hero" android:text="Start Hero" android:layout_height="wrap_content" android:layout_width="wrap_content" android:layout_gravity="center_horizontal" android:gravity="center|center_horizontal" android:layout_margin="20dp"></Button>
+    <Button android:id="@+id/start_nexus" android:text="Start Nexus" android:layout_height="wrap_content" android:layout_gravity="center_horizontal" android:layout_width="wrap_content" android:gravity="center" android:layout_margin="20dp"></Button>
+    <Button android:id="@+id/start_nexus2" android:text="Start Nexus 2" android:layout_height="wrap_content" android:layout_gravity="center_horizontal" android:layout_width="wrap_content" android:gravity="center" android:layout_margin="20dp"></Button>
+	<Button android:id="@+id/start_evo" android:text="Start Evo" android:layout_height="wrap_content" android:layout_gravity="center_horizontal" android:layout_width="wrap_content" android:gravity="center" android:layout_margin="20dp"></Button>
+
+    <Button android:id="@+id/next" android:text="Next" android:layout_height="wrap_content" android:layout_width="wrap_content" android:layout_gravity="bottom|right" android:layout_marginRight="10dp" android:enabled="false"></Button>
+    <Button android:text="Skip" android:layout_height="wrap_content" android:layout_width="wrap_content" android:id="@+id/skip" android:layout_gravity="center_horizontal"></Button>
+    
+</LinearLayout>

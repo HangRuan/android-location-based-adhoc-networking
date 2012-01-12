@@ -1,0 +1,28 @@
+#!/system/bin/sh
+set -e
+#!/system/bin/sh
+set -e
+
+CHANNEL=6
+SSID="Testing"
+INIFILE=/data/data/edu.cs895/files/adhoc.ini
+MODULE=/system/lib/modules/wlan.ko
+
+load() {
+   
+    
+    echo "hero: Loading wifi driver..."
+    insmod $MODULE
+    
+    echo "hero: Initializing driver..."
+    wlan_loader -f /system/etc/wifi/Fw1251r1c.bin -e /proc/calibration -i $INIFILE
+    ifconfig tiwlan0 192.168.13.14 netmask 255.255.255.0
+    
+}
+
+
+unload() { 
+    rmmod wlan
+}
+
+$1
