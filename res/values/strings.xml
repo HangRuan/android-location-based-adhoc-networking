@@ -5,4 +5,7 @@
     <string name="fireLabel">Fire Event</string>
     <string name="evacPointLabel">Local Evacuation</string>
     <string name="evacAllLabel">Evacuate All</string>
+    <string name="wifi_channel">Wifi Channel</string>
+    <string name="geoMessage">Geo Message</string>
+    <string name="broadcastMessage">Broadcast Message</string>
 </resources>

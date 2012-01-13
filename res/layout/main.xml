@@ -14,15 +14,13 @@
 		android:layout_height="wrap_content" android:gravity="center|center_horizontal"
 		android:layout_marginTop="50dip">
 		
-		<Button android:text="@string/fireLabel" android:id="@+id/fire"
+		<Button android:text="@string/geoMessage" android:id="@+id/geo_message"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
 			android:layout_marginRight="5dp"></Button>
-		<Button android:text="@string/evacPointLabel" android:id="@+id/evacPoint"
+		<Button android:text="@string/broadcastMessage" android:id="@+id/broadcast_message"
 			android:layout_width="wrap_content" android:layout_height="wrap_content"
 			android:layout_marginRight="5dp" android:layout_marginLeft="5dp"></Button>
-		<Button android:layout_width="wrap_content" android:id="@+id/evacAll"
-			android:layout_height="wrap_content" android:layout_gravity="center_horizontal"
-			android:text="@string/evacAllLabel" android:layout_marginLeft="5dp"></Button>
+		
 	</LinearLayout>
 	<EditText android:layout_width="fill_parent" android:id="@+id/editText1"
 		android:layout_height="fill_parent" android:focusable="false"

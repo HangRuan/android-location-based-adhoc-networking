@@ -16,13 +16,18 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.EditText;
 
 public class StartNetworkActivity extends Activity implements OnClickListener {
 
 	private MyProgressDialog dialog;
+	private String channel = "8";
+	private String ipAddress;
 
 	/** Called when the activity is first created. */
 	@Override
@@ -30,20 +35,19 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.start_wifi);
-		findViewById(R.id.start_hero).setOnClickListener(this);
-		findViewById(R.id.start_nexus).setOnClickListener(this);
-		findViewById(R.id.start_nexus2).setOnClickListener(this);
-		findViewById(R.id.start_evo).setOnClickListener(this);
-		findViewById(R.id.skip).setOnClickListener(this);
+		findViewById(R.id.start_network).setOnClickListener(this);
+
+
+
 		Util.copyScripts(this);
 	}
-	
+
 	@Override
 	public void onPause()
 	{
 		super.onPause();
-		
-		
+
+
 	}
 
 
@@ -52,38 +56,18 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 		// TODO Auto-generated method stub
 
 
-		if (v.getId() == R.id.skip)
 
+
+		dialog = new MyProgressDialog(this);
+		dialog.show("Starting AdHoc Network..", null);
+		if(v.getId() == R.id.start_network)
 		{
-			Intent newIntent = new Intent(this, ProjectAActivity.class);
-			startActivity(newIntent);
-			this.finish();
+			BroadcastNetworkManager.macAddressSet = ((MyApplication) getApplication()).getUniqueID();
+
 		}
-		else 
-		{
-			dialog = new MyProgressDialog(this);
-			dialog.show("Starting AdHoc Network..", null);
-			if(v.getId() == R.id.start_hero)
-			{
-				BroadcastNetworkManager.macAddressSet = "hero";
-				new MyAsyncTask().execute("hero");
-			}
-			else if (v.getId() == R.id.start_nexus)
-			{
-				BroadcastNetworkManager.macAddressSet = "nexus1";
-				new MyAsyncTask().execute("nexus1");	
-			}
-			else if (v.getId() == R.id.start_nexus2)
-			{
-				BroadcastNetworkManager.macAddressSet = "nexus2";
-				new MyAsyncTask().execute("nexus2");	
-			}
-			else if (v.getId() == R.id.start_evo)
-			{
-				BroadcastNetworkManager.macAddressSet = "evo";
-				new MyAsyncTask().execute("evo");	
-			}
-		}
+		channel = ((EditText)findViewById(R.id.wifi_channel)).getText().toString();
+		new MyAsyncTask().execute(BroadcastNetworkManager.macAddressSet);
+
 	}
 
 
@@ -92,86 +76,48 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 
 		@Override
 		protected Object doInBackground(Object... params) {
-			/*
-			 * Process p = null; 
-			p = Runtime.getRuntime().exec("su sqlite3 your_query");
-			 */
+
 			String val = null;
 			if(params != null)
 			{
 				val = (String)params[0];
 			}
-			if(val != null && val.equals("hero"))
+			String cmd1;
+			if (Build.VERSION.SDK_INT == Build.VERSION_CODES.ICE_CREAM_SANDWICH) 
 			{
-				try {
-					String su = "su";
-					String cmd = getFilesDir() + "/" + Constants.HERO_SCRIPT + " load \n";
-					Process p = null; 
-					p = Runtime.getRuntime().exec(su);
-					DataOutputStream  output=new DataOutputStream(p.getOutputStream());
-					InputStream inputStrm = p.getInputStream();
-					InputStream errorStrm = p.getErrorStream();
-					output.writeBytes(cmd);
-
-					output.writeBytes("exit \n");
-				
-
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
-
-
+				cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329_apsta.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
 			}
-			else if(val != null && val.equals("nexus1"))
+			else
+			{
+				cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
+			}
+			ipAddress = "192.168.42." +  String.valueOf(100*Math.random());
+			((MyApplication)StartNetworkActivity.this.getApplication()).setIPAddress(ipAddress);
+			if(val != null )
 			{
 				try {
 
 					String su = "su";
-					String cmd = getFilesDir() + "/" + Constants.NEXUS_SCRIPT1 + " load \n";
+					String cmd2 = "ifconfig eth0 " + ipAddress + " netmask 255.255.255.0\n";// getFilesDir() + "/" + Constants.NEXUS_SCRIPT1 + " load \n";
+					String cmd3 = getFilesDir() + "/" + "iwconfig eth0 mode ad-hoc\n";
+					String cmd4 = getFilesDir() + "/" + "iwconfig eth0 channel " + StartNetworkActivity.this.channel + "\n";
+					String cmd5 = getFilesDir() + "/" + "iwconfig eth0 essid SEI_GMU_Test\n";
+					String cmd6 = getFilesDir() + "/" + "iwconfig eth0 key 6741744573\n";
 					Process p = null; 
 					p = Runtime.getRuntime().exec(su);
 					DataOutputStream  output=new DataOutputStream(p.getOutputStream());
 					InputStream inputStrm = p.getInputStream();
 					InputStream errorStrm = p.getErrorStream();
-					output.writeBytes(cmd);
-
-					output.writeBytes("exit \n");
-					output.writeBytes("exit \n");
-
-
-
-					//					pb.command(cmd).directory(getFilesDir());
-					//					Process p = pb.start();
-
-					int exit = p.waitFor();
-					BufferedReader inputReader = new BufferedReader(new InputStreamReader(inputStrm));
-					BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStrm));
-					String foo = new String("");;
-					String bar = new String("");;
-					int i=0;
-					while(i<1000)
-					{
-						foo += inputReader.readLine();
-						bar += errorReader.readLine();
-						i++;
-					}
-					System.out.println(exit);
-
-					p = Runtime.getRuntime().exec(su);
-					output=new DataOutputStream(p.getOutputStream());
-					String cmd2 = getFilesDir() + "/" +  Constants.NEXUS_SCRIPT2 + " up \n";
+					output.writeBytes(cmd1);
 					output.writeBytes(cmd2);
-					output.writeBytes("exit \n");
-
-					p = Runtime.getRuntime().exec(su);
-					output=new DataOutputStream(p.getOutputStream());
-					String cmd3 = getFilesDir() + "ifconfig eth0 192.168.13.12 netmask 255.255.255.0\n";
 					output.writeBytes(cmd3);
+					output.writeBytes(cmd4);
+					output.writeBytes(cmd5);
+					//output.writeBytes(cmd6);
 					output.writeBytes("exit \n");
-					
-					exit = p.waitFor();
+					output.writeBytes("exit \n");
+					int exit = p.waitFor();
+					Log.e("StartNetwork","exit= " + exit);
 					//					Process p = null; 
 					//					p = Runtime.getRuntime().exec("cd /data/data/edu.cs898/files;./script_nexus adhoc;./script_nexus configure");
 				}
@@ -180,93 +126,10 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 					e.printStackTrace();
 				}
 			}
-			else if(val != null && val.equals("nexus2"))
-			{
-				try {
-
-					String su = "su";
-					String cmd = getFilesDir() + "/" + Constants.NEXUS_SCRIPT1 + " load \n";
-					Process p = null; 
-					p = Runtime.getRuntime().exec(su);
-					DataOutputStream  output=new DataOutputStream(p.getOutputStream());
-					InputStream inputStrm = p.getInputStream();
-					InputStream errorStrm = p.getErrorStream();
-					output.writeBytes(cmd);
-
-					output.writeBytes("exit \n");
-					output.writeBytes("exit \n");
 
 
 
-					//					pb.command(cmd).directory(getFilesDir());
-					//					Process p = pb.start();
-
-					int exit = p.waitFor();
-					BufferedReader inputReader = new BufferedReader(new InputStreamReader(inputStrm));
-					BufferedReader errorReader = new BufferedReader(new InputStreamReader(errorStrm));
-					String foo = new String("");;
-					String bar = new String("");;
-					int i=0;
-					while(i<1000)
-					{
-						foo += inputReader.readLine();
-						bar += errorReader.readLine();
-						i++;
-					}
-					System.out.println(exit);
-
-					p = Runtime.getRuntime().exec(su);
-					output=new DataOutputStream(p.getOutputStream());
-					String cmd2 = getFilesDir() + "/" +  Constants.NEXUS_SCRIPT2 + " up \n";
-					output.writeBytes(cmd2);
-					output.writeBytes("exit \n");
-
-					p = Runtime.getRuntime().exec(su);
-					output=new DataOutputStream(p.getOutputStream());
-					String cmd3 = "ifconfig eth0 192.168.13.13 netmask 255.255.255.0\n";
-					output.writeBytes(cmd3);
-					output.writeBytes("exit \n");
-					
-					exit = p.waitFor();
-					//					Process p = null; 
-					//					p = Runtime.getRuntime().exec("cd /data/data/edu.cs898/files;./script_nexus adhoc;./script_nexus configure");
-				}
-				catch (Throwable e)
-				{
-					e.printStackTrace();
-				}
-			}
-			else if(val != null && val.equals("evo"))
-			{
-				try {
-
-					String su = "su";
-					String cmd = getFilesDir() + "/" + Constants.EVO_SCRIPT + " load \n";
-					Process p = null; 
-					p = Runtime.getRuntime().exec(su);
-					DataOutputStream  output=new DataOutputStream(p.getOutputStream());
-					InputStream inputStrm = p.getInputStream();
-					InputStream errorStrm = p.getErrorStream();
-					output.writeBytes(cmd);
-
-					output.writeBytes("exit \n");
-					output.writeBytes("exit \n");
-
-
-
-					//					pb.command(cmd).directory(getFilesDir());
-					//					Process p = pb.start();
-
-					int exit = p.waitFor();
-					
-				}
-				catch (Throwable e)
-				{
-					e.printStackTrace();
-				}
-			}
-			dialog.cancel();
-			((MyApplication) getApplication()).initInterestEngine();
+			dialog.cancel();;
 			Intent newIntent = new Intent(StartNetworkActivity.this, ProjectAActivity.class);
 			startActivity(newIntent);
 			StartNetworkActivity.this.finish();

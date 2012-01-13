@@ -2,54 +2,73 @@ package edu.cs895;
 
 
 
+import java.util.HashMap;
+import java.util.Map;
+
 import edu.cs895.message.TransferQueue;
+import edu.cs895.network.BroadcastNetworkManager;
 import android.app.Application;
 import android.content.Context;
+import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 
 public class MyApplication extends Application {
 
-	private LocationManager locMgr;
-	private ApplicationLocationListener locHolder;
-	private TransferQueue transferQ;
 
+	public static  Location location;
+        	
+	private  String ipAddress;
 	
 	@Override
 	public void onCreate()
 	{
 		super.onCreate();
-		locMgr = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
-		//LocationManager.GPS_PROVIDER
-		
-		//locMgr.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000L,10f, locHolder);
-		
+		if (Build.VERSION.SDK_INT == Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+			Location loc2 = new Location("Other");
+			loc2.setBearing(250f);
+			loc2.setLatitude(38.843295);
+			loc2.setLongitude(-77.289147);
+			loc2.setSpeed(1.9f);
+			location = loc2;
+		}
+		else
+		{
+			Location loc0 = new Location("Other");
+			loc0.setBearing(2f);
+			loc0.setLatitude(38.843295+ Math.random());
+			loc0.setLongitude(-77.288038 + Math.random());
+			loc0.setSpeed(1.2f);
+			location = loc0;
+			
+		}
 		
 	}
 
-	public void initInterestEngine()
+	public Location getCurrentLocation()
 	{
-		transferQ = new TransferQueue();
-		
-		locHolder = new ApplicationLocationListener();
+		return location;
 	}
-
+	
+	public String getUniqueID()
+	{
+		return String.valueOf(location.getLatitude()) + String.valueOf(location.getLongitude());
+	}
+	
 	@Override
 	public void onTerminate()
 	{
-		if(locHolder!= null)
-		{
-			locMgr.removeUpdates(locHolder);
-		}
-		locHolder = null;
-		transferQ = null;
+
+	}
+
+	public void setIPAddress(String ipAddress) {
+		this.ipAddress = ipAddress;
+	}
+
+	public String getIPAddress() {
+		return ipAddress;
 	}
 	
-	public LocationHolder getLocationHolder()
-	{
-		return locHolder;
-	}
-	
-	public TransferQueue getTransferQ() {
-		return transferQ;
-	}
+
+
 }

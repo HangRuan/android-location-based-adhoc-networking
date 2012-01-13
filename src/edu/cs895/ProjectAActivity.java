@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 
 import edu.cs895.message.Coder;
 import edu.cs895.message.Event;
@@ -22,42 +23,43 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.TextToSpeech.OnInitListener;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class ProjectAActivity extends Activity implements OnClickListener, Receiver {
+public class ProjectAActivity extends Activity implements OnInitListener, OnClickListener, Receiver {
 
 	private long counter = 0;
 	private LocationHolder locHolder;
 	private Notification notification;
 	private NotificationManager mNotificationManager;
 	NetworkManager networkManager;
+	private TextToSpeech tts = null;
 
-	//eventually queues will be received in the interest engine only
-	private TransferQueue inBoundQ;
-	private TransferQueue outBoundQ;
+
 
 	/** Called when the activity is first created. */
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		tts = new TextToSpeech(this, this);
+		tts.setLanguage(Locale.US);
+		tts.setSpeechRate(2.0f);
+		setTitle(((MyApplication) getApplication()).getIPAddress());
 		if(networkManager == null)
 		{
-			//eventually queues will be received in the interest engine only
-//			inBoundQ = ((MyApplication)this.getApplication()).getInBoundQ();
-//			outBoundQ = ((MyApplication)this.getApplication()).getOutBoundQ();
-
-			networkManager = BroadcastNetworkManager.instance(this, ((MyApplication)this.getApplication()).getLocationHolder());
+			networkManager = BroadcastNetworkManager.instance(this, ((MyApplication)this.getApplication()));
 			networkManager.startNetwork();
 		}
-		//Once you have this locHolder, simply call getCurrentLocation everytime you
-		//need a new location.
-		locHolder = ((MyApplication)this.getApplication()).getLocationHolder();
-		findViewById(R.id.fire).setOnClickListener(this);
+		
+		
+		findViewById(R.id.geo_message).setOnClickListener(this);
+		findViewById(R.id.broadcast_message).setOnClickListener(this);
 
 		String ns = Context.NOTIFICATION_SERVICE;
 		mNotificationManager = (NotificationManager) getSystemService(ns);
@@ -68,22 +70,10 @@ public class ProjectAActivity extends Activity implements OnClickListener, Recei
 	@Override
 	public void onClick(View arg0) {
 		// TODO Auto-generated method stub
-		if(arg0.getId() == R.id.fire)
+		if(arg0.getId() == R.id.geo_message)
 		{
 			counter++;
 
-			CharSequence tickerText = "Clicked me!";
-			long when = System.currentTimeMillis();
-
-//			int icon = R.drawable.ic_menu_info_details;
-//
-//			notification = new Notification(icon, tickerText, when);
-//			Intent notificationIntent = new Intent(this, ProjectAActivity.class);
-//			PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent,0);
-//			notification.flags |= Notification.FLAG_AUTO_CANCEL;
-//			notification.setLatestEventInfo(getApplicationContext(), "Clicked button " + counter + " times",
-//					"Click this notification to open the app", contentIntent);
-//			mNotificationManager.notify(1, notification);
 			ByteBuffer b = ByteBuffer.allocate(100);
 			b.putLong(counter);
 			byte[] nm = BroadcastNetworkManager.macAddressSet.getBytes();
@@ -97,13 +87,7 @@ public class ProjectAActivity extends Activity implements OnClickListener, Recei
 			loc.setLatitude(37.5);
 			loc.setLongitude(-73.25);
 			networkManager.getSender().sendMessage(loc, buff);
-			
-//			LocationArea origLoc = new LocationArea(loc);
-//			Event event = Event.getInstance(EventType.FIRE, new Timestamp(Calendar.getInstance().getTimeInMillis()), 
-//					"Temp01", 3, origLoc, origLoc, origLoc, "Adam", "Testing creation of event");
-//			MessageBuffer msgBuff = Coder.encodeEvent(event);
-//			Coder.decodeEvent(msgBuff);
-//			outBoundQ.toAppMsg(msgBuff);
+
 		}
 	}
 
@@ -124,6 +108,7 @@ public class ProjectAActivity extends Activity implements OnClickListener, Recei
 				EditText txt = (EditText)ProjectAActivity.this.findViewById(R.id.editText1);
 				String foo = new String ("Received Packet from: " + srce + " number: " + counter);
 				txt.setText(foo);
+				tts.speak(foo, TextToSpeech.QUEUE_ADD, null);
 			}});
 	}
 
@@ -141,6 +126,13 @@ public class ProjectAActivity extends Activity implements OnClickListener, Recei
 			Location originatingLocation, byte[] buff) {
 		// TODO Auto-generated method stub
 
+	}
+
+
+	@Override
+	public void onInit(int status) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 	

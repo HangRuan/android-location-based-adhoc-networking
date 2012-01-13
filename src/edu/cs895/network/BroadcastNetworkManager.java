@@ -29,6 +29,7 @@ import edu.cs895.LocationHolder;
 import edu.cs895.MyApplication;
 import edu.cs895.util.Constants;
 
+import android.app.Application;
 import android.content.Context;
 import android.location.Location;
 import android.net.wifi.WifiInfo;
@@ -42,7 +43,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	private Vector<Receiver> receivers = new Vector<Receiver>();
 	private DatagramSocket datagramSocket;
 	private int receiverPort = 8881;
-	private String subNetPart = "192.168.13.";
+	private String subNetPart = "192.168.42.";
 	private WifiManager wifi;
 	private Context ctxt;
 	private String macAddress;
@@ -51,11 +52,11 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	private static BroadcastNetworkManager pInstance = null;
 	private MulticastLock lock = null;
 	boolean networkStarted = false;
-	private LocationHolder locationHolder;
+	private MyApplication locationHolder;
 	private Map<String,HashSet<Long>> uniqueIDs = new HashMap<String, HashSet<Long> >();
 	public static String macAddressSet;
 
-	public static BroadcastNetworkManager instance(Context ctxt, LocationHolder locationHolder)
+	public static BroadcastNetworkManager instance(Context ctxt, MyApplication locationHolder)
 	{
 		if(pInstance == null)
 		{
@@ -64,7 +65,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		return pInstance;
 	}
 	
-	private BroadcastNetworkManager(Context ctxt, LocationHolder locationHolder){
+	private BroadcastNetworkManager(Context ctxt, MyApplication locationHolder){
 		this.ctxt = ctxt;
 		try{
 			datagramSocket = new DatagramSocket(8882);
@@ -87,7 +88,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 
 	private void sendMessage(Location loc, String macAddr, long count, byte[] buff)
 	{
-		if(checkIfIDsent(macAddress, counter))
+		if(checkIfIDsent(macAddr, counter))
 		{
 			return;
 		}
