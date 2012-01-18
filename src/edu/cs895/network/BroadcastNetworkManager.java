@@ -64,7 +64,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		}
 		return pInstance;
 	}
-	
+
 	private BroadcastNetworkManager(Context ctxt, MyApplication locationHolder){
 		this.ctxt = ctxt;
 		try{
@@ -98,7 +98,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		try{
 			dos.writeDouble(myLoc.getLatitude());
 			dos.writeDouble(myLoc.getLongitude());
-			
+
 			encodeMACAddress(dos, macAddr, count);
 			dos.writeShort(Constants.POINT_ADDRESS);
 			dos.writeDouble(loc.getLatitude());
@@ -123,15 +123,15 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void shuttingDown()
 	{
 		this.receiverThread.shuttingDown();
 	}
-	
+
 	@Override
 	public void sendMessage(Location loc, byte[] buff) {
-		
+
 		sendMessage(loc, macAddress, counter, buff);
 		counter++;
 	}
@@ -148,7 +148,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		try{
 			dos.writeDouble(myLoc.getLatitude());
 			dos.writeDouble(myLoc.getLongitude());
-			
+
 			encodeMACAddress(dos, macAddr, count);
 			dos.writeShort(Constants.SQUARE_REGION_ADDRESS);
 			dos.writeDouble(bottomLeft.getLatitude());
@@ -175,7 +175,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private boolean checkIfIDsent(String macAddr, long id)
 	{
 		boolean ret = false;
@@ -195,7 +195,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		}
 		return ret;
 	}
-	
+
 	@Override
 	public void sendMessage(Location bottomLeft, Location topRight,  byte[] buff)
 	{
@@ -205,26 +205,26 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		}
 		sendMessage(bottomLeft, topRight, macAddress, counter, buff);
 		counter++;
-		
+
 	}
 
 	public void sendMessage(Location center, double radius,String macAddress, long counter, byte[] buff)
 	{
-		
-		
+
+
 		Location myLoc = locationHolder.getCurrentLocation();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(baos);
 		try{
 			dos.writeDouble(myLoc.getLatitude());
 			dos.writeDouble(myLoc.getLongitude());
-			
+
 			encodeMACAddress(dos, macAddress, counter);
 			dos.writeShort(Constants.ROUND_REGION_ADDRESS);
 			dos.writeDouble(center.getLatitude());
 			dos.writeDouble(center.getLongitude());
 			dos.writeDouble(radius);
-			
+
 			dos.writeInt(buff.length);
 			dos.write(buff);
 			dos.flush();
@@ -245,7 +245,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Override
 	public void sendMessage(Location center, double radius, byte[] buff)
 	{
@@ -256,45 +256,10 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		sendMessage(center, radius, macAddress, counter, buff);
 		counter++;
 	}
-	
-	
-//	private  void resendMessage(Location center, double radius,  byte[] buff)
-//	{
-//		Location myLoc = locationHolder.getCurrentLocation();
-//		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//		DataOutputStream dos = new DataOutputStream(baos);
-//		try{
-//			dos.writeDouble(myLoc.getLatitude());
-//			dos.writeDouble(myLoc.getLongitude());
-//			
-//			//encodeMACAddress(dos);
-//			
-//			dos.writeShort(Constants.ROUND_REGION_ADDRESS);
-//			dos.writeDouble(center.getLatitude());
-//			dos.writeDouble(center.getLongitude());
-//			dos.writeDouble(radius);
-//			
-//			dos.writeInt(buff.length);
-//			dos.write(buff);
-//			dos.flush();
-//			dos.close();
-//		}
-//		catch(IOException ex)
-//		{
-//
-//		}
-//
-//		try {
-//			sendPacket(baos.toByteArray());
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (DataExceedsMaxSizeException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//	}
-	
+
+
+
+
 	private void encodeMACAddress(DataOutputStream dos, String macAddr, long count) throws IOException
 	{
 		macAddr = (macAddr ==null ? "foo":macAddr);
@@ -336,19 +301,18 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	 */
 	private boolean sendPacket(byte[] data) throws IOException, DataExceedsMaxSizeException{
 		if(data.length <= Constants.MAX_PACKAGE_SIZE){
-//			for(int i=1;i<20;i++)
-//			{
+
 			int i = 255;
-				InetAddress IPAddress = InetAddress.getByName(subNetPart + String.valueOf(i));
-				//do we have a packet to be broadcasted?
-				DatagramPacket sendPacket;
+			InetAddress IPAddress = InetAddress.getByName(subNetPart + String.valueOf(i));
+			//do we have a packet to be broadcasted?
+			DatagramPacket sendPacket;
 
-				//datagramSocket.setBroadcast(true);
-				sendPacket = new DatagramPacket(data, data.length, IPAddress, receiverPort);
+			//datagramSocket.setBroadcast(true);
+			sendPacket = new DatagramPacket(data, data.length, IPAddress, receiverPort);
 
-				//Toast.makeText(ctxt, "Sent Packet",  Toast.LENGTH_LONG);
-				datagramSocket.send(sendPacket);
-//			}
+			//Toast.makeText(ctxt, "Sent Packet",  Toast.LENGTH_LONG);
+			datagramSocket.send(sendPacket);
+
 			return true;
 		} else {
 			throw new DataExceedsMaxSizeException();
@@ -367,7 +331,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 			Location sourceLoc = new Location ("Other");
 			sourceLoc.setLatitude(dis.readDouble());
 			sourceLoc.setLongitude(dis.readDouble());
-			
+
 			int macAddressLength = dis.readInt();
 			String receivedMacAddress = new String();
 			for(int i=0;i<macAddressLength;i++)
@@ -380,23 +344,36 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 			{
 				return;
 			}
+			Location myLoc = locationHolder.getCurrentLocation();
 			short type = dis.readShort();
 			if(type == Constants.POINT_ADDRESS)
 			{
 				Location loc = new Location("Other");
 				loc.setLatitude(dis.readDouble());
 				loc.setLongitude(dis.readDouble());
-				
+
 				int lngth = dis.readInt();
 				byte[] buff = new byte[lngth];
 				dis.readFully(buff);
-				for(Receiver receiver:receivers)
+				//Is this packet destination my location?
+				if(loc.getLatitude() == myLoc.getLatitude() &&
+						loc.getLongitude() == myLoc.getLongitude())
 				{
-					receiver.receiveMessage(loc, sourceLoc, buff);
+					//Yes, then notify anyone who has registered interest
+					for(Receiver receiver:receivers)
+					{
+						receiver.receiveMessage(loc, sourceLoc, buff);
+					}
 				}
-				//resend message
-				//need to keep track of the unique ID so I don;t keep resending message
-				
+				else if(loc.getLatitude() == 360.0 &&
+						loc.getLongitude() == 360.0)
+				{
+					//If location is special location then
+					for(Receiver receiver:receivers)
+					{
+						receiver.receiveMessage(loc, sourceLoc, buff);
+					}
+				}
 				BroadcastNetworkManager.this.sendMessage(loc, receivedMacAddress, uniqueID, buff);
 			}
 			else if(type == Constants.SQUARE_REGION_ADDRESS)
@@ -407,7 +384,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 				Location topRight = new Location("Other");
 				topRight.setLatitude(dis.readDouble());
 				topRight.setLongitude(dis.readDouble());
-				
+
 				int lngth = dis.readInt();
 				byte[] buff = new byte[lngth];
 				dis.readFully(buff);
@@ -478,7 +455,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 					{
 						BroadcastNetworkManager.this.processPacket(buf);
 					}
-					
+
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

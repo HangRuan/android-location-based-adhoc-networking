@@ -6,12 +6,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 
-import edu.cs895.message.Coder;
-import edu.cs895.message.Event;
-import edu.cs895.message.EventType;
 
-import edu.cs895.message.MessageBuffer;
-import edu.cs895.message.TransferQueue;
 import edu.cs895.network.BroadcastNetworkManager;
 import edu.cs895.network.NetworkManager;
 import edu.cs895.network.Receiver;
@@ -89,6 +84,25 @@ public class ProjectAActivity extends Activity implements OnInitListener, OnClic
 			networkManager.getSender().sendMessage(loc, buff);
 
 		}
+		else if(arg0.getId() == R.id.broadcast_message)
+		{
+			counter++;
+
+			ByteBuffer b = ByteBuffer.allocate(100);
+			b.putLong(counter);
+			byte[] nm = BroadcastNetworkManager.macAddressSet.getBytes();
+			b.putLong(nm.length);
+			b.put(nm);
+
+			
+			byte[] buff = b.array();
+		
+			Location loc = new Location("Other");
+			loc.setLatitude(360);
+			loc.setLongitude(360);
+			networkManager.getSender().sendMessage(loc, buff);
+
+		}
 	}
 
 
@@ -106,7 +120,7 @@ public class ProjectAActivity extends Activity implements OnInitListener, OnClic
 				String srce = new String(dst);
 				//(Toast.makeText(ProjectAActivity.this, "Received Packet: " + counter,  Toast.LENGTH_SHORT)).show();
 				EditText txt = (EditText)ProjectAActivity.this.findViewById(R.id.editText1);
-				String foo = new String ("Received Packet from: " + srce + " number: " + counter);
+				String foo = new String ("Received Packet number: " + counter);
 				txt.setText(foo);
 				tts.speak(foo, TextToSpeech.QUEUE_ADD, null);
 			}});

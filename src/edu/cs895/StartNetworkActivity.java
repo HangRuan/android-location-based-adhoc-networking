@@ -91,7 +91,7 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 			{
 				cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
 			}
-			ipAddress = "192.168.42." +  String.valueOf(100*Math.random());
+			ipAddress = "192.168.42." +  String.valueOf((int)(100*Math.random()));
 			((MyApplication)StartNetworkActivity.this.getApplication()).setIPAddress(ipAddress);
 			if(val != null )
 			{

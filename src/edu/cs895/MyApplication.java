@@ -5,7 +5,7 @@ package edu.cs895;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.cs895.message.TransferQueue;
+
 import edu.cs895.network.BroadcastNetworkManager;
 import android.app.Application;
 import android.content.Context;
@@ -24,11 +24,11 @@ public class MyApplication extends Application {
 	public void onCreate()
 	{
 		super.onCreate();
-		if (Build.VERSION.SDK_INT == Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			Location loc2 = new Location("Other");
 			loc2.setBearing(250f);
-			loc2.setLatitude(38.843295);
-			loc2.setLongitude(-77.289147);
+			loc2.setLatitude(37.5);
+			loc2.setLongitude(-73.25);
 			loc2.setSpeed(1.9f);
 			location = loc2;
 		}
