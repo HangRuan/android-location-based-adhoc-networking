@@ -11,13 +11,9 @@ public interface Receiver {
 	 * network to stop reading data.
 	 * 
 	 * @param loc location that the packet was addressed to
+	 * @param radius radius of the region around the center location the packet is addressed to
 	 * @param buff data received in the packet.
 	 */
-	public void receiveMessage(Location targetLocation, Location originatingLocation, byte[] buff);
-	
-	public void receiveMessage(Location targetUpperLeft, Location targetLowerRight, 
-			Location originatingLocation, byte[] buff);
-	
 	public void receiveMessage(Location center, double radius, Location originatingLocation, byte[] buff);
 	
 }

@@ -1,37 +1,28 @@
 package edu.cs895;
 
 import java.nio.ByteBuffer;
-import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Locale;
+
 
 
 import edu.cs895.network.BroadcastNetworkManager;
 import edu.cs895.network.NetworkManager;
 import edu.cs895.network.Receiver;
 import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
-import android.content.Intent;
+
 import android.location.Location;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
+
 import android.widget.EditText;
-import android.widget.Toast;
+
 
 public class ProjectAActivity extends Activity implements OnInitListener, OnClickListener, Receiver {
 
 	private long counter = 0;
-	private LocationHolder locHolder;
-	private Notification notification;
-	private NotificationManager mNotificationManager;
 	NetworkManager networkManager;
 	private TextToSpeech tts = null;
 
@@ -56,8 +47,7 @@ public class ProjectAActivity extends Activity implements OnInitListener, OnClic
 		findViewById(R.id.geo_message).setOnClickListener(this);
 		findViewById(R.id.broadcast_message).setOnClickListener(this);
 
-		String ns = Context.NOTIFICATION_SERVICE;
-		mNotificationManager = (NotificationManager) getSystemService(ns);
+		
 		networkManager.registerReceiver(this);
 	}
 
@@ -81,7 +71,7 @@ public class ProjectAActivity extends Activity implements OnInitListener, OnClic
 			Location loc = new Location("Other");
 			loc.setLatitude(37.5);
 			loc.setLongitude(-73.25);
-			networkManager.getSender().sendMessage(loc, buff);
+			networkManager.getSender().sendMessage(loc, 200.0, buff);
 
 		}
 		else if(arg0.getId() == R.id.broadcast_message)
@@ -100,16 +90,18 @@ public class ProjectAActivity extends Activity implements OnInitListener, OnClic
 			Location loc = new Location("Other");
 			loc.setLatitude(360);
 			loc.setLongitude(360);
-			networkManager.getSender().sendMessage(loc, buff);
+			networkManager.getSender().sendMessage(loc, -1.0, buff);
 
 		}
 	}
 
 
 	@Override
-	public void receiveMessage(Location targetLocation,
+	public void receiveMessage(Location center_in, double radius_in,
 			Location originatingLocation, byte[] buff) {
 		final byte[] bytes =buff;
+		final Location  center = center_in;
+		final double radius = radius_in;
 		runOnUiThread(new Runnable() {
 			public void run() {
 				ByteBuffer b = ByteBuffer.wrap(bytes);
@@ -121,24 +113,9 @@ public class ProjectAActivity extends Activity implements OnInitListener, OnClic
 				//(Toast.makeText(ProjectAActivity.this, "Received Packet: " + counter,  Toast.LENGTH_SHORT)).show();
 				EditText txt = (EditText)ProjectAActivity.this.findViewById(R.id.editText1);
 				String foo = new String ("Received Packet number: " + counter);
-				txt.setText(foo);
+				txt.setText(foo + " lat: " + center.getLatitude() + " lon: "+ center.getLongitude() + " radius: " + radius);
 				tts.speak(foo, TextToSpeech.QUEUE_ADD, null);
 			}});
-	}
-
-
-	@Override
-	public void receiveMessage(Location targetUpperLeft,
-			Location targetLowerRight, Location originatingLocation, byte[] buff) {
-		// TODO Auto-generated method stub
-
-	}
-
-
-	@Override
-	public void receiveMessage(Location center, double radius,
-			Location originatingLocation, byte[] buff) {
-		// TODO Auto-generated method stub
 
 	}
 
