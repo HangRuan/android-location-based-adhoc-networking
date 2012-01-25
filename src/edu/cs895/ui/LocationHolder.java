@@ -1,4 +1,4 @@
-package edu.cs895;
+package edu.cs895.ui;
 
 import android.location.Location;
 import android.location.LocationListener;

@@ -1,4 +1,4 @@
-package edu.cs895;
+package edu.cs895.ui;
 
 
 
@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 
+import edu.cs895.R;
 import edu.cs895.network.BroadcastNetworkManager;
 import edu.cs895.util.Constants;
 import edu.cs895.util.MyProgressDialog;

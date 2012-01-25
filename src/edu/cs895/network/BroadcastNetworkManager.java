@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
-import edu.cs895.LocationHolder;
-import edu.cs895.MyApplication;
+import edu.cs895.ui.LocationHolder;
+import edu.cs895.ui.MyApplication;
 import edu.cs895.util.Constants;
 
 import android.app.Application;
@@ -119,7 +119,10 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	public void sendMessage(Location center, double radius,String macAddress, long counter, byte[] buff)
 	{
 
-
+		if(checkIfIDsent(macAddress, counter))
+		{
+			return;
+		}
 		Location myLoc = locationHolder.getCurrentLocation();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(baos);
@@ -157,10 +160,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	@Override
 	public void sendMessage(Location center, double radius, byte[] buff)
 	{
-		if(checkIfIDsent(macAddress, counter))
-		{
-			return;
-		}
+		
 		sendMessage(center, radius, macAddress, counter, buff);
 		counter++;
 	}

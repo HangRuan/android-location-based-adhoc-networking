@@ -8,4 +8,6 @@
     <string name="wifi_channel">Wifi Channel</string>
     <string name="geoMessage">Geo Message</string>
     <string name="broadcastMessage">Broadcast Message</string>
+    <string name="start_auto_send">Start Auto Send</string>
+    <string name="stop_auto_send">Stop Auto Send</string>
 </resources>

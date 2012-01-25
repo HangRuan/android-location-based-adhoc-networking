@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<item android:title="@string/start_auto_send" android:icon="@drawable/ic_menu_play_clip" android:id="@+id/startAutoSend"></item>
+<item android:title="@string/stop_auto_send" android:icon="@drawable/ic_menu_stop" android:id="@+id/stopAutoSend"></item>
+</menu>
+

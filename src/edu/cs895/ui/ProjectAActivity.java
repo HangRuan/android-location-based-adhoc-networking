@@ -1,23 +1,30 @@
-package edu.cs895;
+package edu.cs895.ui;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.Selector;
 import java.util.Locale;
 
-
-
+import edu.cs895.R;
 import edu.cs895.network.BroadcastNetworkManager;
 import edu.cs895.network.NetworkManager;
 import edu.cs895.network.Receiver;
 import android.app.Activity;
-
 import android.location.Location;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 
 import android.widget.EditText;
+
 
 
 public class ProjectAActivity extends Activity implements OnInitListener, OnClickListener, Receiver {
@@ -25,7 +32,7 @@ public class ProjectAActivity extends Activity implements OnInitListener, OnClic
 	private long counter = 0;
 	NetworkManager networkManager;
 	private TextToSpeech tts = null;
-
+	private SenderThread sender;
 
 
 	/** Called when the activity is first created. */
@@ -57,21 +64,7 @@ public class ProjectAActivity extends Activity implements OnInitListener, OnClic
 		// TODO Auto-generated method stub
 		if(arg0.getId() == R.id.geo_message)
 		{
-			counter++;
-
-			ByteBuffer b = ByteBuffer.allocate(100);
-			b.putLong(counter);
-			byte[] nm = BroadcastNetworkManager.macAddressSet.getBytes();
-			b.putLong(nm.length);
-			b.put(nm);
-
-			
-			byte[] buff = b.array();
-		
-			Location loc = new Location("Other");
-			loc.setLatitude(37.5);
-			loc.setLongitude(-73.25);
-			networkManager.getSender().sendMessage(loc, 200.0, buff);
+			sendGeoMessage();
 
 		}
 		else if(arg0.getId() == R.id.broadcast_message)
@@ -95,6 +88,24 @@ public class ProjectAActivity extends Activity implements OnInitListener, OnClic
 		}
 	}
 
+	private void sendGeoMessage()
+	{
+		counter++;
+
+		ByteBuffer b = ByteBuffer.allocate(100);
+		b.putLong(counter);
+		byte[] nm = BroadcastNetworkManager.macAddressSet.getBytes();
+		b.putLong(nm.length);
+		b.put(nm);
+
+		
+		byte[] buff = b.array();
+	
+		Location loc = new Location("Other");
+		loc.setLatitude(37.5);
+		loc.setLongitude(-73.25);
+		networkManager.getSender().sendMessage(loc, 200.0, buff);
+	}
 
 	@Override
 	public void receiveMessage(Location center_in, double radius_in,
@@ -114,18 +125,74 @@ public class ProjectAActivity extends Activity implements OnInitListener, OnClic
 				EditText txt = (EditText)ProjectAActivity.this.findViewById(R.id.editText1);
 				String foo = new String ("Received Packet number: " + counter);
 				txt.setText(foo + " lat: " + center.getLatitude() + " lon: "+ center.getLongitude() + " radius: " + radius);
-				tts.speak(foo, TextToSpeech.QUEUE_ADD, null);
+				String foo2 = new String ("Packet: " + counter);
+				tts.speak(foo2, TextToSpeech.QUEUE_ADD, null);
 			}});
 
 	}
 
-
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+	    MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.options, menu);
+	    return true;
+	}
+	
+	@Override
+	public boolean onOptionsItemSelected (MenuItem item)
+	{
+		boolean ret = false;
+		if(item.getItemId() == R.id.startAutoSend)
+		{
+			if(sender == null)
+			{
+				 sender = new SenderThread();
+				 sender.start();
+			}
+		}
+		else if(item.getItemId() == R.id.stopAutoSend)
+		{
+			if(sender != null)
+			{
+				sender.stopSending();
+				sender = null;
+			}
+			
+		}
+		return ret;
+			
+	}
 	@Override
 	public void onInit(int status) {
 		// TODO Auto-generated method stub
 		
 	}
 	
+	
+	private class SenderThread extends Thread {
+		
+		private boolean sending = true;;
+		
+		public void run() {
+			while(sending)
+			{
+				sendGeoMessage();
+				try{
+					sleep(5000);
+				}
+				catch(Throwable e)
+				{
+					e.printStackTrace();
+				}
+			}
+
+		}
+
+		public void stopSending()
+		{
+			sending = false;
+		}
+	}
 	
 
 }
