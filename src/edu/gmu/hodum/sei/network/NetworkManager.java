@@ -1,6 +1,5 @@
 package edu.gmu.hodum.sei.network;
 
-import android.location.Location;
 
 public interface NetworkManager {
 	

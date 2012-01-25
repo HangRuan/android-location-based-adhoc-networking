@@ -42,8 +42,9 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 
 	private Vector<Receiver> receivers = new Vector<Receiver>();
 	private DatagramSocket datagramSocket;
-	private int receiverPort = 8881;
-	private String subNetPart = "192.168.42.";
+	private final static int senderPort = 8882;
+	private final static int receiverPort = 8881;
+	
 	private WifiManager wifi;
 	private Context ctxt;
 	private String macAddress;
@@ -51,10 +52,10 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	private SelectorThread receiverThread = null;
 	private static BroadcastNetworkManager pInstance = null;
 	private MulticastLock lock = null;
-	boolean networkStarted = false;
+	private boolean networkStarted = false;
 	private MyApplication locationHolder;
 	private Map<String,HashSet<Long>> uniqueIDs = new HashMap<String, HashSet<Long> >();
-	public static String macAddressSet;
+	public static String uniqueID;
 
 	public static BroadcastNetworkManager instance(Context ctxt, MyApplication locationHolder)
 	{
@@ -65,10 +66,10 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		return pInstance;
 	}
 
-	private BroadcastNetworkManager(Context ctxt, MyApplication locationHolder){
-		this.ctxt = ctxt;
+	private BroadcastNetworkManager(Context contxt, MyApplication locationHolder){
+		this.ctxt = contxt;
 		try{
-			datagramSocket = new DatagramSocket(8882);
+			datagramSocket = new DatagramSocket(senderPort);
 		}catch(Exception e)
 		{
 			e.printStackTrace();
@@ -82,7 +83,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		macAddress = wifi.getConnectionInfo().getMacAddress();
 		if(macAddress == null)
 		{
-			macAddress = macAddressSet;
+			macAddress = uniqueID;
 		}
 	}
 
@@ -91,35 +92,20 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	{
 		this.receiverThread.shuttingDown();
 	}
-
-
-
-	private boolean checkIfIDsent(String macAddr, long id)
+	
+	@Override
+	public void sendMessage(Location center, double radius, byte[] buff)
 	{
-		boolean ret = false;
-		HashSet<Long> ids = uniqueIDs.get(macAddr);
-		if(ids != null)
-		{
-			if(!ids.add(new Long(id)))
-			{
-				ret = true;
-			}
-		}
-		else
-		{
-			ids = new HashSet<Long>();
-			ids.add(new Long(id));
-			uniqueIDs.put(macAddr, ids);
-		}
-		return ret;
+		
+		sendMessage(center, radius, macAddress, counter, buff);
+		counter++;
 	}
 
 
-
-	public void sendMessage(Location center, double radius,String macAddress, long counter, byte[] buff)
+	private void sendMessage(Location center, double radius,String uniqueId, long counter, byte[] buff)
 	{
 
-		if(checkIfIDsent(macAddress, counter))
+		if(checkIfIDsent(uniqueId, counter))
 		{
 			return;
 		}
@@ -130,7 +116,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 			dos.writeDouble(myLoc.getLatitude());
 			dos.writeDouble(myLoc.getLongitude());
 
-			encodeMACAddress(dos, macAddress, counter);
+			encoodeUniqueID(dos, uniqueId, counter);
 			dos.writeShort(Constants.ROUND_REGION_ADDRESS);
 			dos.writeDouble(center.getLatitude());
 			dos.writeDouble(center.getLongitude());
@@ -157,23 +143,32 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		}
 	}
 
-	@Override
-	public void sendMessage(Location center, double radius, byte[] buff)
+	private void encoodeUniqueID(DataOutputStream dos, String uniqueID, long count) throws IOException
 	{
-		
-		sendMessage(center, radius, macAddress, counter, buff);
-		counter++;
+		uniqueID = (uniqueID ==null ? "foo":uniqueID);
+		dos.writeInt(uniqueID.length());
+		dos.writeChars(uniqueID);
+		dos.writeLong(count);
 	}
 
-
-
-
-	private void encodeMACAddress(DataOutputStream dos, String macAddr, long count) throws IOException
+	private boolean checkIfIDsent(String uniqueID, long id)
 	{
-		macAddr = (macAddr ==null ? "foo":macAddr);
-		dos.writeInt(macAddr.length());
-		dos.writeChars(macAddr);
-		dos.writeLong(count);
+		boolean ret = false;
+		HashSet<Long> ids = uniqueIDs.get(uniqueID);
+		if(ids != null)
+		{
+			if(!ids.add(new Long(id)))
+			{
+				ret = true;
+			}
+		}
+		else
+		{
+			ids = new HashSet<Long>();
+			ids.add(new Long(id));
+			uniqueIDs.put(uniqueID, ids);
+		}
+		return ret;
 	}
 
 	@Override
@@ -210,8 +205,8 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	private boolean sendPacket(byte[] data) throws IOException, DataExceedsMaxSizeException{
 		if(data.length <= Constants.MAX_PACKAGE_SIZE){
 
-			int i = 255;
-			InetAddress IPAddress = InetAddress.getByName(subNetPart + String.valueOf(i));
+			
+			InetAddress IPAddress = InetAddress.getByName(Constants.broadcastAddress);
 			//do we have a packet to be broadcasted?
 			DatagramPacket sendPacket;
 

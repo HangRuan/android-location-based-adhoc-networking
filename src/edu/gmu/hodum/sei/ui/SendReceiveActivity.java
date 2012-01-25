@@ -27,7 +27,7 @@ import android.widget.EditText;
 
 
 
-public class ProjectAActivity extends Activity implements OnInitListener, OnClickListener, Receiver {
+public class SendReceiveActivity extends Activity implements OnInitListener, OnClickListener, Receiver {
 
 	private long counter = 0;
 	NetworkManager networkManager;
@@ -73,7 +73,7 @@ public class ProjectAActivity extends Activity implements OnInitListener, OnClic
 
 			ByteBuffer b = ByteBuffer.allocate(100);
 			b.putLong(counter);
-			byte[] nm = BroadcastNetworkManager.macAddressSet.getBytes();
+			byte[] nm = BroadcastNetworkManager.uniqueID.getBytes();
 			b.putLong(nm.length);
 			b.put(nm);
 
@@ -94,7 +94,7 @@ public class ProjectAActivity extends Activity implements OnInitListener, OnClic
 
 		ByteBuffer b = ByteBuffer.allocate(100);
 		b.putLong(counter);
-		byte[] nm = BroadcastNetworkManager.macAddressSet.getBytes();
+		byte[] nm = BroadcastNetworkManager.uniqueID.getBytes();
 		b.putLong(nm.length);
 		b.put(nm);
 
@@ -122,7 +122,7 @@ public class ProjectAActivity extends Activity implements OnInitListener, OnClic
 				b.get(dst, 0, (int)length);
 				String srce = new String(dst);
 				//(Toast.makeText(ProjectAActivity.this, "Received Packet: " + counter,  Toast.LENGTH_SHORT)).show();
-				EditText txt = (EditText)ProjectAActivity.this.findViewById(R.id.editText1);
+				EditText txt = (EditText)SendReceiveActivity.this.findViewById(R.id.editText1);
 				String foo = new String ("Received Packet number: " + counter);
 				txt.setText(foo + " lat: " + center.getLatitude() + " lon: "+ center.getLongitude() + " radius: " + radius);
 				String foo2 = new String ("Packet: " + counter);

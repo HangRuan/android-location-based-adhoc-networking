@@ -63,11 +63,11 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 		dialog.show("Starting AdHoc Network..", null);
 		if(v.getId() == R.id.start_network)
 		{
-			BroadcastNetworkManager.macAddressSet = ((MyApplication) getApplication()).getUniqueID();
+			BroadcastNetworkManager.uniqueID = ((MyApplication) getApplication()).getUniqueID();
 
 		}
 		channel = ((EditText)findViewById(R.id.wifi_channel)).getText().toString();
-		new MyAsyncTask().execute(BroadcastNetworkManager.macAddressSet);
+		new MyAsyncTask().execute(BroadcastNetworkManager.uniqueID);
 
 	}
 
@@ -92,7 +92,7 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 			{
 				cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
 			}
-			ipAddress = "192.168.42." +  String.valueOf((int)(100*Math.random()));
+			ipAddress = Constants.networkPrefix +  String.valueOf((int)(100*Math.random()));
 			((MyApplication)StartNetworkActivity.this.getApplication()).setIPAddress(ipAddress);
 			if(val != null )
 			{
@@ -131,7 +131,7 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 
 
 			dialog.cancel();;
-			Intent newIntent = new Intent(StartNetworkActivity.this, ProjectAActivity.class);
+			Intent newIntent = new Intent(StartNetworkActivity.this, SendReceiveActivity.class);
 			startActivity(newIntent);
 			StartNetworkActivity.this.finish();
 			return null;
