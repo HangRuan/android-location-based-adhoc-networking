@@ -1,4 +1,4 @@
-package edu.cs895.ui;
+package edu.gmu.hodum.sei.ui;
 
 
 
@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-import edu.cs895.network.BroadcastNetworkManager;
+import edu.gmu.hodum.sei.network.BroadcastNetworkManager;
 import android.app.Application;
 import android.content.Context;
 import android.location.Location;

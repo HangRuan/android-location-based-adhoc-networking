@@ -1,4 +1,4 @@
-package edu.cs895.ui;
+package edu.gmu.hodum.sei.ui;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -9,9 +9,9 @@ import java.nio.channels.Selector;
 import java.util.Locale;
 
 import edu.cs895.R;
-import edu.cs895.network.BroadcastNetworkManager;
-import edu.cs895.network.NetworkManager;
-import edu.cs895.network.Receiver;
+import edu.gmu.hodum.sei.network.BroadcastNetworkManager;
+import edu.gmu.hodum.sei.network.NetworkManager;
+import edu.gmu.hodum.sei.network.Receiver;
 import android.app.Activity;
 import android.location.Location;
 import android.os.Bundle;

@@ -1,4 +1,4 @@
-package edu.cs895.util;
+package edu.gmu.hodum.sei.util;
 
 import java.util.NoSuchElementException;
 

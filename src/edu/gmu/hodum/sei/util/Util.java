@@ -1,4 +1,4 @@
-package edu.cs895.util;
+package edu.gmu.hodum.sei.util;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

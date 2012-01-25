@@ -1,4 +1,4 @@
-package edu.cs895.ui;
+package edu.gmu.hodum.sei.ui;
 
 
 
@@ -9,10 +9,10 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 
 import edu.cs895.R;
-import edu.cs895.network.BroadcastNetworkManager;
-import edu.cs895.util.Constants;
-import edu.cs895.util.MyProgressDialog;
-import edu.cs895.util.Util;
+import edu.gmu.hodum.sei.network.BroadcastNetworkManager;
+import edu.gmu.hodum.sei.util.Constants;
+import edu.gmu.hodum.sei.util.MyProgressDialog;
+import edu.gmu.hodum.sei.util.Util;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;

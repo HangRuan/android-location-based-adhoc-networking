@@ -1,4 +1,4 @@
-package edu.cs895.ui;
+package edu.gmu.hodum.sei.ui;
 
 import android.location.Location;
 import android.location.LocationListener;
