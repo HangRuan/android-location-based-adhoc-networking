@@ -130,6 +130,29 @@ public class SendReceiveActivity extends Activity implements OnInitListener, OnC
 			}});
 
 	}
+	
+	//############DEBUG ONLY method!
+	@Override
+	public void debugMessage(Location center_in, double radius_in,
+			Location originatingLocation, byte[] buff) {
+		final byte[] bytes =buff;
+		final Location  center = center_in;
+		final double radius = radius_in;
+		runOnUiThread(new Runnable() {
+			public void run() {
+				ByteBuffer b = ByteBuffer.wrap(bytes);
+				long counter = b.getLong();
+				long length = b.getLong();
+				byte[] dst = new byte[(int)length];
+				b.get(dst, 0, (int)length);
+				String srce = new String(dst);
+				//(Toast.makeText(ProjectAActivity.this, "Received Packet: " + counter,  Toast.LENGTH_SHORT)).show();
+				EditText txt = (EditText)SendReceiveActivity.this.findViewById(R.id.debugMessages);
+				String foo = new String ("Received Packet number: " + counter);
+				txt.setText(foo + " lat: " + center.getLatitude() + " lon: "+ center.getLongitude() + " radius: " + radius);
+			}});
+
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {

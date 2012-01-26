@@ -54,11 +54,6 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 
 	@Override
 	public void onClick(View v) {
-		// TODO Auto-generated method stub
-
-
-
-
 		dialog = new MyProgressDialog(this);
 		dialog.show("Starting AdHoc Network..", null);
 		if(v.getId() == R.id.start_network)
@@ -114,7 +109,7 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 					output.writeBytes(cmd3);
 					output.writeBytes(cmd4);
 					output.writeBytes(cmd5);
-					//output.writeBytes(cmd6);
+					
 					output.writeBytes("exit \n");
 					output.writeBytes("exit \n");
 					int exit = p.waitFor();

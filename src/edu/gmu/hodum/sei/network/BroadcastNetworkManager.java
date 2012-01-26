@@ -105,10 +105,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	private void sendMessage(Location center, double radius,String uniqueId, long counter, byte[] buff)
 	{
 
-		if(checkIfIDsent(uniqueId, counter))
-		{
-			return;
-		}
+		
 		Location myLoc = locationHolder.getCurrentLocation();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(baos);
@@ -263,6 +260,14 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 					for(Receiver receiver:receivers)
 					{
 						receiver.receiveMessage(center, radius, sourceLoc, buff);
+					}
+				}
+				//####DEBUG ONLY!!!
+				else
+				{
+					for(Receiver receiver:receivers)
+					{
+						receiver.debugMessage(center, radius, sourceLoc, buff);
 					}
 				}
 				//resend message

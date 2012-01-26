@@ -16,4 +16,8 @@ public interface Receiver {
 	 */
 	public void receiveMessage(Location center, double radius, Location originatingLocation, byte[] buff);
 	
+	
+	
+	//####DEBUG ONLY Method!!
+	public void debugMessage(Location center, double radius, Location originatingLocation, byte[] buff);
 }
