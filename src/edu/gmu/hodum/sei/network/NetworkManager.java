@@ -7,7 +7,7 @@ public interface NetworkManager {
 	
 	public boolean removeReceiver(Receiver receiver);
 	
-	public void startNetwork();
+	public void beginReceivingPackets();
 	
 	public Sender getSender();
 	

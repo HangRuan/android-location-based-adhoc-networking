@@ -47,7 +47,7 @@ public class SendReceiveActivity extends Activity implements OnInitListener, OnC
 		if(networkManager == null)
 		{
 			networkManager = BroadcastNetworkManager.instance(this, ((MyApplication)this.getApplication()));
-			networkManager.startNetwork();
+			networkManager.beginReceivingPackets();
 		}
 		
 		

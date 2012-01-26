@@ -180,7 +180,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	}
 
 	@Override
-	public void startNetwork() {
+	public void beginReceivingPackets() {
 		if(!networkStarted)
 		{
 			// TODO Auto-generated method stub
