@@ -96,7 +96,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	@Override
 	public void sendMessage(Location center, double radius, byte[] buff)
 	{
-		
+		checkIfIDsent(macAddress,counter);
 		sendMessage(center, radius, macAddress, counter, buff);
 		counter++;
 	}
@@ -238,9 +238,9 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 			{
 				receivedMacAddress+= dis.readChar();
 			}
-			long uniqueID = dis.readLong();
+			long packetUniqueID = dis.readLong();
 			//Check if I hav seen this, if so, just return
-			if(checkIfIDsent(receivedMacAddress,uniqueID))
+			if(checkIfIDsent(receivedMacAddress,packetUniqueID))
 			{
 				return;
 			}
@@ -272,7 +272,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 				}
 				//resend message
 				//need to keep track of the unique ID so I don;t keep resending message
-				BroadcastNetworkManager.this.sendMessage(center, radius, receivedMacAddress, uniqueID, buff);
+				BroadcastNetworkManager.this.sendMessage(center, radius, receivedMacAddress, packetUniqueID, buff);
 			}
 
 		}

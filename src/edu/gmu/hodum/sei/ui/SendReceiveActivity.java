@@ -9,6 +9,7 @@ import java.nio.channels.Selector;
 import java.util.Locale;
 
 import edu.cs895.R;
+import edu.gmu.hodum.sei.heartbeatprotocol.HeartbeatSender;
 import edu.gmu.hodum.sei.network.BroadcastNetworkManager;
 import edu.gmu.hodum.sei.network.NetworkManager;
 import edu.gmu.hodum.sei.network.Receiver;
@@ -33,6 +34,7 @@ public class SendReceiveActivity extends Activity implements OnInitListener, OnC
 	NetworkManager networkManager;
 	private TextToSpeech tts = null;
 	private SenderThread sender;
+	HeartbeatSender heartbeatSender;
 
 
 	/** Called when the activity is first created. */
@@ -54,8 +56,10 @@ public class SendReceiveActivity extends Activity implements OnInitListener, OnC
 		findViewById(R.id.geo_message).setOnClickListener(this);
 		findViewById(R.id.broadcast_message).setOnClickListener(this);
 
-		
-		networkManager.registerReceiver(this);
+		//###HACK commented out so I don't have to redo all of this to send the user packets in SEI
+		//networkManager.registerReceiver(this);
+		heartbeatSender = new HeartbeatSender(networkManager.getSender(), (MyApplication)getApplication(),this);
+		networkManager.registerReceiver(heartbeatSender);
 	}
 
 
@@ -69,21 +73,22 @@ public class SendReceiveActivity extends Activity implements OnInitListener, OnC
 		}
 		else if(arg0.getId() == R.id.broadcast_message)
 		{
-			counter++;
-
-			ByteBuffer b = ByteBuffer.allocate(100);
-			b.putLong(counter);
-			byte[] nm = BroadcastNetworkManager.uniqueID.getBytes();
-			b.putLong(nm.length);
-			b.put(nm);
-
-			
-			byte[] buff = b.array();
-		
-			Location loc = new Location("Other");
-			loc.setLatitude(360);
-			loc.setLongitude(360);
-			networkManager.getSender().sendMessage(loc, -1.0, buff);
+//			counter++;
+//
+//			ByteBuffer b = ByteBuffer.allocate(100);
+//			b.putLong(counter);
+//			byte[] nm = BroadcastNetworkManager.uniqueID.getBytes();
+//			b.putLong(nm.length);
+//			b.put(nm);
+//
+//			
+//			byte[] buff = b.array();
+//		
+//			Location loc = new Location("Other");
+//			loc.setLatitude(360);
+//			loc.setLongitude(360);
+//			networkManager.getSender().sendMessage(loc, -1.0, buff);
+			heartbeatSender.startDiscovery();
 
 		}
 	}
@@ -215,6 +220,18 @@ public class SendReceiveActivity extends Activity implements OnInitListener, OnC
 		{
 			sending = false;
 		}
+	}
+
+
+	public void debugMessage(String msg) {
+		// TODO Auto-generated method stub
+		final String message = msg;
+		runOnUiThread(new Runnable() {
+			public void run() {
+				EditText txt = (EditText)SendReceiveActivity.this.findViewById(R.id.debugMessages);
+				txt.setText("Got: " + message);
+			}
+		});
 	}
 	
 
