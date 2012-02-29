@@ -20,7 +20,7 @@ public class Util {
 		R.raw.libhardware_legacy, R.raw.script_nexus, R.raw.tiwlan, R.raw.wpa_supplicant, R.raw.script_evo};
  
 	static String[] fileNames = {Constants.HERO_SCRIPT, "adhoc_load", "adhoc.ini", "iwconfig", 
-		"libhardware_legacy.so" ,"script_nexus", "tiwlan", "wpa_supplicant", "script_evo"};
+		"libhardware_legacy.so" ,"script_nexus", "tiwlan.ini", "wpa_supplicant", "script_evo"};
 	static public void copyScripts(Context ctxt) {
 
 		for(int i=0; i<resources.length;i++)
