@@ -1,80 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
-    <LinearLayout
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+
+    <TextView
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_gravity="center_horizontal"
-        android:orientation="vertical" >
+        android:layout_height="wrap_content"
+        android:text="@string/hello" />
 
-        <TextView
-            android:id="@+id/textView1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:gravity="center_horizontal"
-            android:text="Buttons to do stuff"
-            android:textSize="20dp" >
-        </TextView>
-
-        <LinearLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="15dip"
-            android:gravity="center|center_horizontal"
-            android:orientation="horizontal" >
-
-            <Button
-                android:id="@+id/geo_message"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginRight="5dp"
-                android:text="@string/geoMessage" >
-            </Button>
-
-            <Button
-                android:id="@+id/broadcast_message"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:text="@string/broadcastMessage" >
-            </Button>
-        </LinearLayout>
-
-        <EditText
-            android:id="@+id/editText1"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
-            android:layout_marginTop="10dp"
-            android:clickable="false"
-            android:focusable="false"
-            android:maxLines="3"
-            android:minLines="3" >
-        </EditText>
-
-        <TextView
-            android:id="@+id/textView1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="Debug only messages:"
-            android:textSize="20dp" >
-        </TextView>
-
-        <EditText
-            android:id="@+id/debugMessages"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
-            android:layout_marginTop="10dp"
-            android:clickable="false"
-            android:focusable="false"
-            android:maxLines="3"
-            android:minLines="3" />
-    </LinearLayout>
-
-</ScrollView>
+</LinearLayout>
