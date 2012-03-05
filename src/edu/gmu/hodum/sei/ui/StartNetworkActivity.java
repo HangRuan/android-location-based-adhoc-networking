@@ -16,6 +16,7 @@ import edu.gmu.hodum.sei.util.Util;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -54,16 +55,23 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 
 	@Override
 	public void onClick(View v) {
-		dialog = new MyProgressDialog(this);
-		dialog.show("Starting AdHoc Network..", null);
-		if(v.getId() == R.id.start_network)
-		{
-			BroadcastNetworkManager.uniqueID = ((MyApplication) getApplication()).getUniqueID();
-
-		}
-		channel = ((EditText)findViewById(R.id.wifi_channel)).getText().toString();
-		new MyAsyncTask().execute(BroadcastNetworkManager.uniqueID);
-
+//		dialog = new MyProgressDialog(this);
+//		dialog.show("Starting AdHoc Network..", null);
+		//		if(v.getId() == R.id.start_network)
+		//		{
+		//			BroadcastNetworkManager.uniqueID = ((MyApplication) getApplication()).getUniqueID();
+		//
+		//		}
+		//		channel = ((EditText)findViewById(R.id.wifi_channel)).getText().toString();
+		//		new MyAsyncTask().execute(BroadcastNetworkManager.uniqueID);
+		//Dumb test to try and get a Broadcast Receiver to hear me
+		Intent broadcastIntent = new Intent();
+		broadcastIntent.setAction("edu.gmu.hodum.INITIALIZE_NETWORK");
+		//Uri foo = new Uri()
+		broadcastIntent.setData(Uri.parse("foo"));// "text/plain");
+		String scheme = broadcastIntent.getData().getScheme();
+		broadcastIntent.putExtra("Foo", "foo");
+		this.sendBroadcast(broadcastIntent);	
 	}
 
 
@@ -73,67 +81,66 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 		@Override
 		protected Object doInBackground(Object... params) {
 
-			String val = null;
-			if(params != null)
-			{
-				val = (String)params[0];
-			}
-			String cmd1;
-			String cmd1a = null;
-			String networkName = "eth0 ";
-			if (Build.VERSION.SDK_INT == Build.VERSION_CODES.ICE_CREAM_SANDWICH) 
-			{
-				cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329_apsta.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
-			}
-			else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.GINGERBREAD_MR1)
-			{
-				cmd1 = "busybox insmod /system/lib/modules/tiwlan_drv.ko\n";
-				cmd1a = "wlan_loader -f /system/etc/wifi/fw_wlan1271.bin -i " + getFilesDir() + "/tiwlan.ini\n";
-				networkName = "tiwlan0 ";
-			}
-			else
-			{
-				cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
-			}
-			ipAddress = Constants.networkPrefix +  String.valueOf((int)(100*Math.random()));
-			((MyApplication)StartNetworkActivity.this.getApplication()).setIPAddress(ipAddress);
-			if(val != null )
-			{
-				try {
+			//			String val = null;
+			//			if(params != null)
+			//			{
+			//				val = (String)params[0];
+			//			}
+			//			String cmd1;
+			//			String cmd1a = null;
+			//			String networkName = "eth0 ";
+			//			if (Build.VERSION.SDK_INT == Build.VERSION_CODES.ICE_CREAM_SANDWICH) 
+			//			{
+			//				cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329_apsta.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
+			//			}
+			//			else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.GINGERBREAD_MR1)
+			//			{
+			//				cmd1 = "busybox insmod /system/lib/modules/tiwlan_drv.ko\n";
+			//				cmd1a = "wlan_loader -f /system/etc/wifi/fw_wlan1271.bin -i " + getFilesDir() + "/tiwlan.ini\n";
+			//				networkName = "tiwlan0 ";
+			//			}
+			//			else
+			//			{
+			//				cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
+			//			}
+			//			ipAddress = Constants.networkPrefix +  String.valueOf((int)(100*Math.random()));
+			//			((MyApplication)StartNetworkActivity.this.getApplication()).setIPAddress(ipAddress);
+			//
+			//			try {
+			//
+			//				String su = "su";
+			//				String cmd2 = "ifconfig " + networkName  + ipAddress + " netmask 255.255.255.0\n";// getFilesDir() + "/" + Constants.NEXUS_SCRIPT1 + " load \n";
+			//				String cmd3 = getFilesDir() + "/" + "iwconfig " + networkName + "mode ad-hoc\n";
+			//				String cmd4 = getFilesDir() + "/" + "iwconfig " + networkName +" channel " + StartNetworkActivity.this.channel + "\n";
+			//				String cmd5 = getFilesDir() + "/" + "iwconfig " + networkName + " essid SEI_GMU_Test\n";
+			//				String cmd6 = getFilesDir() + "/" + "iwconfig " + networkName + " key 6741744573\n";
+			//				Process p = null; 
+			//				p = Runtime.getRuntime().exec(su);
+			//				DataOutputStream  output=new DataOutputStream(p.getOutputStream());
+			//				InputStream inputStrm = p.getInputStream();
+			//				InputStream errorStrm = p.getErrorStream();
+			//				output.writeBytes(cmd1);
+			//				if(cmd1a != null)
+			//				{
+			//					output.writeBytes(cmd1a);
+			//				}
+			//				output.writeBytes(cmd2);
+			//				output.writeBytes(cmd3);
+			//				output.writeBytes(cmd4);
+			//				output.writeBytes(cmd5);
+			//
+			//				output.writeBytes("exit \n");
+			//				output.writeBytes("exit \n");
+			//				int exit = p.waitFor();
+			//				Log.e("StartNetwork","exit= " + exit);
+			//				//					Process p = null; 
+			//				//					p = Runtime.getRuntime().exec("cd /data/data/edu.cs898/files;./script_nexus adhoc;./script_nexus configure");
+			//			}
+			//			catch (Throwable e)
+			//			{
+			//				e.printStackTrace();
+			//			}
 
-					String su = "su";
-					String cmd2 = "ifconfig " + networkName  + ipAddress + " netmask 255.255.255.0\n";// getFilesDir() + "/" + Constants.NEXUS_SCRIPT1 + " load \n";
-					String cmd3 = getFilesDir() + "/" + "iwconfig " + networkName + "mode ad-hoc\n";
-					String cmd4 = getFilesDir() + "/" + "iwconfig " + networkName +" channel " + StartNetworkActivity.this.channel + "\n";
-					String cmd5 = getFilesDir() + "/" + "iwconfig " + networkName + " essid SEI_GMU_Test\n";
-					String cmd6 = getFilesDir() + "/" + "iwconfig " + networkName + " key 6741744573\n";
-					Process p = null; 
-					p = Runtime.getRuntime().exec(su);
-					DataOutputStream  output=new DataOutputStream(p.getOutputStream());
-					InputStream inputStrm = p.getInputStream();
-					InputStream errorStrm = p.getErrorStream();
-					output.writeBytes(cmd1);
-					if(cmd1a != null)
-					{
-						output.writeBytes(cmd1a);
-					}
-					output.writeBytes(cmd2);
-					output.writeBytes(cmd3);
-					output.writeBytes(cmd4);
-					output.writeBytes(cmd5);
-					
-					output.writeBytes("exit \n");
-					output.writeBytes("exit \n");
-					int exit = p.waitFor();
-					Log.e("StartNetwork","exit= " + exit);
-					//					Process p = null; 
-					//					p = Runtime.getRuntime().exec("cd /data/data/edu.cs898/files;./script_nexus adhoc;./script_nexus configure");
-				}
-				catch (Throwable e)
-				{
-					e.printStackTrace();
-				}
-			}
 
 
 

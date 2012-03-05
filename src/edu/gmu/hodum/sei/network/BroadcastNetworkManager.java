@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.DatagramPacket;
@@ -27,14 +28,17 @@ import java.util.Vector;
 
 import edu.gmu.hodum.sei.ui.LocationHolder;
 import edu.gmu.hodum.sei.ui.MyApplication;
+import edu.gmu.hodum.sei.ui.StartNetworkActivity;
 import edu.gmu.hodum.sei.util.Constants;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.location.Location;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
+import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -46,7 +50,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	private final static int receiverPort = 8881;
 	
 	private WifiManager wifi;
-	private Context ctxt;
+	private Context activity;
 	private String macAddress;
 	private long counter = 0;
 	private SelectorThread receiverThread = null;
@@ -56,6 +60,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	private MyApplication locationHolder;
 	private Map<String,HashSet<Long>> uniqueIDs = new HashMap<String, HashSet<Long> >();
 	public static String uniqueID;
+	private String ipAddress = null;
 
 	public static BroadcastNetworkManager instance(Context ctxt, MyApplication locationHolder)
 	{
@@ -66,8 +71,8 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		return pInstance;
 	}
 
-	private BroadcastNetworkManager(Context contxt, MyApplication locationHolder){
-		this.ctxt = contxt;
+	private BroadcastNetworkManager(Context activity, MyApplication locationHolder){
+		this.activity = activity;
 		try{
 			datagramSocket = new DatagramSocket(senderPort);
 		}catch(Exception e)
@@ -76,7 +81,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		}
 		this.locationHolder = locationHolder;
 		// Setup WiFi
-		wifi = (WifiManager) ctxt.getSystemService(Context.WIFI_SERVICE);
+		wifi = (WifiManager) activity.getSystemService(Context.WIFI_SERVICE);
 		lock = wifi.createMulticastLock("testing");
 		lock.acquire();
 		// Get WiFi status
@@ -332,6 +337,73 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	public Sender getSender() {
 
 		return this;
+	}
+
+	@Override
+	public void initNetwork(String channel) {
+		String val = null;
+		
+		String cmd1;
+		String cmd1a = null;
+		String networkName = "eth0 ";
+		if (Build.VERSION.SDK_INT == Build.VERSION_CODES.ICE_CREAM_SANDWICH) 
+		{
+			cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329_apsta.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
+		}
+		else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.GINGERBREAD_MR1)
+		{
+			cmd1 = "busybox insmod /system/lib/modules/tiwlan_drv.ko\n";
+			cmd1a = "wlan_loader -f /system/etc/wifi/fw_wlan1271.bin -i " + activity.getFilesDir() + "/tiwlan.ini\n";
+			networkName = "tiwlan0 ";
+		}
+		else
+		{
+			cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
+		}
+		ipAddress = Constants.networkPrefix +  String.valueOf((int)(100*Math.random()));
+		{
+			try {
+
+				String su = "su";
+				String cmd2 = "ifconfig " + networkName  + ipAddress + " netmask 255.255.255.0\n";// getFilesDir() + "/" + Constants.NEXUS_SCRIPT1 + " load \n";
+				String cmd3 = activity.getFilesDir() + "/" + "iwconfig " + networkName + "mode ad-hoc\n";
+				String cmd4 = activity.getFilesDir() + "/" + "iwconfig " + networkName +" channel " + channel + "\n";
+				String cmd5 = activity.getFilesDir() + "/" + "iwconfig " + networkName + " essid SEI_GMU_Test\n";
+				String cmd6 = activity.getFilesDir() + "/" + "iwconfig " + networkName + " key 6741744573\n";
+				Process p = null; 
+				p = Runtime.getRuntime().exec(su);
+				DataOutputStream  output=new DataOutputStream(p.getOutputStream());
+				InputStream inputStrm = p.getInputStream();
+				InputStream errorStrm = p.getErrorStream();
+				output.writeBytes(cmd1);
+				if(cmd1a != null)
+				{
+					output.writeBytes(cmd1a);
+				}
+				output.writeBytes(cmd2);
+				output.writeBytes(cmd3);
+				output.writeBytes(cmd4);
+				output.writeBytes(cmd5);
+				
+				output.writeBytes("exit \n");
+				output.writeBytes("exit \n");
+				int exit = p.waitFor();
+				Log.e("StartNetwork","exit= " + exit);
+				//					Process p = null; 
+				//					p = Runtime.getRuntime().exec("cd /data/data/edu.cs898/files;./script_nexus adhoc;./script_nexus configure");
+			}
+			catch (Throwable e)
+			{
+				e.printStackTrace();
+			}
+		}
+		
+	}
+
+	@Override
+	public String getIPAddress() {
+		
+		return ipAddress;
 	}
 
 }

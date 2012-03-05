@@ -18,4 +18,10 @@ public interface Constants {
     
     public static final String networkPrefix = "192.168.42.";
     public static final String broadcastAddress = networkPrefix + "255";
+    
+    public static final String INITIALIZE_NETWORK = "edu.gmu.hodum.INITIALIZE_NETWORK";
+    public static final String START_RECEIVING = "edu.gmu.hodum.START_RECEIVING";
+    public static final String SEND_DATA = "edu.gmu.hodum.SEND_DATA";
+    public static final String SHUTDOWN_NETWORK = "edu.gmu.hodum.SHUTDOWN_NETWORK";
+    
 }

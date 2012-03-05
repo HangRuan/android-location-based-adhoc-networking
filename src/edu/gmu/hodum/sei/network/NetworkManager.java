@@ -11,4 +11,8 @@ public interface NetworkManager {
 	
 	public Sender getSender();
 	
+	public void initNetwork(String channel);
+	
+	public String getIPAddress();
+	
 }
