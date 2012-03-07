@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="edu.cs895"
+    package="edu.gmu.hodum.sei"
     android:versionCode="1"
     android:versionName="1.0" >
 
@@ -39,17 +39,21 @@
             </intent-filter>
         </activity>
 
-        <receiver
-            android:name="edu.gmu.hodum.sei.service.MyBroadcastSenderReceiver"
-            android:enabled="true"
-            android:exported="true" >
+        <receiver android:name=".service.MyBroadcastSenderReceiver" >
             <intent-filter>
                 <action android:name="edu.gmu.hodum.INITIALIZE_NETWORK" />
-                <action android:name="edu.gmu.hodum.START_RECEIVING" />
-                <action android:name="edu.gmu.hodum.SEND_DATA" />
-                <action android:name="edu.gmu.hodum.SHUTDOWN_NETWORK" />
+                <action android:name="edu.gmu.hodum.SEND_DATA"/>
             </intent-filter>
         </receiver>
+
+        <service
+            android:name=".service.BroadcastNetworkService"
+            android:enabled="true" >
+            <intent-filter>
+                <action android:name="edu.gmu.hodum.INITIALIZE_NETWORK" />
+                <action android:name="edu.gmu.hodum.SEND_DATA"/>
+            </intent-filter>
+        </service>
     </application>
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" >

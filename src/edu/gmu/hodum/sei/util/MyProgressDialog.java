@@ -3,7 +3,8 @@ package edu.gmu.hodum.sei.util;
 
 
 
-import edu.cs895.R;
+
+import edu.gmu.hodum.sei.R;
 import android.app.Dialog;
 import android.content.Context;
 import android.view.LayoutInflater;

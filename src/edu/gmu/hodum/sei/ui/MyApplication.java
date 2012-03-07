@@ -50,10 +50,7 @@ public class MyApplication extends Application {
 		return location;
 	}
 	
-	public String getUniqueID()
-	{
-		return String.valueOf(location.getLatitude()) + String.valueOf(location.getLongitude());
-	}
+	
 	
 	@Override
 	public void onTerminate()
@@ -61,14 +58,5 @@ public class MyApplication extends Application {
 
 	}
 
-	public void setIPAddress(String ipAddress) {
-		this.ipAddress = ipAddress;
-	}
-
-	public String getIPAddress() {
-		return ipAddress;
-	}
 	
-
-
 }

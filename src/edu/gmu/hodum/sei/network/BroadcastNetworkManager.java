@@ -39,6 +39,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.MulticastLock;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -50,46 +51,42 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	private final static int receiverPort = 8881;
 	
 	private WifiManager wifi;
-	private Context activity;
-	private String macAddress;
+	private Context context;
+	
 	private long counter = 0;
 	private SelectorThread receiverThread = null;
 	private static BroadcastNetworkManager pInstance = null;
 	private MulticastLock lock = null;
 	private boolean networkStarted = false;
-	private MyApplication locationHolder;
+	
 	private Map<String,HashSet<Long>> uniqueIDs = new HashMap<String, HashSet<Long> >();
 	public static String uniqueID;
 	private String ipAddress = null;
 
-	public static BroadcastNetworkManager instance(Context ctxt, MyApplication locationHolder)
+	public static BroadcastNetworkManager instance(Context ctxt)
 	{
 		if(pInstance == null)
 		{
-			pInstance = new BroadcastNetworkManager(ctxt, locationHolder);
+			pInstance = new BroadcastNetworkManager(ctxt);
 		}
 		return pInstance;
 	}
 
-	private BroadcastNetworkManager(Context activity, MyApplication locationHolder){
-		this.activity = activity;
+	private BroadcastNetworkManager(Context activity){
+		this.context = activity;
 		try{
 			datagramSocket = new DatagramSocket(senderPort);
 		}catch(Exception e)
 		{
 			e.printStackTrace();
 		}
-		this.locationHolder = locationHolder;
+		
 		// Setup WiFi
 		wifi = (WifiManager) activity.getSystemService(Context.WIFI_SERVICE);
 		lock = wifi.createMulticastLock("testing");
 		lock.acquire();
 		// Get WiFi status
-		macAddress = wifi.getConnectionInfo().getMacAddress();
-		if(macAddress == null)
-		{
-			macAddress = uniqueID;
-		}
+		
 	}
 
 
@@ -101,17 +98,27 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	@Override
 	public void sendMessage(Location center, double radius, byte[] buff)
 	{
-		checkIfIDsent(macAddress,counter);
-		sendMessage(center, radius, macAddress, counter, buff);
+		checkIfIDsent(this.getIPAddress(),counter);
+		sendMessage(center, radius, this.getIPAddress(), counter, buff);
 		counter++;
 	}
 
+	private Location getLocationFromPreferences()
+	{
+		String latitude = PreferenceManager.getDefaultSharedPreferences(context).getString("latitude", "-37.15");
+		String longitude = PreferenceManager.getDefaultSharedPreferences(context).getString("longitude", "-70.15");
+		Location loc = new Location("Other");
+		loc.setLatitude(Double.parseDouble(latitude));
+		loc.setLongitude(Double.parseDouble(longitude));
+		return loc;
+		
+	}
 
 	private void sendMessage(Location center, double radius,String uniqueId, long counter, byte[] buff)
 	{
 
 		
-		Location myLoc = locationHolder.getCurrentLocation();
+		Location myLoc = getLocationFromPreferences();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		DataOutputStream dos = new DataOutputStream(baos);
 		try{
@@ -249,7 +256,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 			{
 				return;
 			}
-			Location myLoc = locationHolder.getCurrentLocation();
+			Location myLoc = getLocationFromPreferences();
 			short type = dis.readShort();
 			if(type == Constants.ROUND_REGION_ADDRESS)
 			{
@@ -350,12 +357,12 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		{
 			cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329_apsta.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
 		}
-		else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.GINGERBREAD_MR1)
-		{
-			cmd1 = "busybox insmod /system/lib/modules/tiwlan_drv.ko\n";
-			cmd1a = "wlan_loader -f /system/etc/wifi/fw_wlan1271.bin -i " + activity.getFilesDir() + "/tiwlan.ini\n";
-			networkName = "tiwlan0 ";
-		}
+//		else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.GINGERBREAD_MR1)
+//		{
+//			cmd1 = "busybox insmod /system/lib/modules/tiwlan_drv.ko\n";
+//			cmd1a = "wlan_loader -f /system/etc/wifi/fw_wlan1271.bin -i " + activity.getFilesDir() + "/tiwlan.ini\n";
+//			networkName = "tiwlan0 ";
+//		}
 		else
 		{
 			cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
@@ -366,10 +373,10 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 
 				String su = "su";
 				String cmd2 = "ifconfig " + networkName  + ipAddress + " netmask 255.255.255.0\n";// getFilesDir() + "/" + Constants.NEXUS_SCRIPT1 + " load \n";
-				String cmd3 = activity.getFilesDir() + "/" + "iwconfig " + networkName + "mode ad-hoc\n";
-				String cmd4 = activity.getFilesDir() + "/" + "iwconfig " + networkName +" channel " + channel + "\n";
-				String cmd5 = activity.getFilesDir() + "/" + "iwconfig " + networkName + " essid SEI_GMU_Test\n";
-				String cmd6 = activity.getFilesDir() + "/" + "iwconfig " + networkName + " key 6741744573\n";
+				String cmd3 = context.getFilesDir() + "/" + "iwconfig " + networkName + "mode ad-hoc\n";
+				String cmd4 = context.getFilesDir() + "/" + "iwconfig " + networkName +" channel " + channel + "\n";
+				String cmd5 = context.getFilesDir() + "/" + "iwconfig " + networkName + " essid SEI_GMU_Test\n";
+				String cmd6 = context.getFilesDir() + "/" + "iwconfig " + networkName + " key 6741744573\n";
 				Process p = null; 
 				p = Runtime.getRuntime().exec(su);
 				DataOutputStream  output=new DataOutputStream(p.getOutputStream());

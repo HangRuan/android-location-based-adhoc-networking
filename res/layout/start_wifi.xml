@@ -7,30 +7,52 @@
     android:orientation="vertical" >
 
     <TextView
-        android:id="@+id/textView1"
+        android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/wifi_channel"
+        android:text="@string/latitude"
+        android:layout_marginTop="15dp"
         android:textAppearance="?android:attr/textAppearanceLarge" />
-
+    
     <EditText
-        android:id="@+id/wifi_channel"
+        android:id="@+id/latitude"
         android:layout_width="226dp"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:hint="@string/wifi_channel"
+        android:hint="@string/latitude"
         android:inputType="number"
         android:singleLine="true"
-        android:text="8" />
+        android:text="37.5" >
+
+        <requestFocus />
+    </EditText>
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/longitude"
+        android:layout_marginTop="15dp"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <EditText
+        android:id="@+id/longitude"
+        android:layout_width="226dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:hint="@string/longitude"
+        android:inputType="number"
+        android:singleLine="true"
+        android:text="-70.25" />
 
     <Button
-        android:id="@+id/start_network"
+        android:id="@+id/save_location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_margin="20dp"
         android:gravity="center|center_horizontal"
-        android:text="Start Network" >
+        android:text="Save Location" >
     </Button>
 
 

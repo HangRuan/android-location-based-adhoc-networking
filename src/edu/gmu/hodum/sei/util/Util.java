@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.cs895.R;
+import edu.gmu.hodum.sei.R;
 
 import android.content.Context;
 import android.location.Location;
