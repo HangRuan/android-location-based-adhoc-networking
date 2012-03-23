@@ -2,7 +2,7 @@
 <resources>
 
     <string name="hello">Hello World, ServiceClientActivity!</string>
-    <string name="app_name">ServiceClient</string>
+    <string name="app_name">SEIServiceClient</string>
 	<string name="wifi_channel">Wifi Channel</string><string name="geoMessage">Geo Message</string>
     <string name="broadcastMessage">Broadcast Message</string>
     <string name="start_auto_send">Start Auto Send</string>
