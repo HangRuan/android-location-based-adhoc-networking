@@ -9,6 +9,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 
 
+import edu.cmu.sei.rtss.contextaware.firstresponder.gmu_impl.CommunicationsManagerCallbackImpl;
+import edu.cmu.sei.rtss.contextaware.firstresponder.gmu_impl.GeoWifiCommunicationsService;
 import edu.gmu.hodum.service_client.receiver.MyNetworkInitializedReceiver;
 import edu.gmu.hodum.service_client.util.Constants;
 import edu.gmu.hodum.service_client.util.MyProgressDialog;
@@ -31,9 +33,7 @@ import android.widget.EditText;
 
 public class StartNetworkActivity extends Activity implements OnClickListener {
 
-	private MyProgressDialog dialog;
-	private static final int NETWORK_STARTED = -1;
-	private MyNetworkInitializedReceiver receiver;
+	private GeoWifiCommunicationsService pComms;
 
 	
 	/** Called when the activity is first created. */
@@ -41,8 +41,9 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 	public void onCreate(Bundle savedInstanceState) {
 
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.start_wifi);
-		findViewById(R.id.start_network).setOnClickListener(this);
+		setContentView(R.layout.start_sei_network);
+		findViewById(R.id.initialize).setOnClickListener(this);
+		findViewById(R.id.start).setOnClickListener(this);
 	}
 
 	@Override
@@ -54,41 +55,18 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 
 	@Override
 	public void onClick(View v) {
-		dialog = new MyProgressDialog(this);
-		dialog.show("Starting AdHoc Network..", null);
-		String channel = ((EditText)findViewById(R.id.wifi_channel)).getText().toString();
-
-		receiver = new MyNetworkInitializedReceiver();
-		receiver.registerHandler(networkStartedHandler);
-		IntentFilter filter = new IntentFilter(Constants.NETWORK_INITIALIZED);
-
-		registerReceiver(receiver,filter);
-		Intent broadcastIntent = new Intent(Constants.INITIALIZE_NETWORK);
-		broadcastIntent.putExtra("channel", channel);
-		this.sendBroadcast(broadcastIntent);
-	}
-
-
-
-	private Handler networkStartedHandler = new Handler() { 
-		/* (non-Javadoc) 
-		 * @see android.os.Handler#handleMessage(android.os.Message) 
-		 */ 
-		@Override 
-		public void handleMessage(Message msg) { 
-			switch(msg.arg1)
-			{
-			case NETWORK_STARTED:
-				unregisterReceiver(receiver);
-				dialog.cancel();
-				Intent sendActivity = new Intent(StartNetworkActivity.this,SendReceiveActivity.class);
-				sendActivity.putExtra("ipAddress", msg.getData().getString("ipAddress"));
-				StartNetworkActivity.this.startActivity(sendActivity);
-				break;
-			}
-			super.handleMessage(msg); 
-
+		if(v.getId() == R.id.initialize)
+		{
+			pComms = GeoWifiCommunicationsService.getInstance(this.getApplicationContext());
+			pComms.initialize(CommunicationsManagerCallbackImpl.getInstance());
 		}
-	};
-
+		else
+		{
+			pComms.start();
+			
+			Intent sendActivity = new Intent(this,ScriptRunner.class);
+			this.startActivity(sendActivity);
+			this.finish();
+		}
+	}
 }

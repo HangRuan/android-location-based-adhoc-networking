@@ -45,10 +45,9 @@ public class SendReceiveActivity extends Activity implements  OnClickListener{
 		ipAddress = this.getIntent().getStringExtra("ipAddress");
 
 		findViewById(R.id.geo_message).setOnClickListener(this);
-		findViewById(R.id.broadcast_message).setOnClickListener(this);
+		findViewById(R.id.sendBroadcast).setOnClickListener(this);
 
-		//###HACK commented out so I don't have to redo all of this to send the user packets in SEI
-		//networkManager.registerReceiver(this);
+		findViewById(R.id.sendSingle).setOnClickListener(this);
 		
 		receiver = new MyReceivedDataReceiver();
 		receiver.registerHandler(dataReceivedHandler);
@@ -62,12 +61,7 @@ public class SendReceiveActivity extends Activity implements  OnClickListener{
 	@Override
 	public void onClick(View arg0) {
 		// TODO Auto-generated method stub
-		if(arg0.getId() == R.id.geo_message)
-		{
-			sendGeoMessage();
-
-		}
-		else if(arg0.getId() == R.id.broadcast_message)
+		if(arg0.getId() == R.id.sendBroadcast)
 		{
 			counter++;
 

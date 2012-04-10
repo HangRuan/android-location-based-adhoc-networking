@@ -7,4 +7,10 @@
     <string name="broadcastMessage">Broadcast Message</string>
     <string name="start_auto_send">Start Auto Send</string>
     <string name="stop_auto_send">Stop Auto Send</string>
+    <string name="sei_start">Start</string>
+    <string name="sei_initialize">Initialize</string>
+    <string name="start_script">Start Script</string>
+    <string name="sendSingle">Send To</string>
+    <string name="sendBroadcast">Send Broadcast</string>
+    <string name="sendConnect">Send Connect</string>
 </resources>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="center_horizontal"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center_horizontal"
+            android:text="Buttons to do stuff"
+            android:textSize="20dp" >
+        </TextView>
+
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dip"
+            android:gravity="center|center_horizontal"
+            android:orientation="vertical" >
+
+            <Button
+                android:id="@+id/sendBroadcast"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="5dp"
+                android:text="@string/sendBroadcast" >
+            </Button>
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal" 
+                android:gravity="center">
+
+                <EditText
+                    android:id="@+id/singleAddress"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="number" />
+
+                <Button
+                    android:id="@+id/sendSingle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sendSingle" />
+            </LinearLayout>
+            
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:orientation="horizontal" 
+                android:gravity="center">
+
+                <EditText
+                    android:id="@+id/connectAddress"
+                    android:layout_width="100dp"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="number" />
+
+                <Button
+                    android:id="@+id/sendConnect"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sendConnect" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@+id/log"
+                android:layout_width="match_parent"
+                android:layout_height="176dp"
+                android:editable="false"
+                android:ems="10"
+                android:focusableInTouchMode="false"
+                android:inputType="textMultiLine" >
+
+                <requestFocus />
+            </EditText>
+        </LinearLayout>
+    </LinearLayout>
+
+</ScrollView>
