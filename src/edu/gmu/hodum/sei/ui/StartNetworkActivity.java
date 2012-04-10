@@ -16,6 +16,7 @@ import edu.gmu.hodum.sei.util.Util;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -63,9 +64,10 @@ public class StartNetworkActivity extends Activity implements OnClickListener {
 		
 		String latitude = ((EditText)findViewById(R.id.latitude)).getText().toString();
 		String longitude = ((EditText)findViewById(R.id.longitude)).getText().toString();
-		
-		PreferenceManager.getDefaultSharedPreferences(this).edit().putString("latitude", latitude);
-		PreferenceManager.getDefaultSharedPreferences(this).edit().putString("longitude", longitude);
+		SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(this).edit();
+		editor.putString("latitude", latitude);
+		editor.putString("longitude", longitude);
+		editor.commit();
 		
 		Toast.makeText(this, "Latitude and Longitude saved.",Toast.LENGTH_LONG).show();
 		this.finish();

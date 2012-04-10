@@ -26,4 +26,14 @@ public interface Constants {
     public static final String NETWORK_INITIALIZED = "edu.gmu.hodum.NETWORK_INITIALIZED";
     public static final String RECEIVE_DATA = "edu.gmu.hodum.RECEIVE_DATA";
     public static final String DEBUG_RECEIVE_DATA = "edu.gmu.hodum.DEBUG_RECEIVE_DATA";
+    
+    //SEI protocolState values
+    public static final int UNAVAILABLE = 1;
+    public static final int DISABLED = 2;
+    public static final int ENABLED = 3;
+    public static final int ACTIVE = 4;
+    public static final int HEARTBEAT_TIMEOUT = 5;
+    public static final int HEARTBEAT_PACKET_VERSION = 1;
+    public static final int HEARTBEAT_PACKET_TYPE_ID = 1;
+    
 }

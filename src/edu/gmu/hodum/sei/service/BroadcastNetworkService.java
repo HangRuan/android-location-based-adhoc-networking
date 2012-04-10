@@ -113,7 +113,7 @@ public class BroadcastNetworkService extends Service implements Sender, Receiver
 		broadcastIntent.putExtra("longitude", center.getLongitude());
 		broadcastIntent.putExtra("radius", radius);
 		broadcastIntent.putExtra("originatingLatitude", originatingLocation.getLatitude());
-		broadcastIntent.putExtra("origintatingLongitude", originatingLocation.getLongitude());
+		broadcastIntent.putExtra("originatingLongitude", originatingLocation.getLongitude());
 		broadcastIntent.putExtra("data", buff);
 		BroadcastNetworkService.this.sendBroadcast(broadcastIntent);
 		
@@ -128,7 +128,7 @@ public class BroadcastNetworkService extends Service implements Sender, Receiver
 		broadcastIntent.putExtra("longitude", center.getLongitude());
 		broadcastIntent.putExtra("radius", radius);
 		broadcastIntent.putExtra("originatingLatitude", originatingLocation.getLatitude());
-		broadcastIntent.putExtra("origintatingLongitude", originatingLocation.getLongitude());
+		broadcastIntent.putExtra("originatingLongitude", originatingLocation.getLongitude());
 		broadcastIntent.putExtra("data", buff);
 		BroadcastNetworkService.this.sendBroadcast(broadcastIntent);
 		

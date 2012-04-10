@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:hint="@string/latitude"
-        android:inputType="number"
+        android:inputType="number|numberDecimal"
         android:singleLine="true"
         android:text="37.5" >
 
@@ -41,9 +41,9 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:hint="@string/longitude"
-        android:inputType="number"
+        android:inputType="number|numberDecimal"
         android:singleLine="true"
-        android:text="-70.25" />
+        android:text="-73.25" />
 
     <Button
         android:id="@+id/save_location"
