@@ -267,7 +267,8 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 				int lngth = dis.readInt();
 				byte[] buff = new byte[lngth];
 				dis.readFully(buff);
-				if(myLoc.distanceTo(center)<radius || radius == -1.0)
+//				Changed this to move filtering out of the network piece and leave only routing
+//				if(myLoc.distanceTo(center)<radius || radius == -1.0)
 				{
 					for(Receiver receiver:receivers)
 					{
@@ -275,7 +276,8 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 					}
 				}
 				//####DEBUG ONLY!!!
-				else
+//				Changed this to move filtering out of the network piece and leave only routing
+//				else
 				{
 					for(Receiver receiver:receivers)
 					{
