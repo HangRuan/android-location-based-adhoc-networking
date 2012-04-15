@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="prefval_noise_level_filter">8.0</string>
+    <string name="prefval_event_delay">300</string>
+    <string name="prefval_gesture_recognize_time">2000</string>
+    <string name="prefval_start_recognizer_time">2000</string>
+    
+</resources>

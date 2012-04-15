@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="prefname_noise_level_filter">noise_level_filter</string>
+    <string name="prefname_event_delay">event_delay</string>
+    <string name="prefname_gesture_recognize_time">gesture_recognize_time</string>
+    <string name="prefname_start_recognizer_time">start_recognizer_time</string>
+    
+</resources>
