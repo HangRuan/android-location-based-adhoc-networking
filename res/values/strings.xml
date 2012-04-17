@@ -10,6 +10,8 @@
     <string name="vehicle_moving">Vehicle Moving Recognized</string>
     <string name="txt_train_gestures">Training</string>
     <string name="txt_settings">Settings</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
     
     
 </resources>
