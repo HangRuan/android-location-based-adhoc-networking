@@ -9,6 +9,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import edu.gmu.hodum.sei.gesture.R;
 import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
 import event.GestureEvent;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,36 +32,29 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 	private Sensor mAccelerometer;
 	private float NOISE;
 	private TextToSpeech mTts;
-	
+
 	private boolean gatekeeper = true;
 	private int gestureStart = 0;
-	
+
 	final private Lock lock = new ReentrantLock();
 	final private Timer timer = new Timer(true);
 	private StartRecognizerTask reset;
-	
-	
+
+	final private int settingsResultCode = 1; 
+
 	//delays
 	private long eventDelay;
 	private long gestureRecognizeTime; //in milliseconds 1/1000th of a second
 	private long startRecognizerTime; //in milliseconds 1/1000th of a second
-	
+
 	public void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.main);
 		System.out.println("SensorEventListener onCreate");
 		mInitialized = false;
 
-		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		loadPrefs();
 
-		//get the noise level from the preferences
-		NOISE = prefs.getFloat(Integer.toString(R.string.prefname_noise_level_filter), Float.parseFloat(this.getString(R.string.prefval_noise_level_filter)));
-		
-		//get the delay between accelerometer events
-		eventDelay = prefs.getLong(Integer.toString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay)));
-		
-		//get the time that the full gesture recognizer is active
-		gestureRecognizeTime = prefs.getLong(Integer.toString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
 
 		//setting up the accelerometer and sensor
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);      
@@ -70,7 +64,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 
 
 	}
-	
+
 	public void onResume() {
 		super.onResume();
 		boolean bool = mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
@@ -80,7 +74,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 
 
 	}
-	
+
 	public void onPause() {
 		super.onPause();
 		mSensorManager.unregisterListener(this);
@@ -222,7 +216,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 		{
 			MainActivity.this.runOnUiThread(new StopRecognizerRunnable());
 		}
-		
+
 		private class StopRecognizerRunnable implements Runnable{
 
 			public void run() {
@@ -236,7 +230,29 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 	public void btnTrainGestures_onClick(View view){
 		this.startActivity(new Intent(this, TrainGestureListActivity.class));
 	}
+	public void btnSetting_onClick(View view){
+		this.startActivityForResult(new Intent(this, SetPreferenceActivity.class), settingsResultCode);
+	}
 
+	public void onActivityResult(int requestCode, int resultcode, Intent data){
+		if(resultcode ==  Activity.RESULT_OK){
+			loadPrefs();
+		}
+	}
+
+	private void loadPrefs() {
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+
+		//get the noise level from the preferences
+		NOISE = prefs.getFloat(Integer.toString(R.string.prefname_noise_level_filter), Float.parseFloat(this.getString(R.string.prefval_noise_level_filter)));
+
+		//get the delay between accelerometer events
+		eventDelay = prefs.getLong(Integer.toString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay)));
+
+		//get the time that the full gesture recognizer is active
+		gestureRecognizeTime = prefs.getLong(Integer.toString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
+
+	}
 
 	public void setDefaultPrefs(){
 		//sets the default preferences if not already set
@@ -260,13 +276,13 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 			//After an event is detected, this setting indicates the time for the full command to start the gesture recognizer must be inputted  
 			//The delay is measured in milliseconds; 1/1000th of a second
 			editor.putLong(Integer.toString(R.string.prefname_start_recognizer_time), Long.parseLong(this.getString(R.string.prefval_start_recognizer_time)));
-			
+
 			//gesture recognize time 
 			//When the full gesture recognition is activated, this value measure how long the gesture recognizer is active
 			//Thus, gestures must not take longer to execute than this time 
 			//The time is measured in milliseconds; 1/1000th of a second
 			editor.putLong(Integer.toString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
-			
+
 
 		}
 	}
