@@ -53,6 +53,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 		System.out.println("SensorEventListener onCreate");
 		mInitialized = false;
 
+		setDefaultPrefs();
 		loadPrefs();
 
 
@@ -254,7 +255,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 
 	}
 
-	public void setDefaultPrefs(){
+	private void setDefaultPrefs(){
 		//sets the default preferences if not already set
 
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
