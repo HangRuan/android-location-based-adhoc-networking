@@ -231,7 +231,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 	public void btnTrainGestures_onClick(View view){
 		this.startActivity(new Intent(this, TrainGestureListActivity.class));
 	}
-	public void btnSetting_onClick(View view){
+	public void btnSettings_onClick(View view){
 		this.startActivityForResult(new Intent(this, SetPreferenceActivity.class), settingsResultCode);
 	}
 

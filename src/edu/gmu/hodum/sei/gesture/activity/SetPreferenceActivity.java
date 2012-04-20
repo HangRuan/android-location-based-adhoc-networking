@@ -11,7 +11,7 @@ import android.widget.Spinner;
 
 public class SetPreferenceActivity extends Activity{
 
-	private SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+	private SharedPreferences prefs;
 	private Spinner spinnerNoise;
 	private Spinner spinnerEventDelay;
 	private Spinner spinnerStartRecognizerTime;
@@ -19,12 +19,17 @@ public class SetPreferenceActivity extends Activity{
 
 	public void onCreate(Bundle bundle){
 		super.onCreate(bundle);
-		this.setContentView(R.layout.main);
+		this.setContentView(R.layout.set_prefs);
 
+		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		//set spinners
 		String stringNoise = Float.toString(prefs.getFloat(Integer.toString(R.string.prefname_noise_level_filter), Float.parseFloat(this.getString(R.string.prefval_noise_level_filter))));
+		//spinnerNoise = (Spinner) this.findViewById(R.id.spinner_noise);
+		//if (spinnerNoise!=null){
+			//System.out.println("Test");
+		//}
 		setupSpinner(spinnerNoise, R.id.spinner_noise, R.array.prefarray_noise_level_filter, stringNoise);
-		
+
 		String stringEventDelay = Float.toString(prefs.getFloat(Integer.toString(R.string.prefname_event_delay), Float.parseFloat(this.getString(R.string.prefval_event_delay))));
 		setupSpinner(spinnerEventDelay, R.id.spinner_event_delay, R.array.prefarray_event_delay, stringEventDelay);
 
@@ -33,7 +38,7 @@ public class SetPreferenceActivity extends Activity{
 
 		String stringGestureRecognizeTime = Float.toString(prefs.getFloat(Integer.toString(R.string.prefval_gesture_recognize_time), Float.parseFloat(this.getString(R.string.prefval_gesture_recognize_time))));
 		setupSpinner(spinnerGestureRecognizeTime, R.id.spinner_gesture_recognize_time, R.array.prefarray_gesture_recognize_time, stringGestureRecognizeTime);
-		
+
 	}
 
 	private void setupSpinner(Spinner spinner, int spinnerID, int arrayVals, String prefVal){
@@ -41,22 +46,24 @@ public class SetPreferenceActivity extends Activity{
 		//set Spinner
 		spinner = (Spinner) this.findViewById(spinnerID);
 
-		//populate spinner
-		ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-				this, arrayVals, android.R.layout.simple_spinner_item);
-		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-		spinner.setAdapter(adapter);
+		if(spinner!=null){
+			//populate spinner
+			ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
+					this, arrayVals, android.R.layout.simple_spinner_item);
+			adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+			spinner.setAdapter(adapter);
 
-		//sets the spinner to the currently saved setting
-		int i = 0;
-		while ( i<adapter.getCount()){
-			if(adapter.getItem(i).equals(prefVal)){
-				break;
+			//sets the spinner to the currently saved setting
+			int i = 0;
+			while ( i<adapter.getCount()){
+				if(adapter.getItem(i).equals(prefVal)){
+					break;
+				}
+				i++;
 			}
-			i++;
-		}
-		if(i<adapter.getCount()){
-			spinner.setSelection(i);
+			if(i<adapter.getCount()){
+				spinner.setSelection(i);
+			}
 		}
 	}
 
