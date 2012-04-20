@@ -209,7 +209,7 @@ public class TrainGestureActivity extends Activity implements SensorEventListene
 						}
 
 						//if the gestureStart counter has reached 3, then reset the counter, and remove the reset timer, and activate the gesture recognizer
-						if(gestureStart>3){
+						if(gestureStart>=3){
 							gestureStart = 0;
 							reset.cancel();
 							reset = null;

@@ -61,6 +61,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);      
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		GestureRecognizerService.mPackageName = getApplicationContext().getPackageName();
+		GestureRecognizerService.loadGestures();
 		startService(new Intent(this, GestureRecognizerService.class));
 
 
@@ -84,7 +85,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 
 	public void gestureReceived(GestureEvent event)
 	{
-		if (event.getProbability() > 0.9)
+		if (event.getProbability() > 0.4)
 		{
 			String gesture = GestureRecognizerService.GestureIdMapping.get(event.getId());
 
@@ -98,10 +99,11 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 				else if (gesture.equalsIgnoreCase(GestureRecognizerService.SUPPLIES_GESTURE)){
 					speakNToast(this.getResources().getString(R.string.sos));
 				}
-				else{
-					speakNToast(this.getResources().getString(R.string.gesture_not_recognized));
-				}
+				
 			}
+		}
+		else{
+			speakNToast(this.getResources().getString(R.string.gesture_not_recognized));
 		}
 	}
 	public void speakNToast(String text){
@@ -171,7 +173,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 						}
 
 						//if the gestureStart counter has reached 3, then reset the counter, and remove the reset timer, and activate the gesture recognizer
-						if(gestureStart>3){
+						if(gestureStart>=3){
 							gestureStart = 0;
 							reset.cancel();
 							reset = null;
