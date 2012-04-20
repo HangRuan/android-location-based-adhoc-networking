@@ -72,8 +72,6 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 		System.out.println("onResume mSensorManager.registerListener: "+ Boolean.toString(bool));
 
 		mTts = new TextToSpeech(this,this);
-
-
 	}
 
 	public void onPause() {
@@ -249,13 +247,13 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
 		//get the noise level from the preferences
-		NOISE = prefs.getFloat(Integer.toString(R.string.prefname_noise_level_filter), Float.parseFloat(this.getString(R.string.prefval_noise_level_filter)));
+		NOISE = prefs.getFloat(this.getString(R.string.prefname_noise_level_filter), Float.parseFloat(this.getString(R.string.prefval_noise_level_filter)));
 
 		//get the delay between accelerometer events
-		eventDelay = prefs.getLong(Integer.toString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay)));
+		eventDelay = prefs.getLong(this.getString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay)));
 
 		//get the time that the full gesture recognizer is active
-		gestureRecognizeTime = prefs.getLong(Integer.toString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
+		gestureRecognizeTime = prefs.getLong(this.getString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
 
 	}
 

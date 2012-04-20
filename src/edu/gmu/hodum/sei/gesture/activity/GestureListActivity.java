@@ -5,7 +5,6 @@ import java.util.TimerTask;
 
 import android.app.ListActivity;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.widget.Toast;
 import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
 import event.GestureListener;
@@ -30,44 +29,40 @@ abstract public class GestureListActivity extends ListActivity implements Gestur
 		GestureRecognizerService.removeGestureListener(this);
 	}
 
-	public boolean onKeyDown(int keyCode, KeyEvent event)
-	{
-		if (keyCode == KeyEvent.KEYCODE_CAMERA || keyCode == KeyEvent.KEYCODE_VOLUME_UP)
+	public void triggerRecognizer(){
+		if (isAllowed)
 		{
-			if (isAllowed)
+			if (isRecognizing)
 			{
-				if (isRecognizing)
-				{
-					Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT)
-							.show();
-					GestureRecognizerService.stopRecognizer();
-				}
-				else
-				{
-					Toast.makeText(this, GestureRecognizerService.CAPTURE, Toast.LENGTH_SHORT)
-							.show();
-					GestureRecognizerService.startRecognizer();
-				}
-
-				isRecognizing = !isRecognizing;
-				isAllowed = false;
-				Log.d(TAG, "disallow");
+				Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT)
+				.show();
+				GestureRecognizerService.stopRecognizer();
+			}
+			else
+			{
+				Toast.makeText(this, GestureRecognizerService.CAPTURE, Toast.LENGTH_SHORT)
+				.show();
+				GestureRecognizerService.startRecognizer();
 			}
 
-			if (allowTimer != null)
-				allowTimer.cancel();
-
-			allowTimer = new Timer();
-			allowTimer.schedule(new AllowTask(), 400);
-
-			return true;
+			isRecognizing = !isRecognizing;
+			isAllowed = false;
+			Log.d(TAG, "disallow");
 		}
 
-		return super.onKeyDown(keyCode, event);
+		if (allowTimer != null)
+			allowTimer.cancel();
+
+		allowTimer = new Timer();
+		allowTimer.schedule(new AllowTask(), 400);
 	}
 
 	public void stateReceived(StateEvent event)
 	{
+	}
+	
+	public void toast(String text){
+		Toast.makeText(this, text, Toast.LENGTH_LONG).show();
 	}
 
 	private class AllowTask extends TimerTask

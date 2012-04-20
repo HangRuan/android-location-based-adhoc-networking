@@ -5,8 +5,6 @@ import java.util.TimerTask;
 
 import android.app.Activity;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Toast;
 import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
 import event.GestureListener;
@@ -32,32 +30,8 @@ abstract public class GestureActivity extends Activity implements GestureListene
 		super.onPause();
 		GestureRecognizerService.removeGestureListener(this);
 	}
-
-	
-	public boolean onCreateOptionsMenu(Menu menu)
-	{
-		//MenuInflater inflater = getMenuInflater();
-		//inflater.inflate(R.menu.sos_menu, menu);
-		return super.onCreateOptionsMenu(menu);
-	}
-
-	
-	public boolean onOptionsItemSelected(MenuItem item)
-	{
-		switch (item.getItemId())
-		{
-		/*
-			case R.id.menu_sos:
-				startActivity(new Intent(this, SosActivity.class));
-				break;
-				*/
-		}
-		 
-		return super.onOptionsItemSelected(item);
-	}
 	
 	public void triggerRecognizer(){
-
 		if (isAllowed)
 		{
 			if (isRecognizing)
@@ -83,10 +57,7 @@ abstract public class GestureActivity extends Activity implements GestureListene
 
 		allowTimer = new Timer();
 		allowTimer.schedule(new AllowTask(), 400);
-
 	}
-	
-
 	
 	public void stateReceived(StateEvent event)
 	{
