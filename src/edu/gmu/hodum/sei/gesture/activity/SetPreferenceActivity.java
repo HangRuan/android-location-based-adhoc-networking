@@ -1,5 +1,8 @@
 package edu.gmu.hodum.sei.gesture.activity;
 
+import java.util.Map;
+import java.util.Set;
+
 import edu.gmu.hodum.sei.gesture.R;
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -22,29 +25,35 @@ public class SetPreferenceActivity extends Activity{
 		this.setContentView(R.layout.set_prefs);
 
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		
+		
+		Map<String, ?> map = prefs.getAll();
+		Set<String> keyset = map.keySet();
+		for (String key: keyset){
+			System.out.println(key);
+		}
+		
+		
 		//set spinners
-		String stringNoise = Float.toString(prefs.getFloat(Integer.toString(R.string.prefname_noise_level_filter), Float.parseFloat(this.getString(R.string.prefval_noise_level_filter))));
-		//spinnerNoise = (Spinner) this.findViewById(R.id.spinner_noise);
-		//if (spinnerNoise!=null){
-			//System.out.println("Test");
-		//}
-		setupSpinner(spinnerNoise, R.id.spinner_noise, R.array.prefarray_noise_level_filter, stringNoise);
+		spinnerNoise = (Spinner) this.findViewById(R.id.spinner_noise);
+		String stringNoise = Float.toString(prefs.getFloat(this.getString(R.string.prefname_noise_level_filter), Float.parseFloat(this.getString(R.string.prefval_noise_level_filter))));
+		setupSpinner(spinnerNoise, R.array.prefarray_noise_level_filter, stringNoise);
 
-		String stringEventDelay = Float.toString(prefs.getFloat(Integer.toString(R.string.prefname_event_delay), Float.parseFloat(this.getString(R.string.prefval_event_delay))));
-		setupSpinner(spinnerEventDelay, R.id.spinner_event_delay, R.array.prefarray_event_delay, stringEventDelay);
+		spinnerEventDelay = (Spinner) this.findViewById(R.id.spinner_event_delay);
+		String stringEventDelay = Long.toString(prefs.getLong(this.getString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay))));
+		setupSpinner(spinnerEventDelay, R.array.prefarray_event_delay, stringEventDelay);
 
-		String stringRecognizerTime = Float.toString(prefs.getFloat(Integer.toString(R.string.prefname_start_recognizer_time), Float.parseFloat(this.getString(R.string.prefval_start_recognizer_time))));
-		setupSpinner(spinnerStartRecognizerTime, R.id.spinner_start_recognizer_time, R.array.prefarray_start_recognizer_time, stringRecognizerTime);
+		spinnerStartRecognizerTime = (Spinner) this.findViewById(R.id.spinner_start_recognizer_time);
+		String stringRecognizerTime = Long.toString(prefs.getLong(this.getString(R.string.prefname_start_recognizer_time), Long.parseLong(this.getString(R.string.prefval_start_recognizer_time))));
+		setupSpinner(spinnerStartRecognizerTime, R.array.prefarray_start_recognizer_time, stringRecognizerTime);
 
-		String stringGestureRecognizeTime = Float.toString(prefs.getFloat(Integer.toString(R.string.prefval_gesture_recognize_time), Float.parseFloat(this.getString(R.string.prefval_gesture_recognize_time))));
-		setupSpinner(spinnerGestureRecognizeTime, R.id.spinner_gesture_recognize_time, R.array.prefarray_gesture_recognize_time, stringGestureRecognizeTime);
+		spinnerGestureRecognizeTime = (Spinner) this.findViewById(R.id.spinner_gesture_recognize_time);
+		String stringGestureRecognizeTime = Long.toString(prefs.getLong(this.getString(R.string.prefval_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time))));
+		setupSpinner(spinnerGestureRecognizeTime, R.array.prefarray_gesture_recognize_time, stringGestureRecognizeTime);
 
 	}
 
-	private void setupSpinner(Spinner spinner, int spinnerID, int arrayVals, String prefVal){
-
-		//set Spinner
-		spinner = (Spinner) this.findViewById(spinnerID);
+	private void setupSpinner(Spinner spinner, int arrayVals, String prefVal){
 
 		if(spinner!=null){
 			//populate spinner
@@ -70,7 +79,25 @@ public class SetPreferenceActivity extends Activity{
 
 	public void btnSave_onClick(View view){
 		//TODO: Get the values of the spinners and save the preferences
-
+		SharedPreferences.Editor editor = prefs.edit();
+		
+		String spinnerVal = (String) spinnerNoise.getSelectedItem();
+		Float floatVal = Float.parseFloat(spinnerVal);
+		editor.putFloat(this.getString(R.string.prefname_noise_level_filter), floatVal);
+		
+		spinnerVal = (String) spinnerEventDelay.getSelectedItem();
+		Long longVal = Long.parseLong(spinnerVal);
+		editor.putLong(this.getString(R.string.prefname_event_delay), longVal);
+		
+		spinnerVal = (String) spinnerStartRecognizerTime.getSelectedItem();
+		longVal = Long.parseLong(spinnerVal);
+		editor.putLong(this.getString(R.string.prefname_start_recognizer_time), longVal);
+		
+		spinnerVal = (String) spinnerGestureRecognizeTime.getSelectedItem();
+		longVal = Long.parseLong(spinnerVal);
+		editor.putLong(this.getString(R.string.prefname_gesture_recognize_time), longVal);
+		
+		editor.commit();
 
 		this.setResult(Activity.RESULT_OK);
 		this.finish();

@@ -237,7 +237,11 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 
 	public void onActivityResult(int requestCode, int resultcode, Intent data){
 		if(resultcode ==  Activity.RESULT_OK){
+			toast("Saved");
 			loadPrefs();
+		}
+		else{
+			toast("Canceled");
 		}
 	}
 
@@ -266,23 +270,23 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 			//noise level
 			//accelerometer motions below this noise level are ignored completely
 			//The values vary from device to device
-			editor.putFloat(Integer.toString(R.string.prefname_noise_level_filter), Float.parseFloat(this.getString(R.string.prefval_noise_level_filter)));
+			editor.putFloat(this.getString(R.string.prefname_noise_level_filter), Float.parseFloat(this.getString(R.string.prefval_noise_level_filter)));
 
 			//event delay
 			//After an event is recognized, this setting sets the delay before the next event can be recognized 
 			//The delay is measured in milliseconds; 1/1000th of a second
-			editor.putLong(Integer.toString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay)));
+			editor.putLong(this.getString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay)));
 
 			//start recognizer time
 			//After an event is detected, this setting indicates the time for the full command to start the gesture recognizer must be inputted  
 			//The delay is measured in milliseconds; 1/1000th of a second
-			editor.putLong(Integer.toString(R.string.prefname_start_recognizer_time), Long.parseLong(this.getString(R.string.prefval_start_recognizer_time)));
+			editor.putLong(this.getString(R.string.prefname_start_recognizer_time), Long.parseLong(this.getString(R.string.prefval_start_recognizer_time)));
 
 			//gesture recognize time 
 			//When the full gesture recognition is activated, this value measure how long the gesture recognizer is active
 			//Thus, gestures must not take longer to execute than this time 
 			//The time is measured in milliseconds; 1/1000th of a second
-			editor.putLong(Integer.toString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
+			editor.putLong(this.getString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
 
 
 		}
