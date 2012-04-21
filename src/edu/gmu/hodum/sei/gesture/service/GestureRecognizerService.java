@@ -259,8 +259,29 @@ public class GestureRecognizerService extends Service implements GestureListener
 		}
 	}
 
-	public static void deleteGestures()
-	{
+	public static void deleteGesture(String name){
+		//delete individual gesture from the file system and gesture Id map by name
+		File root = Environment.getExternalStorageDirectory();
+
+		String path = root + "/Android/data/" + mPackageName + "/gestures/";
+		File file = new File(path+name+".txt");
+		
+		if (file.isFile())
+		{
+				file.delete();
+				GestureIdMapping.remove(name);
+
+				Log.d(TAG, "Deleting "+file.getAbsolutePath());	
+		}
+		else{
+			Log.d(TAG, "Tried to delete non-existent file: "+file.getAbsolutePath());
+		}
+
+		resetGestures();
+	}
+	
+	public static void deleteGestures(){
+		//delete all gestures from the file system and the Gesture Id Map
 		File root = Environment.getExternalStorageDirectory();
 
 		String path = root + "/Android/data/" + mPackageName + "/gestures/";
