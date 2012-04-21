@@ -17,4 +17,7 @@ public class RowData
 	{
 		return mId + " " + mTitle + " " + mDetail;
 	}
+	public String getTitle(){
+		return mTitle;
+	}
 }

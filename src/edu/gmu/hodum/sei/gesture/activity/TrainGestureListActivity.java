@@ -9,8 +9,13 @@ import android.content.pm.ActivityInfo;
 import android.net.ParseException;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.Toast;
 import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
@@ -28,8 +33,8 @@ public class TrainGestureListActivity extends GestureListActivity
 	private static final String TAG = "traininglist";
 	private static String[] details;
 	private static final Class<?> nextIntentClasses[] = { TrainGestureActivity.class,
-			TrainGestureActivity.class, TrainGestureActivity.class, TrainGestureActivity.class,
-			TrainGestureActivity.class };
+		TrainGestureActivity.class, TrainGestureActivity.class, TrainGestureActivity.class,
+		TrainGestureActivity.class };
 
 	private LayoutInflater mInflater;
 	private Vector<RowData> data;
@@ -43,6 +48,8 @@ public class TrainGestureListActivity extends GestureListActivity
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.list);
 		initialize();
+
+		this.registerForContextMenu(this.getListView());
 	}
 
 	public void onResume()
@@ -66,6 +73,33 @@ public class TrainGestureListActivity extends GestureListActivity
 	{
 		super.onDestroy();
 		Log.d(TAG, "onDestroy");
+	}
+
+
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+		super.onCreateContextMenu(menu, v, menuInfo);
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.list_context_menu, menu);
+	}
+	public boolean onContextItemSelected(MenuItem item) {
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+		long id = this.getListAdapter().getItemId(info.position);
+		
+		switch (item.getItemId()) {
+		case R.id.select:
+			startNextActivity(info.position);	
+			return true;
+		case R.id.delete:
+			CustomAdapter adapter = (CustomAdapter) this.getListAdapter();
+			RowData rowData = adapter.getItem((int) id); 
+			String name = rowData.getTitle();
+			GestureRecognizerService.deleteGesture(name);
+			return true;
+		case R.id.cancel:
+			return true;
+		default:
+			return super.onContextItemSelected(item);
+		}
 	}
 
 	public void onListItemClick(ListView parent, View v, int position, long id)
@@ -107,17 +141,17 @@ public class TrainGestureListActivity extends GestureListActivity
 			{
 				e.printStackTrace();
 			}
-		
+
 			data.add(rd);
 		}
 
 		CustomAdapter adapter = new CustomAdapter(
-			this,
-			mInflater, 
-			R.layout.list_item,
-			R.id.title,
-			data
-		);
+				this,
+				mInflater, 
+				R.layout.list_item,
+				R.id.title,
+				data
+				);
 
 		setListAdapter(adapter);
 		getListView().setTextFilterEnabled(true);

@@ -12,6 +12,9 @@
     <string name="txt_settings">Settings</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="edit">Edit</string>
+    <string name="select">Select</string>
     
     
 </resources>
