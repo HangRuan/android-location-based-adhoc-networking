@@ -94,6 +94,7 @@ public class TrainGestureListActivity extends GestureListActivity
 			RowData rowData = adapter.getItem((int) id); 
 			String name = rowData.getTitle();
 			GestureRecognizerService.deleteGesture(name);
+			initialize();
 			return true;
 		case R.id.cancel:
 			return true;
