@@ -4,5 +4,6 @@
     <string name="prefname_event_delay">event_delay</string>
     <string name="prefname_gesture_recognize_time">gesture_recognize_time</string>
     <string name="prefname_start_recognizer_time">start_recognizer_time</string>
+    <string name="prefname_enable_speech">enable_speech</string>
     
 </resources>

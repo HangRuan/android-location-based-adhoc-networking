@@ -31,8 +31,10 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer;
 	private float NOISE;
+	private boolean enableSpeech;
 	private TextToSpeech mTts;
-
+	
+	
 	private boolean gatekeeper = true;
 	private int gestureStart = 0;
 
@@ -72,7 +74,9 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 		boolean bool = mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 		System.out.println("onResume mSensorManager.registerListener: "+ Boolean.toString(bool));
 
-		mTts = new TextToSpeech(this,this);
+		if(enableSpeech){
+			mTts = new TextToSpeech(this,this);
+		}
 	}
 
 	public void onPause() {
@@ -80,7 +84,9 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 		mSensorManager.unregisterListener(this);
 		System.out.println("onPause mSensorManager.unregisterListener");
 
-		mTts.shutdown();
+		if(enableSpeech){
+			mTts.shutdown();
+		}
 	}
 
 	public void gestureReceived(GestureEvent event)
@@ -97,7 +103,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 					speakNToast(this.getResources().getString(R.string.sos));
 				}
 				else if (gesture.equalsIgnoreCase(GestureRecognizerService.SUPPLIES_GESTURE)){
-					speakNToast(this.getResources().getString(R.string.sos));
+					speakNToast(this.getResources().getString(R.string.supplies));
 				}
 				
 			}
@@ -256,6 +262,12 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 
 		//get the time that the full gesture recognizer is active
 		gestureRecognizeTime = prefs.getLong(this.getString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
+		
+		//get the text-to-speech setting
+		enableSpeech = prefs.getBoolean(this.getString(R.string.prefname_enable_speech), Boolean.parseBoolean(this.getString(R.string.prefval_enable_speech)));
+		if(mTts !=null){
+			mTts.shutdown();
+		}
 
 	}
 
@@ -278,7 +290,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 			editor.putLong(this.getString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay)));
 
 			//start recognizer time
-			//After an event is detected, this setting indicates the time for the full command to start the gesture recognizer must be inputted  
+			//After an event is detected, this setting indicates the time for the full command to start the gesture recognizer must be inputed  
 			//The delay is measured in milliseconds; 1/1000th of a second
 			editor.putLong(this.getString(R.string.prefname_start_recognizer_time), Long.parseLong(this.getString(R.string.prefval_start_recognizer_time)));
 
@@ -288,7 +300,9 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 			//The time is measured in milliseconds; 1/1000th of a second
 			editor.putLong(this.getString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
 
-
+			//enable speech
+			editor.putBoolean(this.getString(R.string.prefname_enable_speech), Boolean.parseBoolean(this.getString(R.string.prefname_enable_speech)));
+			
 		}
 	}
 

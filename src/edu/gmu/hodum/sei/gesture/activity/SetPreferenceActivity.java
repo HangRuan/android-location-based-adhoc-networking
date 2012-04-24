@@ -11,6 +11,7 @@ import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.ToggleButton;
 
 public class SetPreferenceActivity extends Activity{
 
@@ -19,6 +20,7 @@ public class SetPreferenceActivity extends Activity{
 	private Spinner spinnerEventDelay;
 	private Spinner spinnerStartRecognizerTime;
 	private Spinner spinnerGestureRecognizeTime;
+	private ToggleButton toggleBtnEnableSpeech;
 
 	public void onCreate(Bundle bundle){
 		super.onCreate(bundle);
@@ -34,7 +36,7 @@ public class SetPreferenceActivity extends Activity{
 		}
 		
 		
-		//set spinners
+		//set preferences
 		spinnerNoise = (Spinner) this.findViewById(R.id.spinner_noise);
 		String stringNoise = Float.toString(prefs.getFloat(this.getString(R.string.prefname_noise_level_filter), Float.parseFloat(this.getString(R.string.prefval_noise_level_filter))));
 		setupSpinner(spinnerNoise, R.array.prefarray_noise_level_filter, stringNoise);
@@ -51,6 +53,9 @@ public class SetPreferenceActivity extends Activity{
 		String stringGestureRecognizeTime = Long.toString(prefs.getLong(this.getString(R.string.prefval_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time))));
 		setupSpinner(spinnerGestureRecognizeTime, R.array.prefarray_gesture_recognize_time, stringGestureRecognizeTime);
 
+		toggleBtnEnableSpeech = (ToggleButton) this.findViewById(R.id.toggle_enable_speech);
+		Boolean savedVal = prefs.getBoolean(this.getString(R.string.prefname_enable_speech), Boolean.parseBoolean(this.getString(R.string.prefval_enable_speech)));;
+		toggleBtnEnableSpeech.setChecked(savedVal);
 	}
 
 	private void setupSpinner(Spinner spinner, int arrayVals, String prefVal){
@@ -96,6 +101,9 @@ public class SetPreferenceActivity extends Activity{
 		spinnerVal = (String) spinnerGestureRecognizeTime.getSelectedItem();
 		longVal = Long.parseLong(spinnerVal);
 		editor.putLong(this.getString(R.string.prefname_gesture_recognize_time), longVal);
+		
+		Boolean toggleVal = toggleBtnEnableSpeech.isChecked();
+		editor.putBoolean(this.getString(R.string.prefname_enable_speech), toggleVal);
 		
 		editor.commit();
 

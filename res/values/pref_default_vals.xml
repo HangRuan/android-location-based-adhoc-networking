@@ -4,5 +4,6 @@
     <string name="prefval_event_delay">300</string>
     <string name="prefval_gesture_recognize_time">2000</string>
     <string name="prefval_start_recognizer_time">2000</string>
+    <string name="prefval_enable_speech">true</string>
     
 </resources>

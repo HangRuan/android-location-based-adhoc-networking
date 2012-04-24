@@ -79,6 +79,26 @@
                     />
                 
             </TableRow>
+            
+            <TableRow>
+
+                <TextView
+                    android:layout_column="1"
+                    android:padding="3dip"
+                    android:text="Enable Speech" />
+
+                <ToggleButton
+                    android:id="@+id/toggle_enable_speech"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:textOn="On"
+                    android:textOff="Off"
+                    
+                    android:padding="3dip"
+                    />
+                
+                
+            </TableRow>
         </TableLayout>
     </ScrollView>
 

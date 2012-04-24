@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 import edu.gmu.hodum.sei.gesture.R;
 
@@ -48,7 +47,6 @@ public class CustomAdapter extends ArrayAdapter<RowData>
 		private View mRow;
 		private TextView title = null;
 		private TextView detail = null;
-		private ImageView i11 = null;
 
 		public ViewHolder(View row)
 		{
