@@ -63,7 +63,8 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 
 	final private SensorEvtManager sensorEvtManager = new SensorEvtManager();
 	final private Timer timer = new Timer(true);
-	final private int settingsResultCode = 1; 
+	final private int SETTINGS = 1;
+	final private int TRAINING = 2; 
 
 	//delays
 	private long eventDelay;
@@ -84,7 +85,9 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);      
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		GestureRecognizerService.mPackageName = getApplicationContext().getPackageName();
-		GestureRecognizerService.loadGestures();
+		
+		//TODO: Fix for when training new gestures
+		//GestureRecognizerService.loadGestures();
 		startService(new Intent(this, GestureRecognizerService.class));
 
 	}
@@ -94,6 +97,8 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 		boolean bool = mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 		System.out.println("onResume mSensorManager.registerListener: "+ Boolean.toString(bool));
 
+		//TODO: Fix for when training new gestures
+		GestureRecognizerService.loadGestures();
 		if(enableSpeech){
 			mTts = new TextToSpeech(this,this);
 		}
@@ -252,20 +257,27 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 	}
 
 	public void btnTrainGestures_onClick(View view){
-		this.startActivity(new Intent(this, TrainGestureListActivity.class));
+		this.startActivityForResult(new Intent(this, TrainGestureListActivity.class), TRAINING);
 	}
 	public void btnSettings_onClick(View view){
-		this.startActivityForResult(new Intent(this, SetPreferenceActivity.class), settingsResultCode);
+		this.startActivityForResult(new Intent(this, SetPreferenceActivity.class), SETTINGS);
 	}
 
 	public void onActivityResult(int requestCode, int resultcode, Intent data){
 		if(resultcode ==  Activity.RESULT_OK){
-			toast("Saved");
-			loadPrefs();
+			if(requestCode == SETTINGS){
+				toast("Saved");
+				loadPrefs();
+			}
+			else if(requestCode == TRAINING){
+				GestureRecognizerService.loadGestures();
+			}
 		}
+		/*
 		else{
-			toast("Canceled");
+			toast("Canceled from list");
 		}
+		*/
 	}
 
 	private void loadPrefs() {
@@ -279,7 +291,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 
 		//get the window of time between the first and the last senor event to start the recognizer
 		startRecognizerTime = prefs.getLong(this.getString(R.string.prefname_recognizer_start_window), Long.parseLong(this.getString(R.string.prefval_recognizer_start_window)));
-		
+
 		//get the time that the full gesture recognizer is active
 		gestureRecognizeTime = prefs.getLong(this.getString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
 

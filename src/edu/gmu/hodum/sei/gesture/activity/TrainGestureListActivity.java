@@ -168,8 +168,20 @@ public class TrainGestureListActivity extends GestureListActivity
 
 			Intent intent = new Intent(this, nextIntentClasses[index]);
 			intent.putExtras(bundle);
-			startActivity(intent);
+			startActivityForResult(intent, 1);
 		}
+	}
+	
+	public void onActivityResult(int requestCode, int resultcode, Intent data){
+		if(resultcode ==  Activity.RESULT_OK){
+			toast("Gesture trained");
+			this.setResult(Activity.RESULT_OK);
+		}
+		/*
+		else{
+			toast("Canceled from list");
+		}
+		*/
 	}
 
 	public void gestureReceived(GestureEvent event)

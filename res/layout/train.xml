@@ -8,6 +8,7 @@
         android:id="@+id/done"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:onClick="btnDone_onClick"
         android:text="Done" />
 
 </LinearLayout>

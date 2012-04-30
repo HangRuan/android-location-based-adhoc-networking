@@ -60,18 +60,6 @@ public class TrainGestureActivity extends Activity implements SensorEventListene
 
 		Bundle bundle = getIntent().getExtras();
 		gestureId = bundle.getInt(TrainGestureListActivity.GESTURE_ID);
-
-		Button done = (Button) findViewById(R.id.done);
-		done.setOnClickListener(new OnClickListener() {
-			public void onClick(View arg0)
-			{
-				String gestureName = GestureRecognizerService.GESTURE_NAMES[gestureId];
-				GestureRecognizerService.finalizeLearning();
-				GestureRecognizerService.saveGesture(gestureName);
-				GestureRecognizerService.resetGestures();
-				finish();
-			}
-		});
 		
 		mInitialized = false;
 		loadPrefs();
@@ -80,6 +68,15 @@ public class TrainGestureActivity extends Activity implements SensorEventListene
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);      
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 
+	}
+	
+	public void btnDone_onClick(View view){
+		String gestureName = GestureRecognizerService.GESTURE_NAMES[gestureId];
+		GestureRecognizerService.finalizeLearning();
+		GestureRecognizerService.saveGesture(gestureName);
+		GestureRecognizerService.resetGestures();
+		this.setResult(Activity.RESULT_OK);
+		finish();
 	}
 
 	public void onResume() {
