@@ -123,12 +123,20 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 			if (gesture != null)
 			{
 				Log.d(TAG, "Gesture received " + gesture);
-
+				
+				//TODO: send Broadcasts for actions
+				Intent intent = new Intent(this.getString(R.string.send_data));
 				if (gesture.equalsIgnoreCase(GestureRecognizerService.SOS_GESTURE)){
 					speakNToast(this.getResources().getString(R.string.sos));
+					//TODO: create intent for SOS
+					//
+					//this.sendBroadcast(intent);
 				}
 				else if (gesture.equalsIgnoreCase(GestureRecognizerService.SUPPLIES_GESTURE)){
 					speakNToast(this.getResources().getString(R.string.supplies));
+					//TODO: create intent for Supplies
+					//
+					//this.sendBroadcast(intent);
 				}
 
 			}

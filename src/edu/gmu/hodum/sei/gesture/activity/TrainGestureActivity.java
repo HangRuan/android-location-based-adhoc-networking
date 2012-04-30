@@ -18,8 +18,6 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
 import android.util.Log;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
 import android.widget.Toast;
 import edu.gmu.hodum.sei.gesture.R;
 import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
