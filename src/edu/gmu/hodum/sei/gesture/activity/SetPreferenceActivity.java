@@ -28,13 +28,11 @@ public class SetPreferenceActivity extends Activity{
 
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		
-		
 		Map<String, ?> map = prefs.getAll();
 		Set<String> keyset = map.keySet();
 		for (String key: keyset){
 			System.out.println(key);
 		}
-		
 		
 		//set preferences
 		spinnerNoise = (Spinner) this.findViewById(R.id.spinner_noise);
@@ -45,9 +43,9 @@ public class SetPreferenceActivity extends Activity{
 		String stringEventDelay = Long.toString(prefs.getLong(this.getString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay))));
 		setupSpinner(spinnerEventDelay, R.array.prefarray_event_delay, stringEventDelay);
 
-		spinnerStartRecognizerTime = (Spinner) this.findViewById(R.id.spinner_start_recognizer_time);
-		String stringRecognizerTime = Long.toString(prefs.getLong(this.getString(R.string.prefname_start_recognizer_time), Long.parseLong(this.getString(R.string.prefval_start_recognizer_time))));
-		setupSpinner(spinnerStartRecognizerTime, R.array.prefarray_start_recognizer_time, stringRecognizerTime);
+		spinnerStartRecognizerTime = (Spinner) this.findViewById(R.id.spinner_recognizer_start_window);
+		String stringRecognizerTime = Long.toString(prefs.getLong(this.getString(R.string.prefname_recognizer_start_window), Long.parseLong(this.getString(R.string.prefval_recognizer_start_window))));
+		setupSpinner(spinnerStartRecognizerTime, R.array.prefarray_recognizer_start_window, stringRecognizerTime);
 
 		spinnerGestureRecognizeTime = (Spinner) this.findViewById(R.id.spinner_gesture_recognize_time);
 		String stringGestureRecognizeTime = Long.toString(prefs.getLong(this.getString(R.string.prefval_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time))));
@@ -83,7 +81,7 @@ public class SetPreferenceActivity extends Activity{
 
 
 	public void btnSave_onClick(View view){
-		//TODO: Get the values of the spinners and save the preferences
+		//Get the values of the spinners and save the preferences
 		SharedPreferences.Editor editor = prefs.edit();
 		
 		String spinnerVal = (String) spinnerNoise.getSelectedItem();
@@ -96,7 +94,7 @@ public class SetPreferenceActivity extends Activity{
 		
 		spinnerVal = (String) spinnerStartRecognizerTime.getSelectedItem();
 		longVal = Long.parseLong(spinnerVal);
-		editor.putLong(this.getString(R.string.prefname_start_recognizer_time), longVal);
+		editor.putLong(this.getString(R.string.prefname_recognizer_start_window), longVal);
 		
 		spinnerVal = (String) spinnerGestureRecognizeTime.getSelectedItem();
 		longVal = Long.parseLong(spinnerVal);

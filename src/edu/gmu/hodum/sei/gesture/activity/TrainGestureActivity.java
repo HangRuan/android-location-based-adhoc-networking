@@ -2,8 +2,7 @@ package edu.gmu.hodum.sei.gesture.activity;
 
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Vector;
 
 import android.app.Activity;
 import android.content.Context;
@@ -41,13 +40,10 @@ public class TrainGestureActivity extends Activity implements SensorEventListene
 	private Sensor mAccelerometer;
 	private float NOISE;
 	private TextToSpeech mTts;
+	private boolean enableSpeech;
 	
-	private boolean gatekeeper = true;
-	private int gestureStart = 0;
-
-	final private Lock lock = new ReentrantLock();
+	final private SensorEvtManager sensorEvtManager = new SensorEvtManager();
 	final private Timer timer = new Timer(true);
-	private StartRecognizerTask reset;
 	
 	//delays
 		private long eventDelay;
@@ -91,7 +87,9 @@ public class TrainGestureActivity extends Activity implements SensorEventListene
 		boolean bool = mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 		System.out.println("onResume mSensorManager.registerListener: "+ Boolean.toString(bool));
 
-		mTts = new TextToSpeech(this,this);
+		if(enableSpeech){
+			mTts = new TextToSpeech(this,this);
+		}
 	}
 	
 	public void onPause() {
@@ -99,7 +97,9 @@ public class TrainGestureActivity extends Activity implements SensorEventListene
 		mSensorManager.unregisterListener(this);
 		System.out.println("onPause mSensorManager.unregisterListener");
 
-		mTts.shutdown();
+		if(enableSpeech){
+			mTts.shutdown();
+		}
 	}
 	
 	public void triggerRecognizer(){
@@ -150,9 +150,17 @@ public class TrainGestureActivity extends Activity implements SensorEventListene
 		//get the delay between accelerometer events
 		eventDelay = prefs.getLong(this.getString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay)));
 
+		//get the window of time between the first and the last senor event to start the recognizer
+		startRecognizerTime = prefs.getLong(this.getString(R.string.prefname_recognizer_start_window), Long.parseLong(this.getString(R.string.prefval_recognizer_start_window)));
+		
 		//get the time that the full gesture recognizer is active
 		gestureRecognizeTime = prefs.getLong(this.getString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
 
+		//get the text-to-speech setting
+		enableSpeech = prefs.getBoolean(this.getString(R.string.prefname_enable_speech), Boolean.parseBoolean(this.getString(R.string.prefval_enable_speech)));
+		if(mTts !=null){
+			mTts.shutdown();
+		}
 	}
 	
 	@Override
@@ -188,63 +196,59 @@ public class TrainGestureActivity extends Activity implements SensorEventListene
 					deltaY > 0.0	|| 
 					deltaZ > 0.0){
 
-				//check if lock is available, else do nothing
-				if (lock.tryLock()){
-					if (gatekeeper == true){
-						//sayText("Event");
-
-						//sets the gatekeeper to false, so the device ignores the sensor events
-						//a timer is set for eventDelay milliseconds to change the gatekeeper back 
-						//to allow the device to respond to sensor events again 
-						gatekeeper = false;
-						timer.schedule(new EventDelayTask(), eventDelay);
-
-						//increments the gestureStart counter
-						gestureStart++;
-
-						//if there is no reset timer set, set the reset timer 
-						if (reset == null){
-							reset = new StartRecognizerTask();
-							timer.schedule(reset, startRecognizerTime);
-						}
-
-						//if the gestureStart counter has reached 3, then reset the counter, and remove the reset timer, and activate the gesture recognizer
-						if(gestureStart>=3){
-							gestureStart = 0;
-							reset.cancel();
-							reset = null;
-							sayText("Gesture Start");
-
-							//activates the recognizer
-							triggerRecognizer();
-							timer.schedule(new StopRecognizerTask(), gestureRecognizeTime);
-
-						}
-					}
-					lock.unlock();
+				if(sensorEvtManager.addEvtStartRecognizer(System.currentTimeMillis())){
+					//activates the recognizer
+					System.out.println("Recognizer triggered");
+					sayText("Gesture Start");
+					triggerRecognizer();
+					timer.schedule(new StopRecognizerTask(), gestureRecognizeTime);
 				}
-				//do nothing in response to the sensor event if the lock is acquired
 			}
 		}
 		
 	}
 	
-	private class EventDelayTask extends TimerTask
-	{
-		public void run()
-		{
-			lock.lock();
-			TrainGestureActivity.this.gatekeeper = true;
-			lock.unlock();
+	private class SensorEvtManager {
+		final private Vector<Long> evts = new Vector<Long>();
+		private long nextSampleTime = 0;
+
+		SensorEvtManager(){
 		}
-	}
-	private class StartRecognizerTask extends TimerTask
-	{
-		public void run()
-		{
-			lock.lock();
-			gestureStart = 0;
-			lock.unlock();
+
+		public synchronized boolean addEvtStartRecognizer(long time){
+
+			if(time > nextSampleTime){
+				System.out.println("Sensor event triggered, evts.size = "+evts.size());
+				//there are not two events yet
+				if(evts.size()<2){
+					evts.add(time);
+					nextSampleTime = time + eventDelay;
+				}
+				//this is the third event
+				else{
+
+					//removes values which may be too old
+					for (long evt : evts){
+						if((time - evt) > startRecognizerTime){
+							System.out.println("remove");
+							evts.remove(evt);
+						}
+					}
+
+					evts.add(time);
+
+					//checks to make sure that there are still enough sensor events to activate the recognizer
+					if(evts.size() >= 3){
+						nextSampleTime = time + gestureRecognizeTime + eventDelay;
+						evts.clear();
+						return true;
+					}
+					else {
+						nextSampleTime = time + eventDelay;
+					}
+				}
+			}
+			return false;
 		}
 	}
 

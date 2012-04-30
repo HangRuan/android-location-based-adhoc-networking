@@ -52,10 +52,10 @@
                 <TextView
                     android:layout_column="1"
                     android:padding="3dip"
-                    android:text="Start recognizer time" />
+                    android:text="Recognizer start window" />
 
                 <Spinner
-                    android:id="@+id/spinner_start_recognizer_time"
+                    android:id="@+id/spinner_recognizer_start_window"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:gravity="right"

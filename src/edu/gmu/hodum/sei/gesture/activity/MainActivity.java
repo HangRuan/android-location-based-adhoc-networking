@@ -1,10 +1,8 @@
 package edu.gmu.hodum.sei.gesture.activity;
 
-
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.Vector;
 
 import edu.gmu.hodum.sei.gesture.R;
 import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
@@ -24,6 +22,35 @@ import android.speech.tts.TextToSpeech.OnInitListener;
 import android.util.Log;
 import android.view.View;
 
+/*
+ * This is the main activity that is started after the application is launched. 
+ * 
+ * It has links to other activities to train the gestures and to change the application settings,
+ * which are stored in the android default shared preferences files. This activity loads the preferences
+ * upon startup and using an appropriate onActivityResult
+ * 
+ * This activity is also where the gestures are recognized. The primary gesture recognizer uses the andgee library.
+ * However, the primary gesture recognizer is not active all of the time. It was determined that this would 
+ * drain the battery excessively. 
+ * 
+ * Instead, the primary gesture recognizer is activated after 3 motions are detected using the accelerometer which exceed a noise threshold. 
+ * These motions using the device can be of any type, as long as they exceed the noise threshold.
+ * This prevents unintended vibrations or incidental contact from activating the gesture recognition.
+ * A sensor reading that exceeds the noise threshold is called a sensor event 
+ * 
+ * Most accelerometers will sample values very quickly. Without filtering, this would result in several sensor events to be registered 
+ * over the course of a single motion. The intention is to have a single sensor event per motion. Thus, after a sensor event is registered,
+ * all sensor values are ignored for a configurable time. This allows whatever real-life motion which registers a sensor event to complete
+ * without triggering other sensor events
+ * 
+ * To review, initiating the gesture recognition requires 3 sensor events must occur. These events must occur within a reasonable timeframe. 
+ * For example, having three separation incidental events on three separate day should not activate the gesture recognition. 
+ * 
+ * 
+ * After the gesture recognition is activated, the mechanism to activate the primary gesture recognition 
+ * should be disabled for the duration of the gesture plus the delay for the minimum sensor event. 
+ */
+
 public class MainActivity extends GestureActivity implements SensorEventListener, OnInitListener{
 
 	private float mLastX, mLastY, mLastZ;
@@ -33,15 +60,9 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 	private float NOISE;
 	private boolean enableSpeech;
 	private TextToSpeech mTts;
-	
-	
-	private boolean gatekeeper = true;
-	private int gestureStart = 0;
 
-	final private Lock lock = new ReentrantLock();
+	final private SensorEvtManager sensorEvtManager = new SensorEvtManager();
 	final private Timer timer = new Timer(true);
-	private StartRecognizerTask reset;
-
 	final private int settingsResultCode = 1; 
 
 	//delays
@@ -65,7 +86,6 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 		GestureRecognizerService.mPackageName = getApplicationContext().getPackageName();
 		GestureRecognizerService.loadGestures();
 		startService(new Intent(this, GestureRecognizerService.class));
-
 
 	}
 
@@ -105,7 +125,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 				else if (gesture.equalsIgnoreCase(GestureRecognizerService.SUPPLIES_GESTURE)){
 					speakNToast(this.getResources().getString(R.string.supplies));
 				}
-				
+
 			}
 		}
 		else{
@@ -158,63 +178,60 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 					deltaY > 0.0	|| 
 					deltaZ > 0.0){
 
-				//check if lock is available, else do nothing
-				if (lock.tryLock()){
-					if (gatekeeper == true){
-						//sayText("Event");
-
-						//sets the gatekeeper to false, so the device ignores the sensor events
-						//a timer is set for eventDelay milliseconds to change the gatekeeper back 
-						//to allow the device to respond to sensor events again 
-						gatekeeper = false;
-						timer.schedule(new EventDelayTask(), eventDelay);
-
-						//increments the gestureStart counter
-						gestureStart++;
-
-						//if there is no reset timer set, set the reset timer 
-						if (reset == null){
-							reset = new StartRecognizerTask();
-							timer.schedule(reset, startRecognizerTime);
-						}
-
-						//if the gestureStart counter has reached 3, then reset the counter, and remove the reset timer, and activate the gesture recognizer
-						if(gestureStart>=3){
-							gestureStart = 0;
-							reset.cancel();
-							reset = null;
-							sayText("Gesture Start");
-
-							//activates the recognizer
-							triggerRecognizer();
-							timer.schedule(new StopRecognizerTask(), gestureRecognizeTime);
-
-						}
-					}
-					lock.unlock();
+				if(sensorEvtManager.addEvtStartRecognizer(System.currentTimeMillis())){
+					//activates the recognizer
+					System.out.println("Recognizer triggered");
+					sayText("Gesture Start");
+					triggerRecognizer();
+					timer.schedule(new StopRecognizerTask(), gestureRecognizeTime);
 				}
-				//do nothing in response to the sensor event if the lock is acquired
+
 			}
 		}
 
 	}
 
-	private class EventDelayTask extends TimerTask
-	{
-		public void run()
-		{
-			lock.lock();
-			MainActivity.this.gatekeeper = true;
-			lock.unlock();
+	private class SensorEvtManager {
+		final private Vector<Long> evts = new Vector<Long>();
+		private long nextSampleTime = 0;
+
+		SensorEvtManager(){
 		}
-	}
-	private class StartRecognizerTask extends TimerTask
-	{
-		public void run()
-		{
-			lock.lock();
-			gestureStart = 0;
-			lock.unlock();
+
+		public synchronized boolean addEvtStartRecognizer(long time){
+
+			if(time > nextSampleTime){
+				System.out.println("Sensor event triggered, evts.size = "+evts.size());
+				//there are not two events yet
+				if(evts.size()<2){
+					evts.add(time);
+					nextSampleTime = time + eventDelay;
+				}
+				//this is the third event
+				else{
+
+					//removes values which may be too old
+					for (long evt : evts){
+						if((time - evt) > startRecognizerTime){
+							System.out.println("remove");
+							evts.remove(evt);
+						}
+					}
+
+					evts.add(time);
+
+					//checks to make sure that there are still enough sensor events to activate the recognizer
+					if(evts.size() >= 3){
+						nextSampleTime = time + gestureRecognizeTime + eventDelay;
+						evts.clear();
+						return true;
+					}
+					else {
+						nextSampleTime = time + eventDelay;
+					}
+				}
+			}
+			return false;
 		}
 	}
 
@@ -260,9 +277,12 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 		//get the delay between accelerometer events
 		eventDelay = prefs.getLong(this.getString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay)));
 
+		//get the window of time between the first and the last senor event to start the recognizer
+		startRecognizerTime = prefs.getLong(this.getString(R.string.prefname_recognizer_start_window), Long.parseLong(this.getString(R.string.prefval_recognizer_start_window)));
+		
 		//get the time that the full gesture recognizer is active
 		gestureRecognizeTime = prefs.getLong(this.getString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
-		
+
 		//get the text-to-speech setting
 		enableSpeech = prefs.getBoolean(this.getString(R.string.prefname_enable_speech), Boolean.parseBoolean(this.getString(R.string.prefval_enable_speech)));
 		if(mTts !=null){
@@ -290,9 +310,9 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 			editor.putLong(this.getString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay)));
 
 			//start recognizer time
-			//After an event is detected, this setting indicates the time for the full command to start the gesture recognizer must be inputed  
+			//After the first event is detected, this setting indicates the window of time for the full command to start the gesture recognizer must be inputed  
 			//The delay is measured in milliseconds; 1/1000th of a second
-			editor.putLong(this.getString(R.string.prefname_start_recognizer_time), Long.parseLong(this.getString(R.string.prefval_start_recognizer_time)));
+			editor.putLong(this.getString(R.string.prefname_recognizer_start_window), Long.parseLong(this.getString(R.string.prefval_recognizer_start_window)));
 
 			//gesture recognize time 
 			//When the full gesture recognition is activated, this value measure how long the gesture recognizer is active
@@ -302,7 +322,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 
 			//enable speech
 			editor.putBoolean(this.getString(R.string.prefname_enable_speech), Boolean.parseBoolean(this.getString(R.string.prefname_enable_speech)));
-			
+
 		}
 	}
 
