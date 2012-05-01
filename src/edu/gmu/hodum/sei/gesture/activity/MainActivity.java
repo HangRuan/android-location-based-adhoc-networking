@@ -258,7 +258,7 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 
 			public void run() {
 				MainActivity.this.triggerRecognizer();
-
+				speakNToast("Recognizer Stopped");
 			}
 
 		}

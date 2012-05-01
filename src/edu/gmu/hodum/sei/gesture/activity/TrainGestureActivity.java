@@ -257,7 +257,7 @@ public class TrainGestureActivity extends Activity implements SensorEventListene
 
 			public void run() {
 				TrainGestureActivity.this.triggerRecognizer();
-
+				speakNToast("Recognizer Stopped");
 			}
 
 		}
