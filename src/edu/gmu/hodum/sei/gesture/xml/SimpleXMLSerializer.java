@@ -1,4 +1,4 @@
-package edu.gmu.hodum.sei.gesture.util;
+package edu.gmu.hodum.sei.gesture.xml;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
