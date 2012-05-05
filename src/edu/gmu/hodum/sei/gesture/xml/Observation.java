@@ -13,7 +13,7 @@ public class Observation {
 	private String dataType;
 	
 	//Need a time here and in the space time
-	//The one here is the time when I made the observation or update to the plan
+	//The one here is the time when I made the onservation or update to the plan
 	//The time in the Location is either when I saw them there or when I plan to be there
 	
 	@ElementList
