@@ -1,0 +1,26 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/btn_default_normal"
+    android:focusable="true"
+    android:textColor="#000" >
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="20px"
+        android:gravity="center"
+        android:text="SEI Gesture Recognition" android:background="@drawable/btn_keyboard_key_trans_normal"/>
+
+    <Button
+        android:id="@+id/btn_on_off"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="20px"
+        android:text="   " android:background="@drawable/btn_keyboard_key_trans_normal_off"/>
+
+</RelativeLayout>

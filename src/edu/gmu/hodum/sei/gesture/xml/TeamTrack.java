@@ -9,6 +9,9 @@ public class TeamTrack {
 	@Element (required = false)
 	private Observation observation;
 
+	public TeamTrack(){
+		
+	}
 	public void setObservation(Observation observation) {
 		this.observation = observation;
 	}

@@ -16,6 +16,7 @@ import logic.GestureModel;
 import logic.ProcessingUnitWrapper;
 
 import android.app.Service;
+import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.SensorManager;
@@ -25,8 +26,11 @@ import android.os.IBinder;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 import control.Andgee;
+import edu.gmu.hodum.sei.gesture.R;
+import edu.gmu.hodum.sei.gesture.widget.GestureWidgetProvider;
 import event.GestureEvent;
 import event.GestureListener;
 import event.StateEvent;
@@ -41,7 +45,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 	public static final String CAPTURE = "Capturing gesture";
 	public static final String CAPTURED = "Gesture captured";
 
-	
 	public static final String SOS_GESTURE = "SOS";
 	public static final String SUPPLIES_GESTURE = "Supplies";
 
@@ -56,32 +59,77 @@ public class GestureRecognizerService extends Service implements GestureListener
 	public static String mPackageName;
 	private static Context mApplicationContext;
 
+	private String widgetState = this.getString(R.string.off); 
+
 	public void onCreate()
 	{
 		super.onCreate();
 		Log.d(TAG, "onCreate");
 
-		mSensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
-		System.out.println("Andgee mSensorManager register listener: " + mSensorManager.registerListener(mAndgee.getDevice(), SensorManager.SENSOR_ACCELEROMETER,
-				SensorManager.SENSOR_DELAY_GAME));
-		
-		
-
-		try
-		{
-			mAndgee.getDevice().enableAccelerationSensors();
-		}
-		catch (IOException e)
-		{
-			Log.e(getClass().toString(), e.getMessage(), e);
-		}
-
 		mAndgee.setTrainButton(LEARN_KEY);
 		mAndgee.setRecognitionButton(RECOGNIZE_KEY);
 		mAndgee.setCloseGestureButton(STOP_KEY);
-		mAndgee.addGestureListener(this);
+		
 
 		mApplicationContext = getApplicationContext();
+	}
+
+	public int onStartCommand(Intent intent, int flags, int startId){
+		String command = intent.getAction();
+		RemoteViews remoteView = new RemoteViews(getApplicationContext().getPackageName(), R.layout.gesture_widget_layout);
+		int appWidgetId = intent.getExtras().getInt(AppWidgetManager.EXTRA_APPWIDGET_ID);
+
+		//button pressed on widget
+		if(command.equals(this.getString(R.string.on))){
+			//toggle button state
+			
+			//turn on gesture recognizer functionality
+			mSensorManager = (SensorManager) this.getSystemService(Context.SENSOR_SERVICE);
+			System.out.println("Andgee mSensorManager register listener: " + mSensorManager.registerListener(
+					mAndgee.getDevice(), 
+					SensorManager.SENSOR_ACCELEROMETER,
+					SensorManager.SENSOR_DELAY_GAME));
+			
+			try
+			{
+				mAndgee.getDevice().enableAccelerationSensors();
+			}
+			catch (IOException e)
+			{
+				Log.e(getClass().toString(), e.getMessage(), e);
+			}
+			
+			mAndgee.addGestureListener(this);
+		}
+		else if(command.equals(this.getString(R.string.off))){
+			//toggle button state
+			
+			//turn off gesture recognizer functionality
+			Log.d(TAG, "off");
+
+			mAndgee.getDevice().fireButtonReleasedEvent();
+			mAndgee.getDevice().getAccelerationStreamAnalyzer().reset();
+			mSensorManager.unregisterListener(mAndgee.getDevice());
+
+			try
+			{
+				mAndgee.getDevice().disableAccelerationSensors();
+			}
+			catch (Exception e)
+			{
+				Log.e(getClass().toString(), e.getMessage(), e);
+			}
+		}
+
+		//set buttons for widget
+		if(widgetState.equals(this.getString(R.string.off))){
+			remoteView.setPendingIntentTemplate(R.id.btn_on_off, GestureWidgetProvider.makePendingIntent(getApplicationContext(),this.getString(R.string.on),appWidgetId));
+		}
+		else {
+			remoteView.setPendingIntentTemplate(R.id.btn_on_off, GestureWidgetProvider.makePendingIntent(getApplicationContext(),this.getString(R.string.off),appWidgetId));
+
+		}
+		return START_STICKY;
 	}
 
 	public void onDestroy()
@@ -236,7 +284,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
 
 				mAndgee.getDevice().getAccelerationStreamAnalyzer()
-						.saveGesture(writer, model.getId());
+				.saveGesture(writer, model.getId());
 
 				String text = "Saving gesture model";
 
@@ -265,13 +313,13 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 		String path = root + "/Android/data/" + mPackageName + "/gestures/";
 		File file = new File(path+name+".txt");
-		
+
 		if (file.isFile())
 		{
-				file.delete();
-				GestureIdMapping.remove(name);
+			file.delete();
+			GestureIdMapping.remove(name);
 
-				Log.d(TAG, "Deleting "+file.getAbsolutePath());	
+			Log.d(TAG, "Deleting "+file.getAbsolutePath());	
 		}
 		else{
 			Log.d(TAG, "Tried to delete non-existent file: "+file.getAbsolutePath());
@@ -279,7 +327,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 		resetGestures();
 	}
-	
+
 	public static void deleteGestures(){
 		//delete all gestures from the file system and the Gesture Id Map
 		File root = Environment.getExternalStorageDirectory();
