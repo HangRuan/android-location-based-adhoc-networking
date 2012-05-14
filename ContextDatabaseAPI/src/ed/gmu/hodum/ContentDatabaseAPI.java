@@ -10,14 +10,14 @@ import android.net.Uri;
 public class ContentDatabaseAPI {
 
 	private static final String baseURI = "content://edu.gmu.provider.cursor.dir";
-	
+
 	private Context ctxt;
 
 	public ContentDatabaseAPI(Context ctxt_)
 	{
 		ctxt = ctxt_;
 	}
-	
+
 	public void callDB()
 	{
 		ContentResolver cr = ctxt.getContentResolver();
@@ -50,12 +50,12 @@ public class ContentDatabaseAPI {
 			}
 		}
 	}
-	
+
 	public Vector<Thing> getThings(double latLL, double longLL, double latUR, double longUR)
 	{
 		Vector<Thing> ret = new Vector<Thing>();
 		ContentResolver cr = ctxt.getContentResolver();
-		
+
 		Cursor cur = cr.query(Uri.parse( baseURI+"/people"), null, null, null, null); 
 		if(cur == null)
 		{
@@ -65,20 +65,36 @@ public class ContentDatabaseAPI {
 		{
 			while(cur.moveToNext())
 			{
+				
 				Long id = cur.getLong(cur.getColumnIndex("id"));
+				
 				String description = cur.getString(cur.getColumnIndex("description"));
-				System.out.println("descrition: " + description);
+				
 				Cursor cur2 = cr.query(Uri.parse( baseURI+"/person/location"), null, null, new String[]{String.valueOf(id.longValue())}, null);
-				Thing thng = new Thing();
-				thng.setFriendliness(cur.getDouble(cur.getColumnIndex("current_rating")));
-				thng.setRelevance(java.lang.Math.random());
-				thng.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
-				thng.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
-				thng.setElevation(cur2.getDouble(cur2.getColumnIndex("elevation")));
-				ret.add(thng);
+				if(cur2.moveToFirst())
+				{
+					
+					Thing thng = new Thing();
+					thng.setType(Thing.Type.PERSON);
+					thng.setFriendliness(cur.getDouble(cur.getColumnIndex("current_rating")));
+					
+					thng.setRelevance(java.lang.Math.random());
+					
+					System.out.println("cur size: " + cur2.getColumnCount());
+					for(String names:cur2.getColumnNames())
+					{
+						System.out.println(names);
+					}
+					thng.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
+					
+					thng.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
+					
+					thng.setElevation(cur2.getDouble(cur2.getColumnIndex("elevation")));
+					ret.add(thng);
+				}
 			}
 		}
-		
+
 		return ret;
 	}
 }
