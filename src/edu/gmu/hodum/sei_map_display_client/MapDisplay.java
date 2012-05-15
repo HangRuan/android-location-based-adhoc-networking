@@ -37,8 +37,6 @@ public class MapDisplay extends MapActivity {
 		mapView = (MapView) findViewById(R.id.mapview);
 		mapView.setBuiltInZoomControls(true);
 
-		
-		
 		Button btnDisplayItems = (Button)findViewById(R.id.btn_display_items);
 		btnDisplayItems.setOnClickListener(new OnClickListener(){
 
@@ -46,12 +44,13 @@ public class MapDisplay extends MapActivity {
 			public void onClick(View arg0) {
 				
 				
-				boundingOverlay = new BoundingOverlay(MapDisplay.this);
-				List<Overlay> mapOverlays = mapView.getOverlays();
-				mapOverlays.add(boundingOverlay);
+				//boundingOverlay = new BoundingOverlay(MapDisplay.this);
+				//List<Overlay> mapOverlays = mapView.getOverlays();
+				//mapOverlays.add(boundingOverlay);
 
+				//TODO: Content Database API displays Person no matter the coordinates 
 				//displayThingsWithinBounds(0.0, 0.0, 1.0, 1.0);
-				//displayThingsWithinBounds(0.0, 0.0, 0.0, 0.0);
+				displayThingsWithinBounds(0.0, 0.0, 0.0, 0.0);
 				//displayThingsWithinBounds(-37.2, 77.55, -35.5, 79.2);
 				
 			}
