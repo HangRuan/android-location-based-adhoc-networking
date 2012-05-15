@@ -4,6 +4,12 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
+    <Button 
+        android:id="@+id/btn_display_items"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="Display Items"/>
+    
     <com.google.android.maps.MapView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/mapview"
@@ -11,5 +17,6 @@
         android:layout_height="fill_parent"
         android:apiKey="0NdFtN5j56V-BHrS3_QwM9CZW0i9KJc50wdY5oA"
         android:clickable="true" />
+    
 
 </LinearLayout>

@@ -13,14 +13,18 @@ import ed.gmu.hodum.ContentDatabaseAPI;
 import ed.gmu.hodum.Thing;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
 public class MapDisplay extends MapActivity {
 
 	ContentDatabaseAPI api;
 	MapView mapView;
+	BoundingOverlay boundingOverlay;
+	
 	
 	final int MAX_POINT_CNT = 3;
-
 
 	/** Called when the activity is first created. */
 	@Override
@@ -33,28 +37,32 @@ public class MapDisplay extends MapActivity {
 		mapView = (MapView) findViewById(R.id.mapview);
 		mapView.setBuiltInZoomControls(true);
 
-		displayThingsWithinBounds(-37.2, 77.55, -35.5, 79.2);
+		
+		
+		Button btnDisplayItems = (Button)findViewById(R.id.btn_display_items);
+		btnDisplayItems.setOnClickListener(new OnClickListener(){
 
+			@Override
+			public void onClick(View arg0) {
+				
+				
+				boundingOverlay = new BoundingOverlay(MapDisplay.this);
+				List<Overlay> mapOverlays = mapView.getOverlays();
+				mapOverlays.add(boundingOverlay);
+
+				//displayThingsWithinBounds(0.0, 0.0, 1.0, 1.0);
+				//displayThingsWithinBounds(0.0, 0.0, 0.0, 0.0);
+				//displayThingsWithinBounds(-37.2, 77.55, -35.5, 79.2);
+				
+			}
+			
+		});
 	}
 
-
 	public void displayThingsWithinBounds(double latLL, double longLL, double latUR, double longUR){
-		Vector<Thing> things = getThingsWithinBounds(-37.2, 77.55, -35.5, 79.2);
+		Vector<Thing> things = getThingsWithinBounds(latLL, longLL, latUR, longUR);
 		
-		/*
-		 * location.put("latitude", -37.5);
-			location.put("longitude", 73.25);
-		 */
-		
-		/*
-		Thing temp = new Thing();
-		temp.setType(Thing.Type.PERSON);
-		temp.setLatitude(36.0);
-		temp.setLongitude(78.0);
-		@SuppressWarnings("serial")
-		Vector<Thing> things = new Vector<Thing>();
-		things.add(temp);
-		*/
+		System.out.println("The Vector of Things has "+things.size() +" Thing(s) in it.");
 		
 		List<Overlay> mapOverlays = mapView.getOverlays();
 		Drawable drawable = this.getResources().getDrawable(R.drawable.androidmarker);
@@ -75,17 +83,17 @@ public class MapDisplay extends MapActivity {
 		}
 
 		mapOverlays.add(itemizedoverlay);
-
-		//TODO: Used to have user select the "displayThingsWithinBounds" bounding box
-		//mapOverlays.add(new BoundingOverlay());
 		
+		if(boundingOverlay != null){
+			mapOverlays.remove(boundingOverlay);
+			boundingOverlay = null;
+		}
+		mapView.invalidate();
 	}
 
 	public Vector<Thing> getThingsWithinBounds(double latLL, double longLL, double latUR, double longUR){
 		return api.getThings(latLL, longLL, latUR, longUR);
 	}
-
-
 
 	@Override
 	protected boolean isRouteDisplayed() {
