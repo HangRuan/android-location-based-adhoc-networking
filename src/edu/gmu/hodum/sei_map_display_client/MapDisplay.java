@@ -53,6 +53,8 @@ public class MapDisplay extends MapActivity {
 	}
 
 	public void displayThingsWithinBounds(double latLL, double longLL, double latUR, double longUR){
+		System.out.println("Bounds: " +latLL+","+longLL+","+latUR+","+longUR);
+		
 		Vector<Thing> things = getThingsWithinBounds(latLL, longLL, latUR, longUR);
 
 		System.out.println("The Vector of Things has "+things.size() +" Thing(s) in it.");

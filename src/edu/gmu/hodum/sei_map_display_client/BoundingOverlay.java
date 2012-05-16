@@ -89,8 +89,9 @@ public class BoundingOverlay extends Overlay{
 					//This is the action for when a user lifts their finger
 
 					//calculate the bounding box/ end the gesture
-					
-					mapDisplay.displayThingsWithinBounds(r.bottom, r.left, r.top, r.right);
+					GeoPoint LL = mapView.getProjection().fromPixels(r.left, r.bottom);
+					GeoPoint UR =  mapView.getProjection().fromPixels(r.right, r.top);
+					mapDisplay.displayThingsWithinBounds(LL.getLatitudeE6(), LL.getLongitudeE6(), UR.getLatitudeE6(), UR.getLongitudeE6());
 
 					stateDrawingBox = false;
 					isTouch[pointerId] = false;
