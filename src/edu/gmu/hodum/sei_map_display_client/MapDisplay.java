@@ -58,9 +58,10 @@ public class MapDisplay extends MapActivity {
 		System.out.println("The Vector of Things has "+things.size() +" Thing(s) in it.");
 		
 		List<Overlay> mapOverlays = mapView.getOverlays();
-		Drawable drawable = this.getResources().getDrawable(R.drawable.androidmarker);
-		SimpleItemizedOverlay personOverlay = new SimpleItemizedOverlay(drawable, this);
-		SimpleItemizedOverlay vehicleOverlay = new SimpleItemizedOverlay(drawable, this);
+		Drawable drawablePerson = this.getResources().getDrawable(R.drawable.androidmarker);
+		Drawable drawableVehicle = this.getResources().getDrawable(R.drawable.dot);
+		SimpleItemizedOverlay personOverlay = new SimpleItemizedOverlay(drawablePerson, this);
+		SimpleItemizedOverlay vehicleOverlay = new SimpleItemizedOverlay(drawableVehicle, this);
 
 		OverlayItem item;
 		GeoPoint point;
@@ -77,7 +78,7 @@ public class MapDisplay extends MapActivity {
 				personOverlay.addOverlay(item);
 				break;
 			case VEHICLE:
-				item = new OverlayItem(point, "I'm a person!", "I'm at: "+lat+","+lon);
+				item = new OverlayItem(point, "I'm a vehicle!", "I'm at: "+lat+","+lon);
 				vehicleOverlay.addOverlay(item);
 				
 			}
