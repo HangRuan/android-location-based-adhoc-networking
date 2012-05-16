@@ -59,41 +59,83 @@ public class ContentDatabaseAPI {
 		Cursor cur = cr.query(Uri.parse( baseURI+"/people"), null, null, null, null); 
 		if(cur == null)
 		{
-			System.out.println("Damnit!");
+			System.out.println("Failed to find a Content Resolver!");
 		}
 		else
 		{
 			while(cur.moveToNext())
 			{
-				
+
 				Long id = cur.getLong(cur.getColumnIndex("id"));
-				
-				String description = cur.getString(cur.getColumnIndex("description"));
-				
+
 				Cursor cur2 = cr.query(Uri.parse( baseURI+"/person/location"), null, null, new String[]{String.valueOf(id.longValue())}, null);
 				if(cur2.moveToFirst())
 				{
-					
+
 					Thing thng = new Thing();
 					thng.setType(Thing.Type.PERSON);
 					thng.setFriendliness(cur.getDouble(cur.getColumnIndex("current_rating")));
-					
+
 					thng.setRelevance(java.lang.Math.random());
-					
+
 					System.out.println("cur size: " + cur2.getColumnCount());
 					for(String names:cur2.getColumnNames())
 					{
 						System.out.println(names);
 					}
 					thng.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
-					
+
 					thng.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
-					
+
 					thng.setElevation(cur2.getDouble(cur2.getColumnIndex("elevation")));
-					ret.add(thng);
+					if(thng.getLatitude()> latLL && thng.getLatitude() <latUR && thng.getLongitude()>longLL && thng.getLongitude()<longUR)
+					{
+						ret.add(thng);
+					}
 				}
 			}
 		}
+		cur.close();
+		cur = cr.query(Uri.parse( baseURI+"/vehicles"), null, null, null, null); 
+
+		if(cur == null)
+		{
+			System.out.println("Failed to find a Content Resolver!");
+		}
+		else
+		{
+			while(cur.moveToNext())
+			{
+				Long id = cur.getLong(cur.getColumnIndex("id"));
+
+				Cursor cur2 = cr.query(Uri.parse( baseURI+"/vehicle/location"), null, null, new String[]{String.valueOf(id.longValue())}, null);
+				if(cur2.moveToFirst())
+				{
+					Thing thng = new Thing();
+					thng.setType(Thing.Type.VEHICLE);
+					thng.setFriendliness(cur.getDouble(cur.getColumnIndex("current_rating")));
+
+					thng.setRelevance(java.lang.Math.random());
+
+					System.out.println("cur size: " + cur2.getColumnCount());
+					for(String names:cur2.getColumnNames())
+					{
+						System.out.println(names);
+					}
+					thng.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
+
+					thng.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
+
+					thng.setElevation(cur2.getDouble(cur2.getColumnIndex("elevation")));
+					if(thng.getLatitude()> latLL && thng.getLatitude() <latUR && thng.getLongitude()>longLL && thng.getLongitude()<longUR)
+					{
+						ret.add(thng);
+					}
+				}
+				cur2.close();
+			}
+		}
+		cur.close();
 
 		return ret;
 	}
