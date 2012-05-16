@@ -43,15 +43,9 @@ public class MapDisplay extends MapActivity {
 			@Override
 			public void onClick(View arg0) {
 				
-				
-				//boundingOverlay = new BoundingOverlay(MapDisplay.this);
-				//List<Overlay> mapOverlays = mapView.getOverlays();
-				//mapOverlays.add(boundingOverlay);
-
-				//TODO: Content Database API displays Person no matter the coordinates 
-				//displayThingsWithinBounds(0.0, 0.0, 1.0, 1.0);
-				displayThingsWithinBounds(0.0, 0.0, 0.0, 0.0);
-				//displayThingsWithinBounds(-37.2, 77.55, -35.5, 79.2);
+				boundingOverlay = new BoundingOverlay(MapDisplay.this);
+				List<Overlay> mapOverlays = mapView.getOverlays();
+				mapOverlays.add(boundingOverlay);
 				
 			}
 			
@@ -65,7 +59,8 @@ public class MapDisplay extends MapActivity {
 		
 		List<Overlay> mapOverlays = mapView.getOverlays();
 		Drawable drawable = this.getResources().getDrawable(R.drawable.androidmarker);
-		SimpleItemizedOverlay itemizedoverlay = new SimpleItemizedOverlay(drawable, this);
+		SimpleItemizedOverlay personOverlay = new SimpleItemizedOverlay(drawable, this);
+		SimpleItemizedOverlay vehicleOverlay = new SimpleItemizedOverlay(drawable, this);
 
 		OverlayItem item;
 		GeoPoint point;
@@ -75,13 +70,24 @@ public class MapDisplay extends MapActivity {
 			lat = (int)thing.getLatitude();
 			lon = (int)thing.getLongitude();
 			point = new GeoPoint( lat,  lon);
-			if(thing.getType().equals(Thing.Type.PERSON)){
+			switch(thing.getType()){
+			
+			case PERSON:
 				item = new OverlayItem(point, "I'm a person!", "I'm at: "+lat+","+lon);
-				itemizedoverlay.addOverlay(item);
+				personOverlay.addOverlay(item);
+				break;
+			case VEHICLE:
+				item = new OverlayItem(point, "I'm a person!", "I'm at: "+lat+","+lon);
+				vehicleOverlay.addOverlay(item);
+				
 			}
+			
+			
 		}
-
-		mapOverlays.add(itemizedoverlay);
+		
+		mapOverlays.clear();
+		mapOverlays.add(personOverlay);
+		mapOverlays.add(vehicleOverlay);
 		
 		if(boundingOverlay != null){
 			mapOverlays.remove(boundingOverlay);
