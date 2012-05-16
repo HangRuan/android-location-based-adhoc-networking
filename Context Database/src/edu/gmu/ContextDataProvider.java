@@ -24,12 +24,13 @@ public class ContextDataProvider {
 
 		private Context myContext;
 
-
+		private static final String VEHICLE_TYPE = "vehicle_type";
 		private static final String PERSON_TABLE = "person";
 		private static final String VEHICLE_TABLE = "vehicle";
 		private static final String LANDMARK_TABLE = "landmark";
 		private static final String RESOURCE_TABLE = "resource";
 		private static final String PERSON_FRIENDLINESS = "person_friendliness";
+		private static final String VEHICLE_FRIENDLINESS = "vehicle_friendliness";
 		private static final String LOCATION = "location";
 		private static final String LOCATION_TYPE = "location_type";
 		private static final String SPACE_TIME = "space_time";
@@ -65,6 +66,7 @@ public class ContextDataProvider {
 
 			db.execSQL("CREATE TABLE vehicle (id INTEGER PRIMARY KEY  NOT NULL  UNIQUE , " +
 					"color text, description text, " +
+					"current_rating DOUBLE NOT NULL," +
 					"space_time_id INTEGER, " +
 					"vehicle_type_id INTEGER, " +
 					"FOREIGN KEY(space_time_id) REFERENCES space_time(id), " +
@@ -148,6 +150,47 @@ public class ContextDataProvider {
 			person_friendliness.put("friendliness_id", 1);
 			db.insert(PERSON_FRIENDLINESS, null, person_friendliness);
 			
+			//Now add a vehicle
+			location_type = new ContentValues();
+			location_type.put("type","GPS");
+			row = db.insert(LOCATION_TYPE, null, location_type);
+			
+			ContentValues vehicle_type = new ContentValues();
+			vehicle_type.put("type", "Pickup Truck");
+			db.insert(VEHICLE_TYPE, null, vehicle_type);
+			
+			space_time = new ContentValues();
+			space_time.put("timestamp",System.currentTimeMillis());
+			row = db.insert(SPACE_TIME, null, space_time);
+			
+			location = new ContentValues();
+			location.put("latitude", -37.62);
+			location.put("longitude", 73.36);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", row);
+			location.put("type_id", 2);
+			row = db.insert(LOCATION, null, location);
+			
+			friendliness = new ContentValues();
+			friendliness.put("timestamp",System.currentTimeMillis());
+			friendliness.put("rating",-30.0);
+			row = db.insert(FRIENDLINESS, null,friendliness);
+			
+			
+			ContentValues vehicle1 = new ContentValues();
+			vehicle1.put("description", "Toyota Pickup");
+			vehicle1.put("color", "Red");
+			vehicle1.put("current_rating",30.0);
+			vehicle1.put("vehicle_type_id", 1);
+			vehicle1.put("space_time_id", 2);
+    		row = db.insert(VEHICLE_TABLE, null, vehicle1);
+			
+			ContentValues vehicle_friendliness = new ContentValues();
+			vehicle_friendliness.put("vehicle_id", 1);
+			vehicle_friendliness.put("friendliness_id", 2);
+			db.insert(VEHICLE_FRIENDLINESS, null, vehicle_friendliness);
+			
 		}
 		
 		@Override
@@ -207,6 +250,21 @@ public class ContextDataProvider {
 			" AND p.space_time_id = st.id AND loc.space_time_id = st.id ORDER BY loc.time";
 			return getReadableDatabase().rawQuery(sql,	null);
 		}
+		
+		public Cursor getVehicles()
+		{
+			return       	
+			getReadableDatabase().query(true, "vehicle", null,
+					null, null,
+					null, null, null, null);
+		}
+		
+		private Cursor getCurrentLocationForVehicle(Long id)
+		{
+			String sql = "SELECT loc.* from location loc, space_time st, vehicle v where v.id=" + id.longValue() +
+			" AND v.space_time_id = st.id AND loc.space_time_id = st.id ORDER BY loc.time";
+			return getReadableDatabase().rawQuery(sql,	null);
+		}
 
 	};
 
@@ -242,6 +300,25 @@ public class ContextDataProvider {
 	public Cursor getCurrentLocationForPerson(Long id)
 	{
 		Cursor cur = mOpenHelper.getCurrentLocationForPerson( id);
+		int rows = cur.getCount();
+		if(rows >0)
+		{
+			cur.moveToFirst();
+			Double lat = cur.getDouble(cur.getColumnIndex("latitude"));
+			System.out.println("Lat:" + lat);
+		}
+		
+		return cur;
+	}
+	
+	public Cursor getVehicles()
+	{
+		return mOpenHelper.getVehicles();
+	}
+	
+	public Cursor getCurrentLocationForVehicle(Long id)
+	{
+		Cursor cur = mOpenHelper.getCurrentLocationForVehicle( id);
 		int rows = cur.getCount();
 		if(rows >0)
 		{

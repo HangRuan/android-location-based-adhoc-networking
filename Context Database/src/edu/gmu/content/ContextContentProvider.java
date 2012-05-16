@@ -27,6 +27,7 @@ public class ContextContentProvider extends ContentProvider {
 	private static final int SINGLE_OBJECTIVE = 8;
 	
 	private static final int PERSON_LOCATION = 9;
+	private static final int VEHICLE_LOCATION = 10;
 	
 	public static final String baseURI = "edu.gmu.provider";
 	
@@ -35,6 +36,9 @@ public class ContextContentProvider extends ContentProvider {
 		sUriMatcher.addURI(baseURI + ".cursor.dir","people",ALL_PEOPLE);
 		sUriMatcher.addURI(baseURI + ".cursor.dir","person/#",SINGLE_PERSON);
 		sUriMatcher.addURI(baseURI + ".cursor.dir","person/location",PERSON_LOCATION);
+		sUriMatcher.addURI(baseURI + ".cursor.dir","vehicles",ALL_VEHICLES);
+		sUriMatcher.addURI(baseURI + ".cursor.dir","vehicle/#",SINGLE_VEHICLE);
+		sUriMatcher.addURI(baseURI + ".cursor.dir","vehicle/location",VEHICLE_LOCATION);
 //		sUriMatcher.addURI(baseURI,"vehicle",ALL_VEHICLES);
 //		sUriMatcher.addURI(baseURI,"vehicle/#",SINGLE_VEHICLE);
 //		sUriMatcher.addURI(baseURI,"landmark",ALL_LANDMARKS);
@@ -50,6 +54,7 @@ public class ContextContentProvider extends ContentProvider {
 	
 	public static final String VEHICLES_CONTENT_TYPE = "content://edu.gmu.cursor.dir/vehicles";
 	public static final String VEHICLE_CONTENT_TYPE = "content://edu.gmu.cursor.item/vehicle";
+	public static final String VEHICLE_LOCATION_CONTENT_TYPE = "content://edu.gmu.cursor.item/vehicle/location";
 	
 	public static final String LANDMARKS_CONTENT_TYPE = "content://edu.gmu.cursor.dir/landmarks";
 	public static final String LANDMARK_CONTENT_TYPE = "content://edu.gmu.cursor.item/landmark";
@@ -90,6 +95,8 @@ public class ContextContentProvider extends ContentProvider {
 			return OBJECTIVE_CONTENT_TYPE;
 		case PERSON_LOCATION:
 			return PERSON_LOCATION_CONTENT_TYPE;
+		case VEHICLE_LOCATION:
+			return VEHICLE_LOCATION_CONTENT_TYPE;
 			
 		}
 		return null;
@@ -127,6 +134,12 @@ public class ContextContentProvider extends ContentProvider {
 			break;
 		case PERSON_LOCATION:
 			ret = db.getCurrentLocationForPerson(Long.parseLong(selectionArgs[0]));
+			break;
+		case ALL_VEHICLES:
+			ret = db.getVehicles();
+			break;
+		case VEHICLE_LOCATION:
+			ret = db.getCurrentLocationForVehicle(Long.parseLong(selectionArgs[0]));
 			break;
 		default:
 			throw new IllegalArgumentException("Unkown URI:" + uri);
