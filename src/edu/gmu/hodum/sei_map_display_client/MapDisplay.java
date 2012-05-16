@@ -22,8 +22,8 @@ public class MapDisplay extends MapActivity {
 	ContentDatabaseAPI api;
 	MapView mapView;
 	BoundingOverlay boundingOverlay;
-	
-	
+
+
 	final int MAX_POINT_CNT = 3;
 
 	/** Called when the activity is first created. */
@@ -42,21 +42,21 @@ public class MapDisplay extends MapActivity {
 
 			@Override
 			public void onClick(View arg0) {
-				
+
 				boundingOverlay = new BoundingOverlay(MapDisplay.this);
 				List<Overlay> mapOverlays = mapView.getOverlays();
 				mapOverlays.add(boundingOverlay);
-				
+
 			}
-			
+
 		});
 	}
 
 	public void displayThingsWithinBounds(double latLL, double longLL, double latUR, double longUR){
 		Vector<Thing> things = getThingsWithinBounds(latLL, longLL, latUR, longUR);
-		
+
 		System.out.println("The Vector of Things has "+things.size() +" Thing(s) in it.");
-		
+
 		List<Overlay> mapOverlays = mapView.getOverlays();
 		Drawable drawablePerson = this.getResources().getDrawable(R.drawable.androidmarker);
 		Drawable drawableVehicle = this.getResources().getDrawable(R.drawable.dot);
@@ -72,7 +72,7 @@ public class MapDisplay extends MapActivity {
 			lon = (int)thing.getLongitude();
 			point = new GeoPoint( lat,  lon);
 			switch(thing.getType()){
-			
+
 			case PERSON:
 				item = new OverlayItem(point, "I'm a person!", "I'm at: "+lat+","+lon);
 				personOverlay.addOverlay(item);
@@ -80,16 +80,22 @@ public class MapDisplay extends MapActivity {
 			case VEHICLE:
 				item = new OverlayItem(point, "I'm a vehicle!", "I'm at: "+lat+","+lon);
 				vehicleOverlay.addOverlay(item);
-				
+
 			}
-			
-			
+
+
 		}
-		
 		mapOverlays.clear();
-		mapOverlays.add(personOverlay);
-		mapOverlays.add(vehicleOverlay);
-		
+
+		//empty overlays will crash mapview, so check if empty
+
+		if(personOverlay.size()>0){
+			mapOverlays.add(personOverlay);
+		}
+		if(vehicleOverlay.size()>0){
+			mapOverlays.add(vehicleOverlay);
+		}
+
 		if(boundingOverlay != null){
 			mapOverlays.remove(boundingOverlay);
 			boundingOverlay = null;
