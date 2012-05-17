@@ -3,7 +3,7 @@ package edu.gmu;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.gmu.contextdb.utils.Location;
+
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -25,12 +25,16 @@ public class ContextDataProvider {
 		private Context myContext;
 
 		private static final String VEHICLE_TYPE = "vehicle_type";
+		private static final String RESOURCE_TYPE = "resource_type";
+		private static final String LANDMARK_TYPE = "landmark_type";
 		private static final String PERSON_TABLE = "person";
 		private static final String VEHICLE_TABLE = "vehicle";
 		private static final String LANDMARK_TABLE = "landmark";
 		private static final String RESOURCE_TABLE = "resource";
 		private static final String PERSON_FRIENDLINESS = "person_friendliness";
 		private static final String VEHICLE_FRIENDLINESS = "vehicle_friendliness";
+		private static final String LANDMARK_FRIENDLINESS = "landmark_friendliness";
+		private static final String RESOURCE_FRIENDLINESS = "resource_friendliness";
 		private static final String LOCATION = "location";
 		private static final String LOCATION_TYPE = "location_type";
 		private static final String SPACE_TIME = "space_time";
@@ -72,7 +76,7 @@ public class ContextDataProvider {
 					"FOREIGN KEY(space_time_id) REFERENCES space_time(id), " +
 			"FOREIGN KEY(vehicle_type_id) REFERENCES vehicle_type(id))");
 
-			db.execSQL("CREATE TABLE resource (id INTEGER PRIMARY KEY  NOT NULL , " +
+			db.execSQL("CREATE TABLE resource (id INTEGER PRIMARY KEY  NOT NULL , current_rating DOUBLE NOT NULL, " +
 					"value REAL NOT NULL , description TEXT, " +
 					"space_time_id INTEGER, " +
 					"resource_type_id INTEGER, " +
@@ -87,6 +91,12 @@ public class ContextDataProvider {
 					"FOREIGN KEY(space_time_id) REFERENCES space_time(id)," +
 			"FOREIGN KEY(vehicle_id) REFERENCES vehicle(id) )");
 
+			db.execSQL("CREATE TABLE landmark (id INTEGER PRIMARY KEY  NOT NULL , description TEXT,  current_rating DOUBLE NOT NULL, " +
+					"space_time_id INTEGER, " +
+					"landmark_type_id INTEGER, " +
+					"FOREIGN KEY(landmark_type_id) REFERENCES landmark_type(id)," +
+			"FOREIGN KEY(space_time_id) REFERENCES space_time(id) )");
+			
 			db.execSQL("CREATE TABLE person_friendliness (id INTEGER PRIMARY KEY  NOT NULL  UNIQUE, " +
 					"person_id INTEGER, " +
 					"friendliness_id INTEGER, " +
@@ -98,17 +108,25 @@ public class ContextDataProvider {
 					"friendliness_id INTEGER, " +
 					"FOREIGN KEY(vehicle_id) REFERENCES vehicle(id)," +
 			"FOREIGN KEY(friendliness_id) REFERENCES friendliness(id) )");
+			
+			db.execSQL("CREATE TABLE landmark_friendliness (id INTEGER PRIMARY KEY  NOT NULL  UNIQUE, " +
+					"landmark_id INTEGER, " +
+					"friendliness_id INTEGER, " +
+					"FOREIGN KEY(landmark_id) REFERENCES landmark(id)," +
+			"FOREIGN KEY(friendliness_id) REFERENCES friendliness(id) )");
+			
+			db.execSQL("CREATE TABLE resource_friendliness (id INTEGER PRIMARY KEY  NOT NULL  UNIQUE, " +
+					"resource_id INTEGER, " +
+					"friendliness_id INTEGER, " +
+					"FOREIGN KEY(resource_id) REFERENCES resource(id)," +
+			"FOREIGN KEY(friendliness_id) REFERENCES friendliness(id) )");
 
 
 			db.execSQL("CREATE TABLE objective (id INTEGER PRIMARY KEY  NOT NULL , description TEXT, " +
 					"space_time_id INTEGER, " +
 			"FOREIGN KEY(space_time_id) REFERENCES space_time(id) )");
 
-			db.execSQL("CREATE TABLE landmark (id INTEGER PRIMARY KEY  NOT NULL , type TEXT NOT NULL , description TEXT, " +
-					"space_time_id INTEGER, " +
-					"landmark_type_id INTEGER, " +
-					"FOREIGN KEY(landmark_type_id) REFERENCES landmark_type(id)," +
-			"FOREIGN KEY(space_time_id) REFERENCES space_time(id) )");
+			
 			
 			loadTestData(db);
 		}
@@ -191,6 +209,91 @@ public class ContextDataProvider {
 			vehicle_friendliness.put("friendliness_id", 2);
 			db.insert(VEHICLE_FRIENDLINESS, null, vehicle_friendliness);
 			
+			//Now add a landmark
+			location_type = new ContentValues();
+			location_type.put("type","GPS");
+			row = db.insert(LOCATION_TYPE, null, location_type);
+			
+			ContentValues landmark_type = new ContentValues();
+			landmark_type.put("type", "Sports Arena");
+			db.insert(LANDMARK_TYPE, null, landmark_type);
+			
+			space_time = new ContentValues();
+			space_time.put("timestamp",System.currentTimeMillis());
+			row = db.insert(SPACE_TIME, null, space_time);
+			
+			location = new ContentValues();
+			location.put("latitude", -37.42);
+			location.put("longitude", 73.56);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", row);
+			location.put("type_id", 3);
+			row = db.insert(LOCATION, null, location);
+			
+					
+			
+			ContentValues landmark1 = new ContentValues();
+			landmark1.put("description", "Nationals Park");
+			landmark1.put("current_rating",67.0);
+			landmark1.put("landmark_type_id", 1);
+			landmark1.put("space_time_id", 3);
+    		row = db.insert(LANDMARK_TABLE, null, landmark1);
+			
+    		friendliness = new ContentValues();
+			friendliness.put("timestamp",System.currentTimeMillis());
+			friendliness.put("rating",-30.0);
+			row = db.insert(FRIENDLINESS, null,friendliness);
+			
+			ContentValues landmark_friendliness = new ContentValues();
+			landmark_friendliness.put("landmark_id", 1);
+			landmark_friendliness.put("friendliness_id", row);
+			db.insert(LANDMARK_FRIENDLINESS, null, landmark_friendliness);
+			
+			
+			//Now add a resource
+			location_type = new ContentValues();
+			location_type.put("type","GPS");
+			row = db.insert(LOCATION_TYPE, null, location_type);
+			
+			ContentValues resource_type = new ContentValues();
+			resource_type.put("type", "Fuel Depot");
+			db.insert(RESOURCE_TYPE, null, resource_type);
+			
+			space_time = new ContentValues();
+			space_time.put("timestamp",System.currentTimeMillis());
+			long space_time_row = db.insert(SPACE_TIME, null, space_time);
+			
+			location = new ContentValues();
+			location.put("latitude", -37.435);
+			location.put("longitude", 73.5789);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", 4);
+			row = db.insert(LOCATION, null, location);
+			
+					
+			
+			ContentValues resource1 = new ContentValues();
+			resource1.put("description", "HESS Gas Station");
+			resource1.put("value", 12);
+			resource1.put("current_rating",-45.0);
+			resource1.put("resource_type_id", 1);
+			resource1.put("space_time_id", space_time_row);
+    		row = db.insert(RESOURCE_TABLE, null, resource1);
+			
+    		friendliness = new ContentValues();
+			friendliness.put("timestamp",System.currentTimeMillis());
+			friendliness.put("rating",-30.0);
+			row = db.insert(FRIENDLINESS, null,friendliness);
+			
+			ContentValues resource_friendliness = new ContentValues();
+			resource_friendliness.put("resource_id", 1);
+			resource_friendliness.put("friendliness_id", row);
+			db.insert(RESOURCE_FRIENDLINESS, null, resource_friendliness);
+			
+			
 		}
 		
 		@Override
@@ -265,6 +368,36 @@ public class ContextDataProvider {
 			" AND v.space_time_id = st.id AND loc.space_time_id = st.id ORDER BY loc.time";
 			return getReadableDatabase().rawQuery(sql,	null);
 		}
+		
+		public Cursor getLandmarks()
+		{
+			return       	
+			getReadableDatabase().query(true, "landmark", null,
+					null, null,
+					null, null, null, null);
+		}
+		
+		private Cursor getCurrentLocationForLandmark(Long id)
+		{
+			String sql = "SELECT loc.* from location loc, space_time st, landmark l where l.id=" + id.longValue() +
+			" AND l.space_time_id = st.id AND loc.space_time_id = st.id ORDER BY loc.time";
+			return getReadableDatabase().rawQuery(sql,	null);
+		}
+		
+		public Cursor getResources()
+		{
+			return       	
+			getReadableDatabase().query(true, "resource", null,
+					null, null,
+					null, null, null, null);
+		}
+		
+		private Cursor getCurrentLocationForResource(Long id)
+		{
+			String sql = "SELECT loc.* from location loc, space_time st, resource r where r.id=" + id.longValue() +
+			" AND r.space_time_id = st.id AND loc.space_time_id = st.id ORDER BY loc.time";
+			return getReadableDatabase().rawQuery(sql,	null);
+		}
 
 	};
 
@@ -319,6 +452,44 @@ public class ContextDataProvider {
 	public Cursor getCurrentLocationForVehicle(Long id)
 	{
 		Cursor cur = mOpenHelper.getCurrentLocationForVehicle( id);
+		int rows = cur.getCount();
+		if(rows >0)
+		{
+			cur.moveToFirst();
+			Double lat = cur.getDouble(cur.getColumnIndex("latitude"));
+			System.out.println("Lat:" + lat);
+		}
+		
+		return cur;
+	}
+	
+	public Cursor getLandmarks()
+	{
+		return mOpenHelper.getLandmarks();
+	}
+	
+	public Cursor getCurrentLocationForLandmark(Long id)
+	{
+		Cursor cur = mOpenHelper.getCurrentLocationForLandmark( id);
+		int rows = cur.getCount();
+		if(rows >0)
+		{
+			cur.moveToFirst();
+			Double lat = cur.getDouble(cur.getColumnIndex("latitude"));
+			System.out.println("Lat:" + lat);
+		}
+		
+		return cur;
+	}
+	
+	public Cursor getResources()
+	{
+		return mOpenHelper.getResources();
+	}
+	
+	public Cursor getCurrentLocationForResource(Long id)
+	{
+		Cursor cur = mOpenHelper.getCurrentLocationForResource( id);
 		int rows = cur.getCount();
 		if(rows >0)
 		{

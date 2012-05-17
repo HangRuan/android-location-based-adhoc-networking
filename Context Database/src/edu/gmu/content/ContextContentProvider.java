@@ -23,11 +23,17 @@ public class ContextContentProvider extends ContentProvider {
 	private static final int ALL_LANDMARKS = 5;
 	private static final int SINGLE_LANDMARK = 6;
 	
-	private static final int ALL_OBJECTIVES = 7;
-	private static final int SINGLE_OBJECTIVE = 8;
+	private static final int ALL_RESOURCES = 7;
+	private static final int SINGLE_RESOURCE = 8;
 	
-	private static final int PERSON_LOCATION = 9;
-	private static final int VEHICLE_LOCATION = 10;
+	private static final int ALL_OBJECTIVES = 9;
+	private static final int SINGLE_OBJECTIVE = 10;
+	
+	private static final int PERSON_LOCATION = 11;
+	private static final int VEHICLE_LOCATION = 12;
+	private static final int LANDMARK_LOCATION = 13;
+	private static final int RESOURCE_LOCATION = 14;
+	
 	
 	public static final String baseURI = "edu.gmu.provider";
 	
@@ -39,6 +45,14 @@ public class ContextContentProvider extends ContentProvider {
 		sUriMatcher.addURI(baseURI + ".cursor.dir","vehicles",ALL_VEHICLES);
 		sUriMatcher.addURI(baseURI + ".cursor.dir","vehicle/#",SINGLE_VEHICLE);
 		sUriMatcher.addURI(baseURI + ".cursor.dir","vehicle/location",VEHICLE_LOCATION);
+		
+		sUriMatcher.addURI(baseURI + ".cursor.dir","landmarks",ALL_LANDMARKS);
+		sUriMatcher.addURI(baseURI + ".cursor.dir","landmark/#",SINGLE_LANDMARK);
+		sUriMatcher.addURI(baseURI + ".cursor.dir","landmark/location",LANDMARK_LOCATION);
+		
+		sUriMatcher.addURI(baseURI + ".cursor.dir","resources",ALL_RESOURCES);
+		sUriMatcher.addURI(baseURI + ".cursor.dir","resource/#",SINGLE_RESOURCE);
+		sUriMatcher.addURI(baseURI + ".cursor.dir","resource/location",RESOURCE_LOCATION);
 //		sUriMatcher.addURI(baseURI,"vehicle",ALL_VEHICLES);
 //		sUriMatcher.addURI(baseURI,"vehicle/#",SINGLE_VEHICLE);
 //		sUriMatcher.addURI(baseURI,"landmark",ALL_LANDMARKS);
@@ -140,6 +154,18 @@ public class ContextContentProvider extends ContentProvider {
 			break;
 		case VEHICLE_LOCATION:
 			ret = db.getCurrentLocationForVehicle(Long.parseLong(selectionArgs[0]));
+			break;
+		case ALL_LANDMARKS:
+			ret = db.getLandmarks();
+			break;
+		case LANDMARK_LOCATION:
+			ret = db.getCurrentLocationForLandmark(Long.parseLong(selectionArgs[0]));
+			break;
+		case ALL_RESOURCES:
+			ret = db.getResources();
+			break;
+		case RESOURCE_LOCATION:
+			ret = db.getCurrentLocationForResource(Long.parseLong(selectionArgs[0]));
 			break;
 		default:
 			throw new IllegalArgumentException("Unkown URI:" + uri);
