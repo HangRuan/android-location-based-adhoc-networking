@@ -2,7 +2,7 @@ package ed.gmu.hodum;
 
 public class Thing {
 	
-	public enum Type {PERSON, VEHICLE, LANDMARK};
+	public enum Type {PERSON, VEHICLE, LANDMARK, RESOURCE};
 	
 	private Long id;
 	private Type type;
