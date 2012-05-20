@@ -61,9 +61,15 @@ public class MapDisplay extends MapActivity {
 
 		List<Overlay> mapOverlays = mapView.getOverlays();
 		Drawable drawablePerson = this.getResources().getDrawable(R.drawable.androidmarker);
-		Drawable drawableVehicle = this.getResources().getDrawable(R.drawable.dot);
+		Drawable drawableVehicle = this.getResources().getDrawable(R.drawable.ic_lock_airplane_mode);
+		Drawable drawableResource = this.getResources().getDrawable(R.drawable.sym_def_app_icon);
+		Drawable drawableLandmark = this.getResources().getDrawable(R.drawable.btn_radio_on_selected);
+		
+		
 		SimpleItemizedOverlay personOverlay = new SimpleItemizedOverlay(drawablePerson, this);
 		SimpleItemizedOverlay vehicleOverlay = new SimpleItemizedOverlay(drawableVehicle, this);
+		SimpleItemizedOverlay resourceOverlay = new SimpleItemizedOverlay(drawableResource, this);
+		SimpleItemizedOverlay landmarkOverlay = new SimpleItemizedOverlay(drawableLandmark, this);
 
 		OverlayItem item;
 		GeoPoint point;
@@ -82,7 +88,12 @@ public class MapDisplay extends MapActivity {
 			case VEHICLE:
 				item = new OverlayItem(point, "I'm a vehicle!", "I'm at: "+lat+","+lon);
 				vehicleOverlay.addOverlay(item);
-
+			case RESOURCE:
+				item = new OverlayItem(point, "I'm a resource!", "I'm at: "+lat+","+lon);
+				resourceOverlay.addOverlay(item);
+			case LANDMARK:
+				item = new OverlayItem(point, "I'm a landmark!", "I'm at: "+lat+","+lon);
+				landmarkOverlay.addOverlay(item);
 			}
 
 
@@ -96,6 +107,12 @@ public class MapDisplay extends MapActivity {
 		}
 		if(vehicleOverlay.size()>0){
 			mapOverlays.add(vehicleOverlay);
+		}
+		if(resourceOverlay.size()>0){
+			mapOverlays.add(resourceOverlay);
+		}
+		if(landmarkOverlay.size()>0){
+			mapOverlays.add(landmarkOverlay);
 		}
 
 		if(boundingOverlay != null){
