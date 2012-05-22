@@ -16,17 +16,18 @@ public class BoundingOverlay extends Overlay{
 	final int MAX_POINT_CNT = 2;
 
 	private Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-	float[] x = new float[MAX_POINT_CNT];
-	float[] y = new float[MAX_POINT_CNT];
+	//float[] x = new float[MAX_POINT_CNT];
+	//float[] y = new float[MAX_POINT_CNT];
 	boolean[] isTouch = new boolean[MAX_POINT_CNT];
 	boolean stateDrawingBox = false; //indicates whether the box is being drawn
-	GeoPoint point1, point2;
+	GeoPoint[] points;
 	Rect r;
 	private MapDisplay mapDisplay;
 
 	BoundingOverlay(MapDisplay mapDisplay){
 		super();
 		this.mapDisplay = mapDisplay;
+		points = new GeoPoint[MAX_POINT_CNT];
 	}
 	
 	@Override
@@ -43,40 +44,42 @@ public class BoundingOverlay extends Overlay{
 
 				for (int i = 0; i < pointCnt; i++) {
 					int id = motionEvent.getPointerId(i);
-					x[id] = (int)motionEvent.getX(i);
-					y[id] = (int)motionEvent.getY(i);
+					//x[id] = (int)motionEvent.getX(i);
+					//y[id] = (int)motionEvent.getY(i);
+					points[id] = mapView.getProjection().fromPixels( (int) motionEvent.getX(i), (int) motionEvent.getY(i));
 				}
 
-				GeoPoint p = mapView.getProjection().fromPixels( (int) motionEvent.getX(pointerId), (int) motionEvent.getY(pointerId));
-				System.out.println("onTouchEvent GeoPoint: "+ p.getLatitudeE6()+","+p.getLongitudeE6());
+				
+				//System.out.println("onTouchEvent, action: "+action+" GeoPoint: "+ p.getLatitudeE6()+","+p.getLongitudeE6());
 				switch (action){
 				case MotionEvent.ACTION_DOWN:
 					System.out.println("ACTION_DOWN");
 					isTouch[pointerId] = true;
-					point1 = p;
+					//point1 = p;
 
 					break;
 				case MotionEvent.ACTION_POINTER_DOWN:
 					System.out.println("ACTION_POINTER_DOWN");
 					isTouch[pointerId] = true;
 
-					point2 = p;
+					//point2 = p;
 
 					//TODO: upon the second touch, begin drawing the rectangle between the points
 					stateDrawingBox = true;
 
 					break;
 				case MotionEvent.ACTION_MOVE:
-					System.out.println("ACTION_ACTION_MOVE; Pointer: "+pointerId);
+					System.out.println("ACTION_MOVE; Pointer: "+pointerId);
 					isTouch[pointerId] = true;
 
-					//update the appropriate GeoPoint
+					/*update the appropriate GeoPoint
 					if(pointerId == 0 ){
 						point1 = p;
 					}
 					else if (pointerId == 1){
 						point2 = p;
 					}
+					*/
 
 					break;
 				case MotionEvent.ACTION_UP:
@@ -112,13 +115,12 @@ public class BoundingOverlay extends Overlay{
 	public void draw (Canvas canvas, MapView mapView, boolean shadow){
 		super.draw(canvas, mapView, shadow);
 
-		System.out.println("onDraw, stateDrawingBox: "+ stateDrawingBox);
 		if(stateDrawingBox){
 
 
 			//convert saved GeoPoints to pixel points in order to draw the bounding box 
-			Point drawPoint1 = mapView.getProjection().toPixels(point1, null);
-			Point drawPoint2 = mapView.getProjection().toPixels(point2, null);
+			Point drawPoint1 = mapView.getProjection().toPixels(points[0], null);
+			Point drawPoint2 = mapView.getProjection().toPixels(points[1], null);
 
 			System.out.println("Point1: "+drawPoint1.x+","+drawPoint1.y);
 			System.out.println("Point2: "+drawPoint2.x+","+drawPoint2.y);
