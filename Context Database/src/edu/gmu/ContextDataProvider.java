@@ -143,8 +143,8 @@ public class ContextDataProvider {
 			row = db.insert(SPACE_TIME, null, space_time);
 			
 			ContentValues location = new ContentValues();
-			location.put("latitude", -37.5);
-			location.put("longitude", 73.25);
+			location.put("latitude", 38.889300);
+			location.put("longitude", -77.048271);
 			location.put("elevation", 125.5);
 			location.put("time", System.currentTimeMillis());
 			location.put("space_time_id", 1);
@@ -182,8 +182,8 @@ public class ContextDataProvider {
 			row = db.insert(SPACE_TIME, null, space_time);
 			
 			location = new ContentValues();
-			location.put("latitude", -37.62);
-			location.put("longitude", 73.36);
+			location.put("latitude", 38.888216);
+			location.put("longitude", -77.049207);
 			location.put("elevation", 125.5);
 			location.put("time", System.currentTimeMillis());
 			location.put("space_time_id", row);
@@ -215,7 +215,7 @@ public class ContextDataProvider {
 			row = db.insert(LOCATION_TYPE, null, location_type);
 			
 			ContentValues landmark_type = new ContentValues();
-			landmark_type.put("type", "Sports Arena");
+			landmark_type.put("type", "Monument");
 			db.insert(LANDMARK_TYPE, null, landmark_type);
 			
 			space_time = new ContentValues();
@@ -223,8 +223,8 @@ public class ContextDataProvider {
 			row = db.insert(SPACE_TIME, null, space_time);
 			
 			location = new ContentValues();
-			location.put("latitude", -37.42);
-			location.put("longitude", 73.56);
+			location.put("latitude", 38.889255);
+			location.put("longitude", -77.049897);
 			location.put("elevation", 125.5);
 			location.put("time", System.currentTimeMillis());
 			location.put("space_time_id", row);
@@ -234,7 +234,7 @@ public class ContextDataProvider {
 					
 			
 			ContentValues landmark1 = new ContentValues();
-			landmark1.put("description", "Nationals Park");
+			landmark1.put("description", "Lincoln Memorial");
 			landmark1.put("current_rating",67.0);
 			landmark1.put("landmark_type_id", 1);
 			landmark1.put("space_time_id", 3);
@@ -257,7 +257,7 @@ public class ContextDataProvider {
 			row = db.insert(LOCATION_TYPE, null, location_type);
 			
 			ContentValues resource_type = new ContentValues();
-			resource_type.put("type", "Fuel Depot");
+			resource_type.put("type", "Water");
 			db.insert(RESOURCE_TYPE, null, resource_type);
 			
 			space_time = new ContentValues();
@@ -265,8 +265,8 @@ public class ContextDataProvider {
 			long space_time_row = db.insert(SPACE_TIME, null, space_time);
 			
 			location = new ContentValues();
-			location.put("latitude", -37.435);
-			location.put("longitude", 73.5789);
+			location.put("latitude", 38.889118);
+			location.put("longitude", -77.04693);
 			location.put("elevation", 125.5);
 			location.put("time", System.currentTimeMillis());
 			location.put("space_time_id", space_time_row);
