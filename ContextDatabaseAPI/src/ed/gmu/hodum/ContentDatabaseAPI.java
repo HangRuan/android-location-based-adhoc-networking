@@ -78,7 +78,7 @@ public class ContentDatabaseAPI {
 					thng.setFriendliness(cur.getDouble(cur.getColumnIndex("current_rating")));
 
 					thng.setRelevance(java.lang.Math.random());
-
+					thng.setDescription(cur.getString(cur.getColumnIndex("description")));
 					System.out.println("cur size: " + cur2.getColumnCount());
 					for(String names:cur2.getColumnNames())
 					{
@@ -118,7 +118,7 @@ public class ContentDatabaseAPI {
 					thng.setFriendliness(cur.getDouble(cur.getColumnIndex("current_rating")));
 
 					thng.setRelevance(java.lang.Math.random());
-
+					thng.setDescription(cur.getString(cur.getColumnIndex("description")));
 					System.out.println("cur size: " + cur2.getColumnCount());
 					for(String names:cur2.getColumnNames())
 					{
@@ -159,7 +159,7 @@ public class ContentDatabaseAPI {
 					thng.setFriendliness(cur.getDouble(cur.getColumnIndex("current_rating")));
 
 					thng.setRelevance(java.lang.Math.random());
-
+					thng.setDescription(cur.getString(cur.getColumnIndex("description")));
 					System.out.println("cur size: " + cur2.getColumnCount());
 					for(String names:cur2.getColumnNames())
 					{
@@ -200,7 +200,7 @@ public class ContentDatabaseAPI {
 					thng.setFriendliness(cur.getDouble(cur.getColumnIndex("current_rating")));
 
 					thng.setRelevance(java.lang.Math.random());
-
+					thng.setDescription(cur.getString(cur.getColumnIndex("description")));
 					System.out.println("cur size: " + cur2.getColumnCount());
 					for(String names:cur2.getColumnNames())
 					{

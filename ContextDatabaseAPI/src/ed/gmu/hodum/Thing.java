@@ -6,6 +6,7 @@ public class Thing {
 	
 	private Long id;
 	private Type type;
+	private String description;
 	private double friendliness;
 	private double relevance;
 	private double latitude;
@@ -23,6 +24,12 @@ public class Thing {
 	}
 	public Type getType() {
 		return type;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	public String getDescription() {
+		return description;
 	}
 	public void setFriendliness(double friendliness) {
 		this.friendliness = friendliness;
@@ -54,5 +61,4 @@ public class Thing {
 	public double getElevation() {
 		return elevation;
 	}
-
 }
