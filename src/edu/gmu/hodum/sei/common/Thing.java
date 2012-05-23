@@ -13,6 +13,10 @@ public class Thing {
 	private double longitude;
 	private double elevation;
 	
+	Thing (){
+		
+	}
+	
 	public void setId(Long id) {
 		this.id = id;
 	}
