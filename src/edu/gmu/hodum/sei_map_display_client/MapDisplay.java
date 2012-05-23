@@ -19,6 +19,7 @@ import android.widget.Button;
 
 public class MapDisplay extends MapActivity {
 
+	private static int E6 = 10000000;
 	ContentDatabaseAPI api;
 	MapView mapView;
 	BoundingOverlay boundingOverlay;
@@ -55,7 +56,7 @@ public class MapDisplay extends MapActivity {
 	public void displayThingsWithinBounds(double latLL, double longLL, double latUR, double longUR){
 		System.out.println("Bounds: " +latLL+","+longLL+","+latUR+","+longUR);
 		
-		Vector<Thing> things = getThingsWithinBounds(latLL, longLL, latUR, longUR);
+		Vector<Thing> things = getThingsWithinBounds(latLL /1E6, longLL/1E6, latUR/1E6, longUR/1E6);
 
 		System.out.println("The Vector of Things has "+things.size() +" Thing(s) in it.");
 
@@ -73,12 +74,12 @@ public class MapDisplay extends MapActivity {
 
 		OverlayItem item;
 		GeoPoint point;
-		int lat;
-		int lon;
+		double lat;
+		double lon;
 		for(Thing thing : things){
-			lat = (int)thing.getLatitude();
-			lon = (int)thing.getLongitude();
-			point = new GeoPoint( lat,  lon);
+			lat = thing.getLatitude();
+			lon = thing.getLongitude();			
+			point = new GeoPoint( (int)(thing.getLatitude() * 1E6),  (int)(thing.getLongitude() * 1E6));
 			switch(thing.getType()){
 
 			case PERSON:
@@ -92,7 +93,7 @@ public class MapDisplay extends MapActivity {
 				item = new OverlayItem(point, "I'm a resource!", "I'm at: "+lat+","+lon);
 				resourceOverlay.addOverlay(item);
 			case LANDMARK:
-				item = new OverlayItem(point, "I'm a landmark!", "I'm at: "+lat+","+lon);
+				item = new OverlayItem(point, thing.getDescription(), "I'm at: "+lat+","+lon);
 				landmarkOverlay.addOverlay(item);
 			}
 

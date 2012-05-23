@@ -15,8 +15,10 @@
         android:id="@+id/mapview"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:apiKey="0NdFtN5j56V-BHrS3_QwM9CZW0i9KJc50wdY5oA"
+        android:apiKey="05g0RFzyrsupQODNRFXrkv6QdxU2QGFnXYpAN8w"
         android:clickable="true" />
     
 
 </LinearLayout>
+
+<!-- 0NdFtN5j56V-BHrS3_QwM9CZW0i9KJc50wdY5oA -->
