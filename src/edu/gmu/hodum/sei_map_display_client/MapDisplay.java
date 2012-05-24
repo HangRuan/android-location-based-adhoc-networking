@@ -9,8 +9,9 @@ import com.google.android.maps.MapView;
 import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
-import ed.gmu.hodum.ContentDatabaseAPI;
-import ed.gmu.hodum.Thing;
+import edu.gmu.hodum.ContentDatabaseAPI;
+import edu.gmu.hodum.sei.common.Thing;
+
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
