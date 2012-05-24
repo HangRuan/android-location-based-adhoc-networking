@@ -1,5 +1,6 @@
 package edu.gmu.hodum.sei.common;
 
+
 public class Thing {
 	
 	public enum Type {PERSON, VEHICLE, LANDMARK, RESOURCE};
@@ -13,7 +14,7 @@ public class Thing {
 	private double longitude;
 	private double elevation;
 	
-	Thing (){
+	public Thing (){
 		
 	}
 	
