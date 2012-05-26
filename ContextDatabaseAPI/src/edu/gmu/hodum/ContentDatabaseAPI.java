@@ -100,6 +100,7 @@ public class ContentDatabaseAPI {
 						ret.add(thng);
 					}
 				}
+				cur2.close();
 			}
 		}
 		cur.close();
