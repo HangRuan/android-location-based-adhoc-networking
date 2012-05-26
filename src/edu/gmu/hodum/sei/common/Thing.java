@@ -1,17 +1,28 @@
 package edu.gmu.hodum.sei.common;
 
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.Root;
 
+@Root
 public class Thing {
 	
 	public enum Type {PERSON, VEHICLE, LANDMARK, RESOURCE};
 	
+	@Element (required = false)
 	private Long id;
+	@Element
 	private Type type;
+	@Element
 	private String description;
+	@Element
 	private double friendliness;
+	@Element
 	private double relevance;
+	@Element
 	private double latitude;
+	@Element
 	private double longitude;
+	@Element
 	private double elevation;
 	
 	public Thing (){
@@ -24,6 +35,7 @@ public class Thing {
 	public Long getId() {
 		return id;
 	}
+	
 	public void setType(Type type) {
 		this.type = type;
 	}
