@@ -21,23 +21,15 @@ public class MyBroadcastSenderReceiver extends BroadcastReceiver {
 		//		<action android:name="edu.gmu.hodum.SHUTDOWN_NETWORK" />
 
 		Log.d("BROADCAST_RECEIVER","Starting.....");
-		Message msg = Message.obtain();
-		if(intent.getAction().equals(Constants.RECEIVE_DATA))
-		{
-			msg.arg1 = Constants.RECEIVE_DATA_MSG;
-		}
-		else
-		{
-			msg.arg1 = Constants.DEBUG_RECEIVE_DATA_MSG;
-		}
-		Bundle data = new Bundle();
-		data.putDouble("latitude",intent.getDoubleExtra("latitude",-1));
-		data.putDouble("longitude",intent.getDoubleExtra("longitude",-1));
-		data.putDouble("originatingLatitude",intent.getDoubleExtra("originatingLatitude",-1));
-		data.putDouble("originatingLongitude",intent.getDoubleExtra("originatingLongitude",-1));
-		data.putDouble("radius",intent.getDoubleExtra("radius",-1));
-		data.putByteArray("data", intent.getByteArrayExtra("data"));
-		msg.setData(data);
+		
+//		Bundle data = new Bundle();
+//		data.putDouble("latitude",intent.getDoubleExtra("latitude",-1));
+//		data.putDouble("longitude",intent.getDoubleExtra("longitude",-1));
+//		data.putDouble("originatingLatitude",intent.getDoubleExtra("originatingLatitude",-1));
+//		data.putDouble("originatingLongitude",intent.getDoubleExtra("originatingLongitude",-1));
+//		data.putDouble("radius",intent.getDoubleExtra("radius",-1));
+//		data.putByteArray("data", intent.getByteArrayExtra("data"));
+//		msg.setData(data);
 		Intent startServiceIntent = new Intent(arg0,ContextDatabaseService.class);
 		startServiceIntent.setAction(intent.getAction());
 		startServiceIntent.putExtras(intent);

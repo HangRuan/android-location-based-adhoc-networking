@@ -31,7 +31,7 @@
              android:authorities="edu.gmu.provider.cursor.dir"/>
          
         <service
-            android:name=".service.BroadcastNetworkService"
+            android:name=".service.ContextDatabaseService"
             android:enabled="true" >
             <intent-filter>
                 <action android:name="edu.gmu.hodum.INITIALIZE_NETWORK" />

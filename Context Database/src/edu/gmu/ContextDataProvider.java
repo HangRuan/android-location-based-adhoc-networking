@@ -3,6 +3,9 @@ package edu.gmu;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.gmu.hodum.sei.common.Thing;
+import edu.gmu.hodum.sei.common.Thing.Type;
+
 
 
 import android.content.ContentValues;
@@ -398,6 +401,48 @@ public class ContextDataProvider {
 			" AND r.space_time_id = st.id AND loc.space_time_id = st.id ORDER BY loc.time";
 			return getReadableDatabase().rawQuery(sql,	null);
 		}
+		
+		private boolean insertPerson(Thing thing)
+		{
+			SQLiteDatabase db = this.getWritableDatabase();
+			long location_type_row = -1;
+			ContentValues location_type = new ContentValues();
+			location_type.put("type","GPS");
+			location_type_row = db.insert(LOCATION_TYPE, null, location_type);
+			
+			
+			ContentValues space_time = new ContentValues();
+			space_time.put("timestamp",System.currentTimeMillis());
+			long space_time_row = db.insert(SPACE_TIME, null, space_time);
+			
+			ContentValues location = new ContentValues();
+			location.put("latitude", thing.getLatitude());
+			location.put("longitude", thing.getLongitude());
+			location.put("elevation", thing.getElevation());
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", location_type_row);
+			long location_row = db.insert(LOCATION, null, location);
+			
+			ContentValues friendliness = new ContentValues();
+			friendliness.put("timestamp",System.currentTimeMillis());
+			friendliness.put("rating",thing.getFriendliness());
+			long friendliness_row = db.insert(FRIENDLINESS, null,friendliness);
+			
+			
+			ContentValues person1 = new ContentValues();
+			person1.put("description", thing.getDescription());
+			person1.put("current_rating",thing.getFriendliness());
+			person1.put("space_time_id", space_time_row);
+			long person_row = db.insert(PERSON_TABLE, null, person1);
+			
+			ContentValues person_friendliness = new ContentValues();
+			person_friendliness.put("person_id", person_row);
+			person_friendliness.put("friendliness_id", friendliness_row);
+			long person_friendliness_row = db.insert(PERSON_FRIENDLINESS, null, person_friendliness);
+			db.close();
+			return true;
+		}
 
 	};
 
@@ -507,4 +552,17 @@ public class ContextDataProvider {
 		ret = mOpenHelper.insertLocation(latitude, longitude, elevation, timestamp, space_time_id, 1);
 		return ret;
 	}
+	
+	public boolean insertThing(Thing thing)
+	{
+		boolean ret = false;
+		
+		if(thing.getType() == Type.PERSON)
+		{
+			ret = mOpenHelper.insertPerson(thing);
+		}
+		return ret;
+	}
+	
+	
 }

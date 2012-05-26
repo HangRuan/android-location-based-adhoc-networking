@@ -1,6 +1,8 @@
 package edu.gmu.service;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import edu.gmu.ContextDataProvider;
 import edu.gmu.contextdb.utils.Constants;
@@ -8,6 +10,7 @@ import edu.gmu.contextdb.utils.Observation;
 import edu.gmu.contextdb.utils.SimpleXMLSerializer;
 
 import edu.gmu.contextdb.utils.TeamTrack;
+import edu.gmu.hodum.sei.common.Thing;
 import android.app.Service;
 import android.content.Intent;
 import android.database.Cursor;
@@ -16,10 +19,11 @@ import android.os.Bundle;
 import android.os.IBinder;
 
 public class ContextDatabaseService extends Service {
-
+	static Lock lock = new ReentrantLock();
 	@Override
 	public IBinder onBind(Intent arg0) {
 		return null;
+		
 	}
 
 	@Override
@@ -35,11 +39,11 @@ public class ContextDatabaseService extends Service {
 
 	private class ProcessDataAsyncTask extends AsyncTask<Bundle, Object, Object>
 	{
-
+		
 		@Override
 		protected Object doInBackground(Bundle... params) {
 
-			TeamTrack payload = null;
+			Thing payload = null;
 			params[0].getDouble("latitude");
 			params[0].getDouble("longitude");
 			params[0].getDouble("originatingLatitude");
@@ -50,34 +54,27 @@ public class ContextDatabaseService extends Service {
 
 			long packetType = b.getLong();
 
-			if(packetType != 1000)
+			if(packetType == 1000)
 			{
 				byte[] xml = new byte[b.capacity()-8];
 				b.get(xml);
-				SimpleXMLSerializer<TeamTrack> decoder = new SimpleXMLSerializer<TeamTrack>();
+				SimpleXMLSerializer<Thing> decoder = new SimpleXMLSerializer<Thing>();
 
 				try {
-					payload = decoder.deserialize(TeamTrack.class, xml);
+					payload = decoder.deserialize(Thing.class, xml);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				if(payload != null)
 				{
-					Observation observation = payload.getObservation();
-					if(observation != null)
-					{
+						lock.lock();
 						ContextDataProvider db = new ContextDataProvider(ContextDatabaseService.this);
-						if(observation.getTime().equals(Constants.PERSON_OBSERVATION))
-						{
-							Cursor cur = db.getSpaceTimeForPerson(observation.getId());
-							db.insertLocation(observation.getLocation().getLatitude(), observation.getLocation().getLatitude(),
-									observation.getLocation().getElevation(), observation.getTime(), 
-									cur.getLong(cur.getColumnIndex("id")));
-						}
-					}
+						db.insertThing(payload);
+						lock.unlock();
 				}
 			}
+			
 			return payload;
 		}
 	}
