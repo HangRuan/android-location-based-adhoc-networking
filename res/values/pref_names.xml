@@ -5,5 +5,6 @@
     <string name="prefname_gesture_recognize_time">gesture_recognize_time</string>
     <string name="prefname_recognizer_start_window">recognizer_start_window</string>
     <string name="prefname_enable_speech">enable_speech</string>
+    <string name="prefname_gesture_start">gesture_start</string>
     
 </resources>

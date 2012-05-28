@@ -18,6 +18,8 @@
     <string name="send_data">edu.gmu.hodum.SEND_DATA</string>
     <string name="on">on</string>
     <string name="off">off</string>
+    <string name="calibrate_noise">edu.gmu.hodum.gesture.CALIBRATE_NOISE</string>
+    <string name="calibrate_start">edu.gmu.hodum.gesture.CALIBRATE_START</string>
     
     
 </resources>

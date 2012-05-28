@@ -2,7 +2,5 @@
     android:minWidth="294dp"
     android:minHeight="72dp"
     android:updatePeriodMillis="86400000"
-    android:previewImage="@drawable/sei_logo"
-    android:initialLayout="@layout/gesture_widget_layout"
-    android:resizeMode="horizontal|vertical">
+    android:initialLayout="@layout/gesture_widget_layout">
 </appwidget-provider>

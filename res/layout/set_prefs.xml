@@ -21,7 +21,15 @@
                     android:layout_column="1"
                     android:padding="3dip"
                     android:text="Noise" />
-
+            
+                <Button 
+                    android:id="@+id/btn_calibrate_noise"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Calibrate"
+                    android:layout_gravity="right"
+                    android:padding="3dip"/>
+			<!-- 
                 <Spinner
                     android:id="@+id/spinner_noise"
                     android:layout_width="fill_parent"
@@ -29,8 +37,26 @@
                     android:gravity="right"
                     android:padding="3dip"
                     />
+                     -->
             </TableRow>
 
+            <TableRow>
+
+                <TextView
+                    android:layout_column="1"
+                    android:padding="3dip"
+                    android:text="Gesture Start" />
+            
+                <Button 
+                    android:id="@+id/btn_calibrate_start"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Calibrate"
+                    android:layout_gravity="right"
+                    android:padding="3dip"/>
+            </TableRow>
+            
+             
             <TableRow>
 
                 <TextView
@@ -46,7 +72,8 @@
                     android:padding="3dip"
                     />
             </TableRow>
-
+			
+			
             <TableRow>
 
                 <TextView
@@ -62,7 +89,8 @@
                     android:padding="3dip"
                     />
             </TableRow>
-
+ 			
+ 			
             <TableRow>
 
                 <TextView
