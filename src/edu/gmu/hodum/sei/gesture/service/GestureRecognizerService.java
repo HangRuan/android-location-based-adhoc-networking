@@ -76,11 +76,13 @@ public class GestureRecognizerService extends Service implements GestureListener
 	}
 
 	public int onStartCommand(Intent intent, int flags, int startId){
+		System.out.println("Testing 1,2,3");
+		/*
 		String command = intent.getAction();
-		RemoteViews remoteView = new RemoteViews(getApplicationContext().getPackageName(), R.layout.gesture_widget_layout);
+		//RemoteViews remoteView = new RemoteViews(getApplicationContext().getPackageName(), R.layout.gesture_widget_layout);
 		//TODO: implement appWidgetId
 		//int appWidgetId = intent.getExtras().getInt(AppWidgetManager.EXTRA_APPWIDGET_ID);
-		int appWidgetId = 1;
+		//int appWidgetId = 1;
 		
 		//button pressed on widget
 		if(command.equals(this.getString(R.string.on))){
@@ -133,6 +135,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 			//remoteView.setPendingIntentTemplate(R.id.btn_on_off, GestureWidgetProvider.makePendingIntent(getApplicationContext(),this.getString(R.string.off),appWidgetId));
 
 		}
+		*/
 		return START_STICKY;
 	}
 
