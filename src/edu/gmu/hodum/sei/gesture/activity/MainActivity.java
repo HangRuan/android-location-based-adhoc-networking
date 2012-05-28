@@ -80,25 +80,23 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 		setDefaultPrefs();
 		loadPrefs();
 
-
 		//setting up the accelerometer and sensor
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);      
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		GestureRecognizerService.mPackageName = getApplicationContext().getPackageName();
 		
 		//TODO: Fix for when training new gestures
 		//GestureRecognizerService.loadGestures();
-		startService(new Intent(this, GestureRecognizerService.class));
+		//startService(new Intent(this, GestureRecognizerService.class));
 
 	}
 
 	public void onResume() {
 		super.onResume();
-		boolean bool = mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-		System.out.println("onResume mSensorManager.registerListener: "+ Boolean.toString(bool));
+		//boolean bool = mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+		//System.out.println("onResume mSensorManager.registerListener: "+ Boolean.toString(bool));
 
 		//TODO: Fix for when training new gestures
-		GestureRecognizerService.loadGestures();
+		//GestureRecognizerService.loadGestures();
 		if(enableSpeech){
 			mTts = new TextToSpeech(this,this);
 		}
@@ -106,8 +104,8 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 
 	public void onPause() {
 		super.onPause();
-		mSensorManager.unregisterListener(this);
-		System.out.println("onPause mSensorManager.unregisterListener");
+		//mSensorManager.unregisterListener(this);
+		//System.out.println("onPause mSensorManager.unregisterListener");
 
 		if(enableSpeech){
 			mTts.shutdown();
@@ -324,6 +322,11 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 			//The values vary from device to device
 			editor.putFloat(this.getString(R.string.prefname_noise_level_filter), Float.parseFloat(this.getString(R.string.prefval_noise_level_filter)));
 
+			//gesture start
+			//three accelerometer motions above this level indicate that the user wishes to start the gesture recognition
+			//The values vary from device to device
+			editor.putFloat(this.getString(R.string.prefname_gesture_start), Float.parseFloat(this.getString(R.string.prefval_gesture_start)));
+			
 			//event delay
 			//After an event is recognized, this setting sets the delay before the next event can be recognized 
 			//The delay is measured in milliseconds; 1/1000th of a second
@@ -334,8 +337,9 @@ public class MainActivity extends GestureActivity implements SensorEventListener
 			//The delay is measured in milliseconds; 1/1000th of a second
 			editor.putLong(this.getString(R.string.prefname_recognizer_start_window), Long.parseLong(this.getString(R.string.prefval_recognizer_start_window)));
 
+			
 			//gesture recognize time 
-			//When the full gesture recognition is activated, this value measure how long the gesture recognizer is active
+			//When the full gesture recognition is activated, this value measure the length of a "quiet period"
 			//Thus, gestures must not take longer to execute than this time 
 			//The time is measured in milliseconds; 1/1000th of a second
 			editor.putLong(this.getString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));

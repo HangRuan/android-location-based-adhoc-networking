@@ -4,7 +4,7 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
-    <uses-sdk android:minSdkVersion="15" />
+    <uses-sdk android:minSdkVersion="10" />
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_CORSE_LOCATION" />
@@ -46,6 +46,15 @@
         <activity
             android:name=".activity.SetPreferenceActivity"
             android:label="Settings" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".activity.CalibrateActivity"
+            android:label="Calibrate" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

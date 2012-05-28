@@ -16,7 +16,6 @@ import logic.GestureModel;
 import logic.ProcessingUnitWrapper;
 
 import android.app.Service;
-import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.SensorManager;
@@ -59,7 +58,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 	public static String mPackageName;
 	private static Context mApplicationContext;
 
-	private String widgetState = this.getString(R.string.off); 
+	private String widgetState;
 
 	public void onCreate()
 	{
@@ -72,13 +71,17 @@ public class GestureRecognizerService extends Service implements GestureListener
 		
 
 		mApplicationContext = getApplicationContext();
+		mPackageName = mApplicationContext.getPackageName();
+		this.getString(R.string.off);
 	}
 
 	public int onStartCommand(Intent intent, int flags, int startId){
 		String command = intent.getAction();
 		RemoteViews remoteView = new RemoteViews(getApplicationContext().getPackageName(), R.layout.gesture_widget_layout);
-		int appWidgetId = intent.getExtras().getInt(AppWidgetManager.EXTRA_APPWIDGET_ID);
-
+		//TODO: implement appWidgetId
+		//int appWidgetId = intent.getExtras().getInt(AppWidgetManager.EXTRA_APPWIDGET_ID);
+		int appWidgetId = 1;
+		
 		//button pressed on widget
 		if(command.equals(this.getString(R.string.on))){
 			//toggle button state
@@ -123,10 +126,11 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 		//set buttons for widget
 		if(widgetState.equals(this.getString(R.string.off))){
-			remoteView.setPendingIntentTemplate(R.id.btn_on_off, GestureWidgetProvider.makePendingIntent(getApplicationContext(),this.getString(R.string.on),appWidgetId));
+			
+			//remoteView.setPendingIntentTemplate(R.id.btn_on_off, GestureWidgetProvider.makePendingIntent(getApplicationContext(),this.getString(R.string.on),appWidgetId));
 		}
 		else {
-			remoteView.setPendingIntentTemplate(R.id.btn_on_off, GestureWidgetProvider.makePendingIntent(getApplicationContext(),this.getString(R.string.off),appWidgetId));
+			//remoteView.setPendingIntentTemplate(R.id.btn_on_off, GestureWidgetProvider.makePendingIntent(getApplicationContext(),this.getString(R.string.off),appWidgetId));
 
 		}
 		return START_STICKY;
