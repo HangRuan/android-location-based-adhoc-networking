@@ -17,8 +17,10 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 
 public class ContextDatabaseService extends Service {
+	public static final String NEW_DATA = "edu.gmu.hodum.NEW_DATA_IN_DATABASE";
 	static Lock lock = new ReentrantLock();
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -29,12 +31,25 @@ public class ContextDatabaseService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId)
 	{
+		try{
+			
+		
 		String action = intent.getAction();
 		if(action != null && (action.equals(Constants.SEND_DATA) || action.equals(Constants.RECEIVE_DATA)))
 		{
 			new ProcessDataAsyncTask().execute(intent.getExtras(),null);
 		}
-		return Service.START_STICKY;
+		return Service.START_NOT_STICKY;
+		}
+		catch(Throwable e)
+		{
+			if(intent == null)
+			{
+				Log.e("OUCH:", "INTENT was null?");
+			}
+			e.printStackTrace();
+		}
+		return Service.START_NOT_STICKY;
 	}
 
 	private class ProcessDataAsyncTask extends AsyncTask<Bundle, Object, Object>
@@ -72,6 +87,8 @@ public class ContextDatabaseService extends Service {
 						ContextDataProvider db = new ContextDataProvider(ContextDatabaseService.this);
 						db.insertThing(payload);
 						lock.unlock();
+						Intent broadcastIntent = new Intent(NEW_DATA);
+						sendBroadcast(broadcastIntent);
 				}
 			}
 			
