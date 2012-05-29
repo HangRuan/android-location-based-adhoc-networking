@@ -22,6 +22,8 @@
     <string name="calibrate_start">edu.gmu.hodum.gesture.CALIBRATE_START</string>
     <string name="update_prefs">edu.gmu.hodum.gesture.UPDATE_PREFERENCES</string>
     <string name="load_gestures">edu.gmu.hodum.gesture.LOAD_GESTURES</string>
+    <string name="configure">edu.gmu.hodum.gesture.CONFIGURE</string>
+    <string name="train">edu.gmu.hodum.gesture.TRAIN_GESTURE</string>
     
     
 </resources>
