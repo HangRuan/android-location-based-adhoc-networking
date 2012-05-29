@@ -29,7 +29,7 @@ public class TrainGestureActivity extends Activity
 	}
 
 	public void btnDone_onClick(View view){
-		String gestureName = GestureRecognizerService.GESTURE_NAMES[gestureId];
+		String gestureName = GestureRecognizerService.GESTURE_NAMES[gestureId]; 
 		GestureRecognizerService.finalizeLearning();
 		GestureRecognizerService.saveGesture(gestureName);
 		GestureRecognizerService.resetGestures();

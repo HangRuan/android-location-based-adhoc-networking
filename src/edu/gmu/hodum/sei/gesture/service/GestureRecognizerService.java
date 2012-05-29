@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -40,6 +41,9 @@ import android.view.KeyEvent;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 import control.Andgee;
+import edu.gmu.hodum.sei.common.SimpleXMLSerializer;
+import edu.gmu.hodum.sei.common.Thing;
+import edu.gmu.hodum.sei.common.Thing.Type;
 import edu.gmu.hodum.sei.gesture.R;
 import edu.gmu.hodum.sei.gesture.activity.MainActivity;
 import event.GestureEvent;
@@ -348,6 +352,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 		return this.STATE;
 	}
 	synchronized void setLearningMode(boolean val){
+		this.gestureCount = 0;
 		this.learningMode = val;
 	}
 	synchronized boolean getLearningMode(){
@@ -465,12 +470,18 @@ public class GestureRecognizerService extends Service implements GestureListener
 					//TODO: create intent for SOS
 					//
 					//this.sendBroadcast(intent);
+
+					//Test code
+					sendBroadcast(1);
 				}
 				else if (gesture.equalsIgnoreCase(GestureRecognizerService.SUPPLIES_GESTURE)){
 					updateUI(this.getResources().getString(R.string.supplies));
 					//TODO: create intent for Supplies
 					//
 					//this.sendBroadcast(intent);
+					
+					//Test code
+					sendBroadcast(2);
 				}
 
 			}
@@ -498,6 +509,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 				}
 
 				isLearning = !isLearning;
+				isAllowed = false;
+                Log.d(TAG, "disallow");
 			}
 			else{
 				if (isRecognizing)
@@ -514,26 +527,28 @@ public class GestureRecognizerService extends Service implements GestureListener
 				}
 
 				isRecognizing = !isRecognizing;
+				isAllowed = false;
+                Log.d(TAG, "disallow");
 			}
 
 			if (allowTimer != null)
 				allowTimer.cancel();
 
 			allowTimer = new Timer();
-			allowTimer.schedule(new AllowTask(), 400);
+			allowTimer.schedule(new AllowTask(), 1000);
 		}
 
 	}
-	
+
 	private class AllowTask extends TimerTask
-    {
-            
-            public void run()
-            {
-                    GestureRecognizerService.this.isAllowed = true;
-                    Log.d(TAG, "allow");
-            }
-    }
+	{
+
+		public void run()
+		{
+			GestureRecognizerService.this.isAllowed = true;
+			Log.d(TAG, "allow");
+		}
+	}
 
 	public void stateReceived(StateEvent event)
 	{
@@ -732,6 +747,41 @@ public class GestureRecognizerService extends Service implements GestureListener
 		if(enableToast){
 			Toast.makeText(this, text, Toast.LENGTH_LONG).show();
 		}
+	}
+
+	private void sendBroadcast(int counter){
+
+		Thing thing = new Thing();
+		thing.setDescription("Testing!");
+		thing.setElevation(230.0);
+		thing.setLatitude(38.88255 + (.02*counter));
+		thing.setLongitude(-77.049897 + (.02*counter));
+		thing.setFriendliness(55.0);
+		thing.setRelevance(67.0);
+		thing.setType(Type.PERSON);
+		SimpleXMLSerializer<Thing> serializer = new SimpleXMLSerializer<Thing>();
+		byte[] data;
+		try {
+			data = serializer.serialize(thing);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
+
+		ByteBuffer b = ByteBuffer.allocate(data.length + 8);
+		b.putLong(1000);
+		b.put(data);
+
+		byte[] buff = b.array();
+
+		//Location loc = new Location("Other");
+		Intent broadcastIntent = new Intent("edu.gmu.hodum.SEND_DATA");
+		broadcastIntent.putExtra("latitude", 37.5d);
+		broadcastIntent.putExtra("longitude", -73.25d);
+		broadcastIntent.putExtra("radius",200.0d);
+		broadcastIntent.putExtra("data",buff);
+		sendBroadcast(broadcastIntent);
 	}
 
 	@Override
