@@ -66,18 +66,20 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer;
-	
+
 	private final IBinder mBinder = new LocalBinder();
 
 	public static String mPackageName;
 	private static Context mApplicationContext;
 
 	private boolean isRecognizing = false;
-	private boolean isAllowed = true;
-	private Timer allowTimer = null;
+	private boolean isLearning = false;
 
 	private float mLastX, mLastY, mLastZ;
 	private boolean mInitialized;
+
+	private boolean isAllowed = true;
+	private Timer allowTimer = null;
 
 	final private SensorEvtManager sensorEvtManager = new SensorEvtManager();
 
@@ -89,6 +91,9 @@ public class GestureRecognizerService extends Service implements GestureListener
 	private TextToSpeech mTts;
 
 	private RecognizerState STATE;
+
+	private int gestureCount;
+	private boolean learningMode;
 
 	//delays
 	private long eventDelay;
@@ -111,31 +116,25 @@ public class GestureRecognizerService extends Service implements GestureListener
 		mPackageName = mApplicationContext.getPackageName();
 
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);      
-        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-		
+		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+
 		setDefaultPrefs();
 		loadPrefs();
-		
+
 		setState(RecognizerState.DEACTIVATED);
 	}
 
 	public int onStartCommand(Intent intent, int flags, int startId){
 		String command = intent.getAction();
 
-		//if normal start
-
-		//if updating prefs
-		//if updating prefs while running,
-		//if updating prefs while not running
-
-		//if loading gestures while running
-		//if loading gestures while not running
-
 		remoteView = new RemoteViews(getApplicationContext().getPackageName(), R.layout.gesture_widget_layout);
 
 		//button pressed on widget
 		if(command.equals(this.getString(R.string.on))){
 			//toggle button state
+
+			setState(RecognizerState.DEACTIVATED);
+			setLearningMode(false);
 
 			//turn on gesture recognizer functionality
 			System.out.println("Andgee mSensorManager register listener: " + mSensorManager.registerListener(
@@ -151,9 +150,10 @@ public class GestureRecognizerService extends Service implements GestureListener
 			}
 
 			mAndgee.addGestureListener(this);
+			loadGestures();
 
 			boolean bool = mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-            System.out.println("onResume mSensorManager.registerListener: "+ Boolean.toString(bool));
+			System.out.println("mSensorManager.registerListener: "+ Boolean.toString(bool));
 
 			PendingIntent pendIntent = PendingIntent.getActivity(this, 0, new Intent (this, MainActivity.class), 0);
 
@@ -161,9 +161,11 @@ public class GestureRecognizerService extends Service implements GestureListener
 			notification.setLatestEventInfo(this, "SEI Gesture Service", "Touch to configure", pendIntent);
 			notification.flags |= Notification.FLAG_ONGOING_EVENT;
 			notification.flags |= Notification.FLAG_NO_CLEAR;
-			
-			this.startForeground(1337, notification);
 
+			this.startForeground(1337, notification);
+		}
+		else if(command.equals(this.getString(R.string.train))){
+			setLearningMode(true);
 
 		}
 		else if(command.equals(this.getString(R.string.off))){
@@ -176,12 +178,10 @@ public class GestureRecognizerService extends Service implements GestureListener
 			mAndgee.getDevice().getAccelerationStreamAnalyzer().reset();
 			mSensorManager.unregisterListener(mAndgee.getDevice());
 
-			try
-			{
+			try{
 				mAndgee.getDevice().disableAccelerationSensors();
 			}
-			catch (Exception e)
-			{
+			catch (Exception e){
 				Log.e(getClass().toString(), e.getMessage(), e);
 			}
 		}
@@ -251,10 +251,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 			//The delay is measured in milliseconds; 1/1000th of a second
 			editor.putLong(this.getString(R.string.prefname_recognizer_start_window), Long.parseLong(this.getString(R.string.prefval_recognizer_start_window)));
 
-
 			//gesture recognize time 
-			//When the full gesture recognition is activated, this value measure the length of a "quiet period"
-			//Thus, gestures must not take longer to execute than this time 
+			//When the full gesture recognition is activated, this value measure the length of a "quiet period" to end the gesture
 			//The time is measured in milliseconds; 1/1000th of a second
 			editor.putLong(this.getString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
 
@@ -312,7 +310,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 			mLastY = y;
 			mLastZ = z;
 
-			
+
 			if(		deltaX > START	||
 					deltaY > START	|| 
 					deltaZ > START){
@@ -340,7 +338,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 	static enum RecognizerState{
 		DEACTIVATED,
 		ACTIVATED,
-		CONFIGURING
+		CONFIGURING,
 	}
 
 	synchronized void setState(RecognizerState state){
@@ -348,6 +346,12 @@ public class GestureRecognizerService extends Service implements GestureListener
 	}
 	synchronized RecognizerState getState(){
 		return this.STATE;
+	}
+	synchronized void setLearningMode(boolean val){
+		this.learningMode = val;
+	}
+	synchronized boolean getLearningMode(){
+		return this.learningMode;
 	}
 
 	private class SensorEvtManager {
@@ -359,13 +363,11 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 		public synchronized void addEvt(long time, SensorEvtType type){
 
-			if(GestureRecognizerService.this.getState() == RecognizerState.DEACTIVATED){
-				//discards QUIET and CONFIGURING Evts
+			if(time > nextSampleTime){
 
-				if(time > nextSampleTime){
-					
-					System.out.println(type);
-					
+				if(GestureRecognizerService.this.getState() == RecognizerState.DEACTIVATED){
+					//discards QUIET and CONFIGURING Evts					
+
 					if (type == SensorEvtType.ACTIVATE){
 
 						System.out.println("Sensor event triggered, evts.size = "+evts.size());
@@ -377,13 +379,14 @@ public class GestureRecognizerService extends Service implements GestureListener
 						else{
 
 							//removes values which may be too old
-							for (Evt evt : evts){
-								if((time - evt.getTime()) > startRecognizerTime){
-									System.out.println("remove");
-									evts.remove(evt);
+							int i = evts.size()-1;
+							while(i>0){
+								System.out.println("remove");
+								if (time - evts.get(i).getTime() > startRecognizerTime){
+									evts.remove(i);
 								}
+								i--;
 							}
-
 							evts.add(new Evt(time, type));
 
 							//checks to make sure that there are enough sensor events to activate the recognizer
@@ -393,31 +396,34 @@ public class GestureRecognizerService extends Service implements GestureListener
 								//activates the recognizer
 								System.out.println("Recognizer triggered");
 								updateUI("Gesture Start");
-								triggerRecognizer();
 								setState(RecognizerState.ACTIVATED);
+								triggerRecognizer();
+
 							}
 						}
 					}
-					else if(GestureRecognizerService.this.getState() == RecognizerState.ACTIVATED){
-						//while activated, wait for 3 quiet events to end the gesture recognition
-						
-						if(type == SensorEvtType.QUIET){
-							evts.add(new Evt(time, type));
-							if(evts.size()>=3){
-								//stop the recognizer
-								GestureRecognizerService.this.triggerRecognizer();
-								setState(RecognizerState.DEACTIVATED);
-								updateUI("Recognizer Stopped");
-							}
-						}
-						//start over if there is not a quiet event
-						else{
+				}
+				else if(GestureRecognizerService.this.getState() == RecognizerState.ACTIVATED){
+					//while activated, wait for "quiet" period
+
+					if(type == SensorEvtType.QUIET){
+						evts.add(new Evt(time, type));
+						if(evts.get(evts.size()-1).getTime()-evts.get(0).getTime()>gestureRecognizeTime){
+							//stop the recognizer
 							evts.clear();
+							GestureRecognizerService.this.triggerRecognizer();
+							setState(RecognizerState.DEACTIVATED);
+							updateUI("Recognizer Stopped");
 						}
 					}
-					nextSampleTime = time + eventDelay;
-				}//sample time
-			}
+					//start over if there is not a quiet event
+					else{
+						evts.clear();
+					}
+				}
+
+				nextSampleTime = time + eventDelay;
+			}//sample time
 
 
 		}
@@ -444,7 +450,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 		Log.d(TAG, event.getId() + " " + GestureIdMapping.get(event.getId()) + " with prob. "
 				+ event.getProbability());
 
-		if (event.getProbability() > 0.5)
+		if (event.getProbability() > 0.8)
 		{
 			String gesture = GestureRecognizerService.GestureIdMapping.get(event.getId());
 
@@ -474,43 +480,60 @@ public class GestureRecognizerService extends Service implements GestureListener
 		}
 	}
 
-	public void triggerRecognizer(){
-		if (isAllowed)
-		{
-			if (isRecognizing)
-			{
-				Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT)
-				.show();
-				GestureRecognizerService.stopRecognizer();
+	public synchronized void triggerRecognizer(){
+
+		if(isAllowed){
+			if(learningMode){
+				if (isLearning)
+				{
+					Toast.makeText(this, GestureRecognizerService.CAPTURED + " "+ Integer.toString(++gestureCount), Toast.LENGTH_SHORT)
+					.show();
+					GestureRecognizerService.stopLearning();
+				}
+				else
+				{
+					Toast.makeText(this, GestureRecognizerService.CAPTURE, Toast.LENGTH_SHORT)
+					.show();
+					GestureRecognizerService.startLearning();
+				}
+
+				isLearning = !isLearning;
 			}
-			else
-			{
-				Toast.makeText(this, GestureRecognizerService.CAPTURE, Toast.LENGTH_SHORT)
-				.show();
-				GestureRecognizerService.startRecognizer();
+			else{
+				if (isRecognizing)
+				{
+					Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT)
+					.show();
+					GestureRecognizerService.stopRecognizer();
+				}
+				else
+				{
+					Toast.makeText(this, GestureRecognizerService.CAPTURE, Toast.LENGTH_SHORT)
+					.show();
+					GestureRecognizerService.startRecognizer();
+				}
+
+				isRecognizing = !isRecognizing;
 			}
 
-			isRecognizing = !isRecognizing;
-			isAllowed = false;
-			Log.d(TAG, "disallow");
+			if (allowTimer != null)
+				allowTimer.cancel();
+
+			allowTimer = new Timer();
+			allowTimer.schedule(new AllowTask(), 400);
 		}
 
-		if (allowTimer != null)
-			allowTimer.cancel();
-
-		allowTimer = new Timer();
-		allowTimer.schedule(new AllowTask(), 400);
 	}
-
+	
 	private class AllowTask extends TimerTask
-	{
-
-		public void run()
-		{
-			GestureRecognizerService.this.isAllowed = true;
-			Log.d(TAG, "allow");
-		}
-	}
+    {
+            
+            public void run()
+            {
+                    GestureRecognizerService.this.isAllowed = true;
+                    Log.d(TAG, "allow");
+            }
+    }
 
 	public void stateReceived(StateEvent event)
 	{

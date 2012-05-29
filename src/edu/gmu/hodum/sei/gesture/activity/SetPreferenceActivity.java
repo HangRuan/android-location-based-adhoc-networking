@@ -139,6 +139,7 @@ public class SetPreferenceActivity extends Activity{
 		this.setResult(Activity.RESULT_OK);
 		this.finish();
 	}
+	
 	public void btnCancel_onClick(View view){
 		this.setResult(Activity.RESULT_CANCELED);
 		this.finish();

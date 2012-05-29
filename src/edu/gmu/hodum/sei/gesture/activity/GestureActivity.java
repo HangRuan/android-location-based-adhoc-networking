@@ -1,10 +1,6 @@
 package edu.gmu.hodum.sei.gesture.activity;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 import android.app.Activity;
-import android.util.Log;
 import android.widget.Toast;
 import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
 import event.GestureListener;
@@ -14,8 +10,6 @@ abstract public class GestureActivity extends Activity implements GestureListene
 {
 	protected static final String TAG = "gesturelist";
 	private boolean isRecognizing = false;
-	private boolean isAllowed = true;
-	private Timer allowTimer = null;
 
 	
 	public void onResume()
@@ -32,8 +26,7 @@ abstract public class GestureActivity extends Activity implements GestureListene
 	}
 	
 	public void triggerRecognizer(){
-		if (isAllowed)
-		{
+
 			if (isRecognizing)
 			{
 				Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT)
@@ -48,15 +41,6 @@ abstract public class GestureActivity extends Activity implements GestureListene
 			}
 
 			isRecognizing = !isRecognizing;
-			isAllowed = false;
-			Log.d(TAG, "disallow");
-		}
-
-		if (allowTimer != null)
-			allowTimer.cancel();
-
-		allowTimer = new Timer();
-		allowTimer.schedule(new AllowTask(), 400);
 	}
 	
 	public void stateReceived(StateEvent event)
@@ -65,15 +49,5 @@ abstract public class GestureActivity extends Activity implements GestureListene
 	
 	public void toast(String text){
 		Toast.makeText(this, text, Toast.LENGTH_LONG).show();
-	}
-
-	private class AllowTask extends TimerTask
-	{
-		
-		public void run()
-		{
-			GestureActivity.this.isAllowed = true;
-			Log.d(TAG, "allow");
-		}
 	}
 }

@@ -63,6 +63,10 @@ public class MainActivity extends GestureActivity {
 		this.startActivityForResult(new Intent(this, TrainGestureListActivity.class), TRAINING);
 	}
 	public void btnSettings_onClick(View view){
+		Intent intent = new Intent(this, GestureRecognizerService.class);
+		intent.setAction(this.getString(R.string.configure));
+		startService(intent);
+		
 		this.startActivityForResult(new Intent(this, SetPreferenceActivity.class), SETTINGS);
 	}
 
