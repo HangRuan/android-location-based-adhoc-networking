@@ -85,11 +85,8 @@ public class ContentDatabaseAPI {
 
 					thng.setRelevance(java.lang.Math.random());
 					thng.setDescription(cur.getString(cur.getColumnIndex("description")));
-					System.out.println("cur size: " + cur2.getColumnCount());
-					for(String names:cur2.getColumnNames())
-					{
-						System.out.println(names);
-					}
+					
+					
 					thng.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
 
 					thng.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
@@ -126,11 +123,8 @@ public class ContentDatabaseAPI {
 
 					thng.setRelevance(java.lang.Math.random());
 					thng.setDescription(cur.getString(cur.getColumnIndex("description")));
-					System.out.println("cur size: " + cur2.getColumnCount());
-					for(String names:cur2.getColumnNames())
-					{
-						System.out.println(names);
-					}
+					
+					
 					thng.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
 
 					thng.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
@@ -167,11 +161,7 @@ public class ContentDatabaseAPI {
 
 					thng.setRelevance(java.lang.Math.random());
 					thng.setDescription(cur.getString(cur.getColumnIndex("description")));
-					System.out.println("cur size: " + cur2.getColumnCount());
-					for(String names:cur2.getColumnNames())
-					{
-						System.out.println(names);
-					}
+					
 					thng.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
 
 					thng.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
@@ -208,11 +198,7 @@ public class ContentDatabaseAPI {
 
 					thng.setRelevance(java.lang.Math.random());
 					thng.setDescription(cur.getString(cur.getColumnIndex("description")));
-					System.out.println("cur size: " + cur2.getColumnCount());
-					for(String names:cur2.getColumnNames())
-					{
-						System.out.println(names);
-					}
+					
 					thng.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
 
 					thng.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
