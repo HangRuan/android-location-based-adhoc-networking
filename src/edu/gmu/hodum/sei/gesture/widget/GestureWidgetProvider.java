@@ -17,6 +17,7 @@ public class GestureWidgetProvider extends AppWidgetProvider{
 		for (int i=0; i<N; i++) {
 			int appWidgetId = appWidgetIds[i];
 			Intent intent = new Intent(context, GestureRecognizerService.class);
+			intent.setAction(context.getString(R.string.on));
 			PendingIntent pendingIntent = PendingIntent.getService(context, 0, intent, 0);
 
 			RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.gesture_widget_layout);
@@ -25,14 +26,4 @@ public class GestureWidgetProvider extends AppWidgetProvider{
 		}
 	}
 
-	/*
-	public static PendingIntent makePendingIntent(Context context, String command, int appWidgetId) {
-        Intent active = new Intent(context, GestureRecognizerService.class);
-        active.setAction(command);
-        active.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId);
-        //this Uri data is to make the PendingIntent unique, so it wont be updated by FLAG_UPDATE_CURRENT
-        //so if there are multiple widget instances they wont override each other
-        return(PendingIntent.getService(context, 0, active, PendingIntent.FLAG_UPDATE_CURRENT));
-    }
-	 */
 }

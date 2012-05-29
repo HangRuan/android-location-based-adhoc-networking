@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="prefarray_noise_level_filter">
-		<item>0
-		    .0</item>
         <item>1.0</item>
         <item>2.0</item>
         <item>3.0</item>
@@ -11,18 +9,6 @@
 		<item>6.0</item>
 		<item>7.0</item>
         <item>8.0</item>
-        <item>9.0</item>
-        <item>10.0</item>
-        <item>11.0</item>
-        <item>12.0</item>
-        <item>13.0</item>
-        <item>14.0</item>
-        <item>15.0</item>
-        <item>16.0</item>
-        <item>17.0</item>
-        <item>18.0</item>
-        <item>19.0</item>
-        <item>20.0</item>
     </string-array>
     <string-array name="prefarray_event_delay">
         <item>0</item>

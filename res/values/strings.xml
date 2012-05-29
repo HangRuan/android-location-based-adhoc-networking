@@ -20,6 +20,8 @@
     <string name="off">off</string>
     <string name="calibrate_noise">edu.gmu.hodum.gesture.CALIBRATE_NOISE</string>
     <string name="calibrate_start">edu.gmu.hodum.gesture.CALIBRATE_START</string>
+    <string name="update_prefs">edu.gmu.hodum.gesture.UPDATE_PREFERENCES</string>
+    <string name="load_gestures">edu.gmu.hodum.gesture.LOAD_GESTURES</string>
     
     
 </resources>
