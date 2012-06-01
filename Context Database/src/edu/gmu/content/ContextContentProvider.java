@@ -34,6 +34,9 @@ public class ContextContentProvider extends ContentProvider {
 	private static final int LANDMARK_LOCATION = 13;
 	private static final int RESOURCE_LOCATION = 14;
 	
+	private static final int PATROL_OBJECTIVE = 15;
+	private static final int HUMANITARIAN_OBJECTIVE = 16;
+	
 	
 	public static final String baseURI = "edu.gmu.provider";
 	
@@ -53,6 +56,10 @@ public class ContextContentProvider extends ContentProvider {
 		sUriMatcher.addURI(baseURI + ".cursor.dir","resources",ALL_RESOURCES);
 		sUriMatcher.addURI(baseURI + ".cursor.dir","resource/#",SINGLE_RESOURCE);
 		sUriMatcher.addURI(baseURI + ".cursor.dir","resource/location",RESOURCE_LOCATION);
+		
+		sUriMatcher.addURI(baseURI + ".cursor.dir","objective/patrol",PATROL_OBJECTIVE);
+		sUriMatcher.addURI(baseURI + ".cursor.dir","objective/humanitarian",HUMANITARIAN_OBJECTIVE);
+		
 //		sUriMatcher.addURI(baseURI,"vehicle",ALL_VEHICLES);
 //		sUriMatcher.addURI(baseURI,"vehicle/#",SINGLE_VEHICLE);
 //		sUriMatcher.addURI(baseURI,"landmark",ALL_LANDMARKS);
@@ -79,8 +86,8 @@ public class ContextContentProvider extends ContentProvider {
 //	public static final String LANDMARKS_CONTENT_TYPE = "content://edu.gmu.landmark.cursor.item/landmarks";
 //	public static final String LANDMARK_CONTENT_TYPE = "content://edu.gmu.landmark.cursor.item/landmark";
 	
-	public static final String OBJECTIVES_CONTENT_TYPE = "vnd.android.cursor.dir/edu.gmu.objective";
-	public static final String OBJECTIVE_CONTENT_TYPE = "vnd.android.cursor.item/edu.gmu.objective";
+	public static final String OBJECTIVE_CONTENT_TYPE = "content://edu.gmu.cursor.item/objective";
+	
 	
 	
 	@Override
@@ -103,8 +110,6 @@ public class ContextContentProvider extends ContentProvider {
 			return LANDMARKS_CONTENT_TYPE;
 		case SINGLE_LANDMARK:
 			return LANDMARK_CONTENT_TYPE;
-		case ALL_OBJECTIVES:
-			return OBJECTIVES_CONTENT_TYPE;
 		case SINGLE_OBJECTIVE:
 			return OBJECTIVE_CONTENT_TYPE;
 		case PERSON_LOCATION:
@@ -166,6 +171,9 @@ public class ContextContentProvider extends ContentProvider {
 			break;
 		case RESOURCE_LOCATION:
 			ret = db.getCurrentLocationForResource(Long.parseLong(selectionArgs[0]));
+			break;
+		case PATROL_OBJECTIVE:
+			ret = db.getPatrolObjective();
 			break;
 		default:
 			throw new IllegalArgumentException("Unkown URI:" + uri);

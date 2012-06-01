@@ -27,18 +27,27 @@ public class ContextDataProvider {
 		private static final String VEHICLE_TYPE = "vehicle_type";
 		private static final String RESOURCE_TYPE = "resource_type";
 		private static final String LANDMARK_TYPE = "landmark_type";
+		private static final String PERSON_TYPE = "person_type";
+		private static final String OBJECTIVE_TYPE = "objective_type";
 		private static final String PERSON_TABLE = "person";
 		private static final String VEHICLE_TABLE = "vehicle";
 		private static final String LANDMARK_TABLE = "landmark";
 		private static final String RESOURCE_TABLE = "resource";
+		private static final String OBJECTIVE_TABLE = "objective";
 		private static final String PERSON_FRIENDLINESS = "person_friendliness";
 		private static final String VEHICLE_FRIENDLINESS = "vehicle_friendliness";
 		private static final String LANDMARK_FRIENDLINESS = "landmark_friendliness";
 		private static final String RESOURCE_FRIENDLINESS = "resource_friendliness";
+		private static final String OBJECTIVE_VEHICLE_RELEVANCE = "objective_type_vehicle_type_relevance";
+		private static final String OBJECTIVE_LANDMARK_RELEVANCE = "objective_type_landmark_type_relevance";
+		private static final String OBJECTIVE_RESOURCE_RELEVANCE = "objective_type_resource_type_relevance";
+		private static final String OBJECTIVE_PERSON_RELEVANCE = "objective_type_person_type_relevance";
 		private static final String LOCATION = "location";
 		private static final String LOCATION_TYPE = "location_type";
 		private static final String SPACE_TIME = "space_time";
 		private static final String FRIENDLINESS = "friendliness";
+		private static final int HIGH_VALUE = 2;
+		private static final int LOW_VALUE = 1;
 
 		DatabaseHelper(Context context) {
 			super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -53,6 +62,10 @@ public class ContextDataProvider {
 			db.execSQL("CREATE TABLE resource_type (id INTEGER PRIMARY KEY  NOT NULL , type TEXT NOT NULL )");
 
 			db.execSQL("CREATE TABLE vehicle_type (id INTEGER PRIMARY KEY  NOT NULL , type TEXT NOT NULL )");
+			
+			db.execSQL("CREATE TABLE person_type (id INTEGER PRIMARY KEY  NOT NULL , type TEXT NOT NULL )");
+			
+			db.execSQL("CREATE TABLE objective_type (id INTEGER PRIMARY KEY  NOT NULL , type TEXT NOT NULL )");
 
 			db.execSQL("CREATE TABLE landmark_type (id INTEGER PRIMARY KEY  NOT NULL , type TEXT NOT NULL )");
 
@@ -61,6 +74,35 @@ public class ContextDataProvider {
 			db.execSQL("CREATE TABLE friendliness (id INTEGER PRIMARY KEY  NOT NULL , timestamp DATETIME NOT NULL, " +
 			"rating DOUBLE NOT NULL )");
 
+			db.execSQL("CREATE TABLE objective_type_vehicle_type_relevance (id INTEGER PRIMARY KEY NOT NULL, " +
+					"relevance INTEGER, " +
+					"objective_type_id INTEGER, " +
+					"vehicle_type_id INTEGER, " +
+					"FOREIGN KEY(objective_type_id) REFERENCES objective_type(id), " +
+					"FOREIGN KEY(vehicle_type_id) REFERENCES vehicle_type(id)) ");
+			
+			db.execSQL("CREATE TABLE objective_type_resource_type_relevance (id INTEGER PRIMARY KEY NOT NULL, " +
+					"relevance INTEGER, " +
+					"objective_type_id INTEGER, " +
+					"resource_type_id INTEGER, " +
+					"FOREIGN KEY(objective_type_id) REFERENCES objective_type(id), " +
+					"FOREIGN KEY(resource_type_id) REFERENCES resource_type(id)) ");
+			
+			db.execSQL("CREATE TABLE objective_type_landmark_type_relevance (id INTEGER PRIMARY KEY NOT NULL, " +
+					"relevance INTEGER, " +
+					"objective_type_id INTEGER, " +
+					"landmark_type_id INTEGER, " +
+					"FOREIGN KEY(objective_type_id) REFERENCES objective_type(id), " +
+					"FOREIGN KEY(landmark_type_id) REFERENCES landmark_type(id)) ");
+			
+			db.execSQL("CREATE TABLE objective_type_person_type_relevance (id INTEGER PRIMARY KEY NOT NULL, " +
+					"relevance INTEGER, " +
+					"objective_type_id INTEGER, " +
+					"person_type_id INTEGER, " +
+					"FOREIGN KEY(objective_type_id) REFERENCES objective_type(id), " +
+					"FOREIGN KEY(person_type_id) REFERENCES person_type(id)) ");
+					
+			
 			db.execSQL("CREATE TABLE location (id INTEGER PRIMARY KEY  NOT NULL , latitude DOUBLE, " +
 					"longitude DOUBLE, elevation DOUBLE, time DATETIME, " +
 					"space_time_id INTEGER, " +
@@ -88,7 +130,9 @@ public class ContextDataProvider {
 			db.execSQL("CREATE TABLE person (id INTEGER PRIMARY KEY  NOT NULL  UNIQUE , description TEXT, current_rating DOUBLE NOT NULL, " +
 					"space_time_id INTEGER, " +
 					"vehicle_id INTEGER, " +
+					"person_type_id INTEGER, " +
 					"FOREIGN KEY(space_time_id) REFERENCES space_time(id)," +
+					"FOREIGN KEY(person_type_id) REFERENCES person_type(id), " +
 			"FOREIGN KEY(vehicle_id) REFERENCES vehicle(id) )");
 
 			db.execSQL("CREATE TABLE landmark (id INTEGER PRIMARY KEY  NOT NULL , description TEXT,  current_rating DOUBLE NOT NULL, " +
@@ -124,8 +168,11 @@ public class ContextDataProvider {
 
 			db.execSQL("CREATE TABLE objective (id INTEGER PRIMARY KEY  NOT NULL , description TEXT, " +
 					"space_time_id INTEGER, " +
+					"objective_type_id INTEGER, " +
+					"FOREIGN KEY(objective_type_id) REFERENCES objective_type(id), "+
 			"FOREIGN KEY(space_time_id) REFERENCES space_time(id) )");
 
+			
 
 
 			loadTestData(db);
@@ -197,11 +244,259 @@ public class ContextDataProvider {
 			resource_type = new ContentValues();
 			resource_type.put("type", "Water");
 			db.insert(RESOURCE_TYPE, null, resource_type);
+			
+			
+			ContentValues person_type = new ContentValues();
+			person_type.put("type", "Military");
+			db.insert(PERSON_TYPE, null, person_type);
+			
+			person_type = new ContentValues();
+			person_type.put("type", "Civilian");
+			db.insert(PERSON_TYPE, null, person_type);
+			
+			person_type = new ContentValues();
+			person_type.put("type", "Insurgent");
+			db.insert(PERSON_TYPE, null, person_type);
+			
+			person_type = new ContentValues();
+			person_type.put("type", "Law Enforcement");
+			db.insert(PERSON_TYPE, null, person_type);
+			
+			
+			ContentValues objective_type = new ContentValues();
+			objective_type.put("type", "Patrol");
+			db.insert(OBJECTIVE_TYPE, null, objective_type);
+			
+			objective_type = new ContentValues();
+			objective_type.put("type", "Humanitarian");
+			db.insert(OBJECTIVE_TYPE, null, objective_type);
 
 			//---------------------End TYPES
 
+			
+			//---------------OBJECTIVE TO TYPES
+			//Humanitarian - vehicle
+			ContentValues objective_vehicle_relevance = new ContentValues();
+			objective_vehicle_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_vehicle_relevance.put("vehicle_type_id", getVehicleTypeId(db,"Sedan"));
+			objective_vehicle_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_VEHICLE_RELEVANCE, null, objective_vehicle_relevance);
+			
+			objective_vehicle_relevance = new ContentValues();
+			objective_vehicle_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_vehicle_relevance.put("vehicle_type_id", getVehicleTypeId(db,"Pickup Truck"));
+			objective_vehicle_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_VEHICLE_RELEVANCE, null, objective_vehicle_relevance);
+			
+			objective_vehicle_relevance = new ContentValues();
+			objective_vehicle_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_vehicle_relevance.put("vehicle_type_id", getVehicleTypeId(db,"Tank"));
+			objective_vehicle_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_VEHICLE_RELEVANCE, null, objective_vehicle_relevance);
+			
+			objective_vehicle_relevance = new ContentValues();
+			objective_vehicle_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_vehicle_relevance.put("vehicle_type_id", getVehicleTypeId(db,"SUV"));
+			objective_vehicle_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_VEHICLE_RELEVANCE, null, objective_vehicle_relevance);
+			
+			//Patrol - vehicle
+			objective_vehicle_relevance = new ContentValues();
+			objective_vehicle_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_vehicle_relevance.put("vehicle_type_id", getVehicleTypeId(db,"Sedan"));
+			objective_vehicle_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_VEHICLE_RELEVANCE, null, objective_vehicle_relevance);
+			
+			objective_vehicle_relevance = new ContentValues();
+			objective_vehicle_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_vehicle_relevance.put("vehicle_type_id", getVehicleTypeId(db,"Pickup Truck"));
+			objective_vehicle_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_VEHICLE_RELEVANCE, null, objective_vehicle_relevance);
+			
+			objective_vehicle_relevance = new ContentValues();
+			objective_vehicle_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_vehicle_relevance.put("vehicle_type_id", getVehicleTypeId(db,"Tank"));
+			objective_vehicle_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_VEHICLE_RELEVANCE, null, objective_vehicle_relevance);
+			
+			objective_vehicle_relevance = new ContentValues();
+			objective_vehicle_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_vehicle_relevance.put("vehicle_type_id", getVehicleTypeId(db,"SUV"));
+			objective_vehicle_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_VEHICLE_RELEVANCE, null, objective_vehicle_relevance);
 
-
+			//Humanitarian - landmark
+			
+			ContentValues objective_landmark_relevance = new ContentValues();
+			objective_landmark_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_landmark_relevance.put("landmark_type_id", getLandmarkTypeId(db,"Arena"));
+			objective_landmark_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_LANDMARK_RELEVANCE, null, objective_landmark_relevance);
+			
+			objective_landmark_relevance = new ContentValues();
+			objective_landmark_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_landmark_relevance.put("landmark_type_id", getLandmarkTypeId(db,"Religious Site"));
+			objective_landmark_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_LANDMARK_RELEVANCE, null, objective_landmark_relevance);
+			
+			objective_landmark_relevance = new ContentValues();
+			objective_landmark_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_landmark_relevance.put("landmark_type_id", getLandmarkTypeId(db,"Monument"));
+			objective_landmark_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_LANDMARK_RELEVANCE, null, objective_landmark_relevance);
+			
+			objective_landmark_relevance = new ContentValues();
+			objective_landmark_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_landmark_relevance.put("landmark_type_id", getLandmarkTypeId(db,"Building"));
+			objective_landmark_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_LANDMARK_RELEVANCE, null, objective_landmark_relevance);
+			
+			objective_landmark_relevance = new ContentValues();
+			objective_landmark_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_landmark_relevance.put("landmark_type_id", getLandmarkTypeId(db,"Military Base"));
+			objective_landmark_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_LANDMARK_RELEVANCE, null, objective_landmark_relevance);
+			
+			//Patrol - landmark
+			
+			objective_landmark_relevance = new ContentValues();
+			objective_landmark_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_landmark_relevance.put("landmark_type_id", getLandmarkTypeId(db,"Arena"));
+			objective_landmark_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_LANDMARK_RELEVANCE, null, objective_landmark_relevance);
+			
+			objective_landmark_relevance = new ContentValues();
+			objective_landmark_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_landmark_relevance.put("landmark_type_id", getLandmarkTypeId(db,"Religious Site"));
+			objective_landmark_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_LANDMARK_RELEVANCE, null, objective_landmark_relevance);
+			
+			objective_landmark_relevance = new ContentValues();
+			objective_landmark_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_landmark_relevance.put("landmark_type_id", getLandmarkTypeId(db,"Monument"));
+			objective_landmark_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_LANDMARK_RELEVANCE, null, objective_landmark_relevance);
+			
+			objective_landmark_relevance = new ContentValues();
+			objective_landmark_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_landmark_relevance.put("landmark_type_id", getLandmarkTypeId(db,"Building"));
+			objective_landmark_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_LANDMARK_RELEVANCE, null, objective_landmark_relevance);
+			
+			objective_landmark_relevance = new ContentValues();
+			objective_landmark_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_landmark_relevance.put("landmark_type_id", getLandmarkTypeId(db,"Military Base"));
+			objective_landmark_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_LANDMARK_RELEVANCE, null, objective_landmark_relevance);
+			
+			
+			//Humanitarian - Resource
+			
+			ContentValues objective_resource_relevance = new ContentValues();
+			objective_resource_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_resource_relevance.put("resource_type_id", getResourceTypeId(db,"Food"));
+			objective_resource_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_RESOURCE_RELEVANCE, null, objective_resource_relevance);
+			
+			objective_resource_relevance = new ContentValues();
+			objective_resource_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_resource_relevance.put("resource_type_id", getResourceTypeId(db,"Munition"));
+			objective_resource_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_RESOURCE_RELEVANCE, null, objective_resource_relevance);
+			
+			objective_resource_relevance = new ContentValues();
+			objective_resource_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_resource_relevance.put("resource_type_id", getResourceTypeId(db,"Fuel"));
+			objective_resource_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_RESOURCE_RELEVANCE, null, objective_resource_relevance);
+			
+			objective_resource_relevance = new ContentValues();
+			objective_resource_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_resource_relevance.put("resource_type_id", getResourceTypeId(db,"Water"));
+			objective_resource_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_RESOURCE_RELEVANCE, null, objective_resource_relevance);
+			
+			//Patrol - Resource
+			
+			objective_resource_relevance = new ContentValues();
+			objective_resource_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_resource_relevance.put("resource_type_id", getResourceTypeId(db,"Food"));
+			objective_resource_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_RESOURCE_RELEVANCE, null, objective_resource_relevance);
+			
+			objective_resource_relevance = new ContentValues();
+			objective_resource_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_resource_relevance.put("resource_type_id", getResourceTypeId(db,"Munition"));
+			objective_resource_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_RESOURCE_RELEVANCE, null, objective_resource_relevance);
+			
+			objective_resource_relevance = new ContentValues();
+			objective_resource_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_resource_relevance.put("resource_type_id", getResourceTypeId(db,"Fuel"));
+			objective_resource_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_RESOURCE_RELEVANCE, null, objective_resource_relevance);
+			
+			objective_resource_relevance = new ContentValues();
+			objective_resource_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_resource_relevance.put("resource_type_id", getResourceTypeId(db,"Water"));
+			objective_resource_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_RESOURCE_RELEVANCE, null, objective_resource_relevance);
+			
+			
+			//Humanitarian - Person
+			
+			ContentValues objective_person_relevance = new ContentValues();
+			objective_person_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_person_relevance.put("person_type_id", getPersonTypeId(db,"Military"));
+			objective_person_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_PERSON_RELEVANCE, null, objective_person_relevance);
+			
+			objective_person_relevance = new ContentValues();
+			objective_person_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_person_relevance.put("person_type_id", getPersonTypeId(db,"Civilian"));
+			objective_person_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_PERSON_RELEVANCE, null, objective_person_relevance);
+			
+			objective_person_relevance = new ContentValues();
+			objective_person_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_person_relevance.put("person_type_id", getPersonTypeId(db,"Insurgent"));
+			objective_person_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_PERSON_RELEVANCE, null, objective_person_relevance);
+			
+			objective_person_relevance = new ContentValues();
+			objective_person_relevance.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective_person_relevance.put("person_type_id", getPersonTypeId(db,"Law Enforcement"));
+			objective_person_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_PERSON_RELEVANCE, null, objective_person_relevance);
+			
+			//Patrol - Person
+			
+			objective_person_relevance = new ContentValues();
+			objective_person_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_person_relevance.put("person_type_id", getPersonTypeId(db,"Military"));
+			objective_person_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_PERSON_RELEVANCE, null, objective_person_relevance);
+			
+			objective_person_relevance = new ContentValues();
+			objective_person_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_person_relevance.put("person_type_id", getPersonTypeId(db,"Civilian"));
+			objective_person_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_PERSON_RELEVANCE, null, objective_person_relevance);
+			
+			objective_person_relevance = new ContentValues();
+			objective_person_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_person_relevance.put("person_type_id", getPersonTypeId(db,"Insurgent"));
+			objective_person_relevance.put("relevance", HIGH_VALUE);
+			db.insert(OBJECTIVE_PERSON_RELEVANCE, null, objective_person_relevance);
+			
+			objective_person_relevance = new ContentValues();
+			objective_person_relevance.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective_person_relevance.put("person_type_id", getPersonTypeId(db,"Law Enforcement"));
+			objective_person_relevance.put("relevance", LOW_VALUE);
+			db.insert(OBJECTIVE_PERSON_RELEVANCE, null, objective_person_relevance);
+			
+			
+			
 			ContentValues space_time = new ContentValues();
 			space_time.put("timestamp",System.currentTimeMillis());
 			row = db.insert(SPACE_TIME, null, space_time);
@@ -340,6 +635,62 @@ public class ContextDataProvider {
 			db.insert(RESOURCE_FRIENDLINESS, null, resource_friendliness);
 
 
+			//Now add an objective
+			
+			space_time = new ContentValues();
+			space_time.put("timestamp",System.currentTimeMillis());
+			space_time_row = db.insert(SPACE_TIME, null, space_time);
+
+			location = new ContentValues();
+			location.put("latitude", 38.889620);
+			location.put("longitude", -77.048887);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", getLocationTypeId(db,"GPS"));
+			row = db.insert(LOCATION, null, location);
+			
+			location = new ContentValues();
+			location.put("latitude", 38.889739);
+			location.put("longitude", -77.041116);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", getLocationTypeId(db,"GPS"));
+			row = db.insert(LOCATION, null, location);
+			
+			location = new ContentValues();
+			location.put("latitude", 38.889693);
+			location.put("longitude", -77.035318);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", getLocationTypeId(db,"GPS"));
+			row = db.insert(LOCATION, null, location);
+			
+			location = new ContentValues();
+			location.put("latitude", 38.891981);
+			location.put("longitude", -77.036521);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", getLocationTypeId(db,"GPS"));
+			row = db.insert(LOCATION, null, location);
+			
+			location = new ContentValues();
+			location.put("latitude", 38.897361);
+			location.put("longitude", -77.036550);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", getLocationTypeId(db,"GPS"));
+			row = db.insert(LOCATION, null, location);
+			
+			ContentValues objective1 = new ContentValues();
+			objective1.put("description", "Patrol DC");
+			objective1.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
+			objective1.put("space_time_id", space_time_row);
+			row = db.insert(OBJECTIVE_TABLE, null, objective1);
 		}
 
 		@Override
@@ -437,6 +788,32 @@ public class ContextDataProvider {
 			long ret = -1;
 
 			Cursor cur = db.query(LANDMARK_TYPE, new String[] {"id"}, "type=?", new String[] {name}, null, null, null);
+			if(cur.moveToFirst())
+			{
+				ret = cur.getLong(cur.getColumnIndex("id"));
+			}
+			
+			return ret;
+		}
+		
+		private long getObjectiveTypeId(SQLiteDatabase db , String name)
+		{
+			long ret = -1;
+
+			Cursor cur = db.query(OBJECTIVE_TYPE, new String[] {"id"}, "type=?", new String[] {name}, null, null, null);
+			if(cur.moveToFirst())
+			{
+				ret = cur.getLong(cur.getColumnIndex("id"));
+			}
+			
+			return ret;
+		}
+		
+		private long getPersonTypeId(SQLiteDatabase db , String name)
+		{
+			long ret = -1;
+
+			Cursor cur = db.query(PERSON_TYPE, new String[] {"id"}, "type=?", new String[] {name}, null, null, null);
 			if(cur.moveToFirst())
 			{
 				ret = cur.getLong(cur.getColumnIndex("id"));
@@ -711,6 +1088,22 @@ public class ContextDataProvider {
 			db.close();
 			return true;
 		}
+		
+		private Cursor getPatrolObjective()
+		{
+			SQLiteDatabase db = getReadableDatabase();
+			Long objTypeId = getObjectiveTypeId(db,"Patrol");
+			return db.query(true, "objective", null,
+					"objective_type_id=?", new String[] {Long.toString(objTypeId)},
+					null, null, null, null);
+		}
+		
+		private Cursor getCurrentLocationForObjective(Long id)
+		{
+			String sql = "SELECT loc.* from location loc, space_time st, objective obj where obj.id=" + id.longValue() +
+			" AND obj.space_time_id = st.id AND loc.space_time_id = st.id ORDER BY loc.time";
+			return getReadableDatabase().rawQuery(sql,	null);
+		}
 
 	};
 
@@ -847,4 +1240,29 @@ public class ContextDataProvider {
 	}
 
 
+	public Cursor getPatrolObjective()
+	{
+		return mOpenHelper.getPatrolObjective();
+	}
+	
+	public Cursor getCurrentLocationForObjective(Long id)
+	{
+		Cursor cur = mOpenHelper.getCurrentLocationForObjective( id);
+		
+		while(cur.moveToNext())
+		{
+			Double lat = cur.getDouble(cur.getColumnIndex("latitude"));
+			System.out.println("Lat:" + lat);
+		}
+		cur.moveToFirst();
+//		int rows = cur.getCount();
+//		if(rows >0)
+//		{
+//			cur.moveToFirst();
+//			Double lat = cur.getDouble(cur.getColumnIndex("latitude"));
+//			System.out.println("Lat:" + lat);
+//		}
+
+		return cur;
+	}
 }
