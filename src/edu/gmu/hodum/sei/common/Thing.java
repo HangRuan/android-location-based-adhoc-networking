@@ -25,6 +25,9 @@ public class Thing {
 	@Element
 	private double elevation;
 	
+	@Element(required=false)
+	private String subType;
+	
 	public Thing (){
 		
 	}
@@ -77,5 +80,13 @@ public class Thing {
 	}
 	public double getElevation() {
 		return elevation;
+	}
+
+	public void setSubType(String subType) {
+		this.subType = subType;
+	}
+
+	public String getSubType() {
+		return subType;
 	}
 }
