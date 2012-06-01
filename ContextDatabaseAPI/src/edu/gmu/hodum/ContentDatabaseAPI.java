@@ -28,7 +28,7 @@ public class ContentDatabaseAPI {
 	{
 		ContentResolver cr = ctxt.getContentResolver();
 
-		Cursor cur = cr.query(Uri.parse( baseURI+"/person/location"), null, null, new String[]{"1"}, null); 
+		Cursor cur = cr.query(Uri.parse( baseURI+"/objective/patrol"), null, null, null, null); 
 		if(cur == null)
 		{
 			System.out.println("Damnit!");
@@ -37,24 +37,11 @@ public class ContentDatabaseAPI {
 		{
 			if(cur.moveToFirst())
 			{
-				Double latitude = cur.getDouble(cur.getColumnIndex("latitude"));
-				System.out.println("latitude: " + latitude);
+				String description = cur.getString(cur.getColumnIndex("description"));
+				System.out.println("description: " + description);
 			}
 		}
 		cur.close();
-		Cursor cur2 = cr.query(Uri.parse( baseURI+"/people"), null, null, null, null); 
-		if(cur2 == null)
-		{
-			System.out.println("Damnit!");
-		}
-		else
-		{
-			if(cur2.moveToFirst())
-			{
-				String description = cur2.getString(cur2.getColumnIndex("description"));
-				System.out.println("descrition: " + description);
-			}
-		}
 	}
 
 	public Vector<Thing> getThings(double latLL, double longLL, double latUR, double longUR)
