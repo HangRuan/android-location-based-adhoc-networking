@@ -46,17 +46,15 @@ public class MainActivity extends GestureActivity {
 		super.onCreate(savedInstanceState);
 		this.setContentView(R.layout.main);
 		System.out.println("SensorEventListener onCreate");
-		//mInitialized = false;
-
-		//setting up the accelerometer and sensor
-		//mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);      
-		//mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		
-		//TODO: Fix for when training new gestures
+	}
+	
+	public void onResume(){
+		super.onResume();
+		
 		Intent intent = new Intent(this, GestureRecognizerService.class);
 		intent.setAction(this.getString(R.string.on));
-		startService(intent);
-
+		startService(intent);		
 	}
 
 	public void btnTrainGestures_onClick(View view){

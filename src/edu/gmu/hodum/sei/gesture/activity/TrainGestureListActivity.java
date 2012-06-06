@@ -32,9 +32,15 @@ public class TrainGestureListActivity extends GestureListActivity
 
 	private static final String TAG = "traininglist";
 	private static String[] details;
-	private static final Class<?> nextIntentClasses[] = { TrainGestureActivity.class,
-		TrainGestureActivity.class, TrainGestureActivity.class, TrainGestureActivity.class,
-		TrainGestureActivity.class };
+	private static final Class<?> nextIntentClasses[] = { 
+		TrainGestureActivity.class,
+		TrainGestureActivity.class, 
+		TrainGestureActivity.class, 
+		TrainGestureActivity.class,
+		TrainGestureActivity.class,
+		TrainGestureActivity.class,
+		TrainGestureActivity.class,
+		};
 
 	private LayoutInflater mInflater;
 	private Vector<RowData> data;

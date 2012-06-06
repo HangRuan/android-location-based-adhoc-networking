@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import logic.GestureModel;
 import logic.ProcessingUnitWrapper;
@@ -21,6 +23,8 @@ import logic.ProcessingUnitWrapper;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -28,6 +32,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Environment;
 import android.os.Handler;
@@ -46,6 +52,8 @@ import edu.gmu.hodum.sei.common.Thing;
 import edu.gmu.hodum.sei.common.Thing.Type;
 import edu.gmu.hodum.sei.gesture.R;
 import edu.gmu.hodum.sei.gesture.activity.MainActivity;
+import edu.gmu.hodum.sei.gesture.util.GeoMath;
+import edu.gmu.hodum.sei.gesture.widget.GestureWidgetProvider;
 import event.GestureEvent;
 import event.GestureListener;
 import event.StateEvent;
@@ -62,11 +70,17 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 	public static final String SOS_GESTURE = "SOS";
 	public static final String SUPPLIES_GESTURE = "Supplies";
+	public static final String PERSON_GESTURE = "Person";
+
+	public static final String GO_NEXT_GESTURE = "Go Forward";
+	public static final String GO_BACK_GESTURE = "Go Back";
+	public static final String CONFIRM_GESTURE = "Confirm";
+	public static final String CANCEL_GESTURE = "Cancel";
 
 	public static final Andgee mAndgee = Andgee.getInstance();
 	public static final Map<Integer, String> GestureIdMapping = new HashMap<Integer, String>();
 
-	public static final String[] GESTURE_NAMES = new String[] {SOS_GESTURE,SUPPLIES_GESTURE };
+	public static final String[] GESTURE_NAMES = new String[] {SOS_GESTURE,SUPPLIES_GESTURE,PERSON_GESTURE,GO_NEXT_GESTURE,GO_BACK_GESTURE,CONFIRM_GESTURE,CANCEL_GESTURE };
 
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer;
@@ -82,10 +96,12 @@ public class GestureRecognizerService extends Service implements GestureListener
 	private float mLastX, mLastY, mLastZ;
 	private boolean mInitialized;
 
+	private Lock allowLock = new ReentrantLock();
 	private boolean isAllowed = true;
 	private Timer allowTimer = null;
 
 	final private SensorEvtManager sensorEvtManager = new SensorEvtManager();
+	private Lock evtLock = new ReentrantLock();
 
 	private float NOISE;
 	private float START;
@@ -99,13 +115,16 @@ public class GestureRecognizerService extends Service implements GestureListener
 	private int gestureCount;
 	private boolean learningMode;
 
+	private String recognizedGesture;
+
 	//delays
 	private long eventDelay;
 	private long gestureRecognizeTime; //in milliseconds 1/1000th of a second
 	private long startRecognizerTime; //in milliseconds 1/1000th of a second
 
-	RemoteViews remoteView;
-	Handler handler = new Handler();
+	private Handler handler = new Handler();
+
+	private GestureChoice choice;
 
 	public void onCreate()
 	{
@@ -131,7 +150,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 	public int onStartCommand(Intent intent, int flags, int startId){
 		String command = intent.getAction();
 
-		remoteView = new RemoteViews(getApplicationContext().getPackageName(), R.layout.gesture_widget_layout);
+		System.out.println("Intent action = "+command);
 
 		//button pressed on widget
 		if(command.equals(this.getString(R.string.on))){
@@ -167,6 +186,25 @@ public class GestureRecognizerService extends Service implements GestureListener
 			notification.flags |= Notification.FLAG_NO_CLEAR;
 
 			this.startForeground(1337, notification);
+
+			//Now that the service is set, the next steps modify the toggle widget so that pressing the button again will turn off the service
+
+			//create intent to turn off service
+			Intent offIntent = new Intent(this, GestureRecognizerService.class);
+			offIntent.setAction(this.getString(R.string.off));
+			PendingIntent offPendingIntent = PendingIntent.getService(this, 0, offIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+			//set the widget to turn off the service
+			AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
+
+			ComponentName gestureWidget = new ComponentName(this, GestureWidgetProvider.class);
+			int[] allWidgetIds = appWidgetManager.getAppWidgetIds(gestureWidget);
+
+			for (int widgetId : allWidgetIds) {
+				RemoteViews views = new RemoteViews(this.getApplicationContext().getPackageName(),R.layout.gesture_widget_layout);
+				views.setOnClickPendingIntent(R.id.btn_on_off, offPendingIntent);
+				appWidgetManager.updateAppWidget(widgetId, views);
+			}
 		}
 		else if(command.equals(this.getString(R.string.train))){
 			setLearningMode(true);
@@ -182,12 +220,38 @@ public class GestureRecognizerService extends Service implements GestureListener
 			mAndgee.getDevice().getAccelerationStreamAnalyzer().reset();
 			mSensorManager.unregisterListener(mAndgee.getDevice());
 
+			if (mTts !=null){
+				mTts.shutdown();
+			}
+
 			try{
 				mAndgee.getDevice().disableAccelerationSensors();
 			}
 			catch (Exception e){
 				Log.e(getClass().toString(), e.getMessage(), e);
 			}
+
+			//Now that the service is shutting down, the next steps modify the toggle widget so that pressing the button again will turn on the service
+
+			//create intent to turn off service
+			Intent offIntent = new Intent(this, GestureRecognizerService.class);
+			offIntent.setAction(this.getString(R.string.on));
+			PendingIntent offPendingIntent = PendingIntent.getService(this, 0, offIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+			//set the widget to turn off the service
+			AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
+
+			ComponentName gestureWidget = new ComponentName(this, GestureWidgetProvider.class);
+			int[] allWidgetIds = appWidgetManager.getAppWidgetIds(gestureWidget);
+
+			for (int widgetId : allWidgetIds) {
+				RemoteViews views = new RemoteViews(this.getApplicationContext().getPackageName(),R.layout.gesture_widget_layout);
+				views.setOnClickPendingIntent(R.id.btn_on_off, offPendingIntent);
+				appWidgetManager.updateAppWidget(widgetId, views);
+			}
+
+			this.stopForeground(true);
+			this.stopSelf();
 		}
 
 		return START_STICKY;
@@ -343,6 +407,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 		DEACTIVATED,
 		ACTIVATED,
 		CONFIGURING,
+		CHOICE_MODE
 	}
 
 	synchronized void setState(RecognizerState state){
@@ -367,70 +432,76 @@ public class GestureRecognizerService extends Service implements GestureListener
 		}
 
 		public synchronized void addEvt(long time, SensorEvtType type){
+			if(evtLock.tryLock()){
+				if(time > nextSampleTime){
 
-			if(time > nextSampleTime){
+					if(GestureRecognizerService.this.getState() == RecognizerState.DEACTIVATED){
+						//discards QUIET and CONFIGURING Evts					
 
-				if(GestureRecognizerService.this.getState() == RecognizerState.DEACTIVATED){
-					//discards QUIET and CONFIGURING Evts					
+						if (type == SensorEvtType.ACTIVATE){
 
-					if (type == SensorEvtType.ACTIVATE){
+							System.out.println("Sensor event triggered, evts.size = "+evts.size());
+							//there are not two events yet
+							if(evts.size()<2){
+								evts.add(new Evt(time, type));
+							}
+							//this is the third event
+							else{
 
-						System.out.println("Sensor event triggered, evts.size = "+evts.size());
-						//there are not two events yet
-						if(evts.size()<2){
-							evts.add(new Evt(time, type));
-						}
-						//this is the third event
-						else{
-
-							//removes values which may be too old
-							int i = evts.size()-1;
-							while(i>0){
-								System.out.println("remove");
-								if (time - evts.get(i).getTime() > startRecognizerTime){
-									evts.remove(i);
+								//removes values which may be too old
+								int i = evts.size()-1;
+								while(i>0){
+									System.out.println("remove");
+									if (time - evts.get(i).getTime() > startRecognizerTime){
+										evts.remove(i);
+									}
+									i--;
 								}
-								i--;
+								evts.add(new Evt(time, type));
+
+								//checks to make sure that there are enough sensor events to activate the recognizer
+								if(evts.size() == 3){
+									evts.clear();
+
+									//activates the recognizer
+									System.out.println("Recognizer triggered");
+									updateUI("Gesture Start");
+									setState(RecognizerState.ACTIVATED);
+									triggerRecognizer();
+
+								}
 							}
+						}
+					}
+					else if(GestureRecognizerService.this.getState() == RecognizerState.ACTIVATED || GestureRecognizerService.this.getState() == RecognizerState.CHOICE_MODE){
+						//while activated, wait for "quiet" period
+
+						if(type == SensorEvtType.QUIET){
 							evts.add(new Evt(time, type));
-
-							//checks to make sure that there are enough sensor events to activate the recognizer
-							if(evts.size() >= 3){
+							if(evts.get(evts.size()-1).getTime() - evts.get(0).getTime() > gestureRecognizeTime){
+								//stop the recognizer
 								evts.clear();
+								GestureRecognizerService.this.triggerRecognizer();
 
-								//activates the recognizer
-								System.out.println("Recognizer triggered");
-								updateUI("Gesture Start");
-								setState(RecognizerState.ACTIVATED);
-								triggerRecognizer();
-
+								//catches "gesture not recognized and many "simple" gestures that do not require additional user input
+								if (GestureRecognizerService.this.getState() == RecognizerState.ACTIVATED){
+									setState(RecognizerState.DEACTIVATED);	
+								}
+								
+								//updateUI("Recognizer Stopped");
 							}
 						}
-					}
-				}
-				else if(GestureRecognizerService.this.getState() == RecognizerState.ACTIVATED){
-					//while activated, wait for "quiet" period
-
-					if(type == SensorEvtType.QUIET){
-						evts.add(new Evt(time, type));
-						if(evts.get(evts.size()-1).getTime()-evts.get(0).getTime()>gestureRecognizeTime){
-							//stop the recognizer
+						//start over if there is not a quiet event
+						else{
 							evts.clear();
-							GestureRecognizerService.this.triggerRecognizer();
-							setState(RecognizerState.DEACTIVATED);
-							updateUI("Recognizer Stopped");
 						}
 					}
-					//start over if there is not a quiet event
-					else{
-						evts.clear();
-					}
-				}
 
-				nextSampleTime = time + eventDelay;
-			}//sample time
+					nextSampleTime = time + eventDelay;
+				}//sample time
 
-
+				evtLock.unlock();
+			}
 		}
 
 		private class Evt{
@@ -463,25 +534,73 @@ public class GestureRecognizerService extends Service implements GestureListener
 			{
 				Log.d(TAG, "Gesture received " + gesture);
 
-				//TODO: send Broadcasts for actions
-				Intent intent = new Intent(this.getString(R.string.send_data));
-				if (gesture.equalsIgnoreCase(GestureRecognizerService.SOS_GESTURE)){
-					updateUI(this.getResources().getString(R.string.sos));
-					//TODO: create intent for SOS
-					//
-					//this.sendBroadcast(intent);
+				if(this.getState() == RecognizerState.CHOICE_MODE){
 
-					//Test code
-					sendBroadcast(1);
+					if(gesture.equalsIgnoreCase(GestureRecognizerService.GO_NEXT_GESTURE)){
+						choice.goNext();
+						this.updateUI(choice.getCurrentUIString());
+					}
+					else if(gesture.equalsIgnoreCase(GestureRecognizerService.GO_BACK_GESTURE)){
+						choice.goBack();
+						this.updateUI(choice.getCurrentUIString());
+					}
+					else if(gesture.equalsIgnoreCase(GestureRecognizerService.CONFIRM_GESTURE)){
+						choice.onConfirm();
+						updateUI (choice.getCurrentUIString());
+
+						if(choice.isFinished()){
+							this.setState(RecognizerState.DEACTIVATED);
+
+							if(recognizedGesture == GestureRecognizerService.PERSON_GESTURE){
+								updateUI("Deactivated mode with finished person gesture");
+								/*
+								LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+								Location start = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+								GeoMath.getLocationFromStartBearingAndDistance(
+										start,
+										Float.parseFloat(choice.getCurrentVal()));
+								 */
+							}
+							choice = null;
+						}
+						else{
+
+						}
+					}
+					else if(gesture.equalsIgnoreCase(GestureRecognizerService.CANCEL_GESTURE)){
+						this.setState(RecognizerState.DEACTIVATED);	
+					}
+
 				}
-				else if (gesture.equalsIgnoreCase(GestureRecognizerService.SUPPLIES_GESTURE)){
-					updateUI(this.getResources().getString(R.string.supplies));
-					//TODO: create intent for Supplies
-					//
-					//this.sendBroadcast(intent);
-					
-					//Test code
-					sendBroadcast(2);
+				else{
+					//TODO: send Broadcasts for actions
+					Intent intent = new Intent(this.getString(R.string.send_data));
+					if (gesture.equalsIgnoreCase(GestureRecognizerService.SOS_GESTURE)){
+						updateUI(this.getResources().getString(R.string.sos));
+						//TODO: create intent for SOS
+						//
+						//this.sendBroadcast(intent);
+
+						//Test code
+						sendBroadcast(1);
+					}
+					else if (gesture.equalsIgnoreCase(GestureRecognizerService.SUPPLIES_GESTURE)){
+						updateUI(this.getResources().getString(R.string.supplies));
+						//TODO: create intent for Supplies
+						//
+						//this.sendBroadcast(intent);
+
+						//Test code
+						sendBroadcast(2);
+					}
+					else if (gesture.equalsIgnoreCase(GestureRecognizerService.PERSON_GESTURE)){
+						updateUI("Person Recognized");
+						choice = new MetricDistanceChoice();
+						updateUI(choice.getCurrentUIString());
+						
+						this.setState(RecognizerState.CHOICE_MODE);
+						this.triggerRecognizer();
+					}
 				}
 
 			}
@@ -491,51 +610,55 @@ public class GestureRecognizerService extends Service implements GestureListener
 		}
 	}
 
-	public synchronized void triggerRecognizer(){
 
-		if(isAllowed){
-			if(learningMode){
-				if (isLearning)
-				{
-					Toast.makeText(this, GestureRecognizerService.CAPTURED + " "+ Integer.toString(++gestureCount), Toast.LENGTH_SHORT)
-					.show();
-					GestureRecognizerService.stopLearning();
+	public void triggerRecognizer(){
+
+		System.out.println("Allow check");
+		if(allowLock.tryLock()){
+			System.out.println("Allowed");
+			if(isAllowed){
+				if(learningMode){
+					if (isLearning)
+					{
+						Toast.makeText(this, GestureRecognizerService.CAPTURED + " "+ Integer.toString(++gestureCount), Toast.LENGTH_SHORT).show();
+						GestureRecognizerService.stopLearning();
+					}
+					else
+					{
+						Toast.makeText(this, GestureRecognizerService.CAPTURE, Toast.LENGTH_SHORT).show();
+						GestureRecognizerService.startLearning();
+					}
+
+					isLearning = !isLearning;
+					isAllowed = false;
+					Log.d(TAG, "disallow");
 				}
-				else
-				{
-					Toast.makeText(this, GestureRecognizerService.CAPTURE, Toast.LENGTH_SHORT)
-					.show();
-					GestureRecognizerService.startLearning();
+				else{
+					if (isRecognizing)
+					{
+						Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT)
+						.show();
+						GestureRecognizerService.stopRecognizer();
+					}
+					else
+					{
+						Toast.makeText(this, GestureRecognizerService.CAPTURE, Toast.LENGTH_SHORT)
+						.show();
+						GestureRecognizerService.startRecognizer();
+					}
+
+					isRecognizing = !isRecognizing;
+					isAllowed = false;
+					Log.d(TAG, "disallow");
 				}
 
-				isLearning = !isLearning;
-				isAllowed = false;
-                Log.d(TAG, "disallow");
+				if (allowTimer != null)
+					allowTimer.cancel();
+
+				allowTimer = new Timer();
+				allowTimer.schedule(new AllowTask(), 1000);
 			}
-			else{
-				if (isRecognizing)
-				{
-					Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT)
-					.show();
-					GestureRecognizerService.stopRecognizer();
-				}
-				else
-				{
-					Toast.makeText(this, GestureRecognizerService.CAPTURE, Toast.LENGTH_SHORT)
-					.show();
-					GestureRecognizerService.startRecognizer();
-				}
-
-				isRecognizing = !isRecognizing;
-				isAllowed = false;
-                Log.d(TAG, "disallow");
-			}
-
-			if (allowTimer != null)
-				allowTimer.cancel();
-
-			allowTimer = new Timer();
-			allowTimer.schedule(new AllowTask(), 1000);
+			allowLock.unlock();
 		}
 
 	}
@@ -545,8 +668,10 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 		public void run()
 		{
+			allowLock.lock();
 			GestureRecognizerService.this.isAllowed = true;
 			Log.d(TAG, "allow");
+			allowLock.unlock();
 		}
 	}
 
@@ -662,8 +787,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 				FileOutputStream out = new FileOutputStream(file);
 				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out));
 
-				mAndgee.getDevice().getAccelerationStreamAnalyzer()
-				.saveGesture(writer, model.getId());
+				mAndgee.getDevice().getAccelerationStreamAnalyzer().saveGesture(writer, model.getId());
 
 				String text = "Saving gesture model";
 
@@ -738,8 +862,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 		Log.d(TAG, "Gesture id map has " + GestureIdMapping.size());
 	}
 
-
-
 	public void updateUI(String text){
 		if(enableSpeech){
 			mTts.speak(text, TextToSpeech.QUEUE_ADD, null);
@@ -759,6 +881,42 @@ public class GestureRecognizerService extends Service implements GestureListener
 		thing.setFriendliness(55.0);
 		thing.setRelevance(67.0);
 		thing.setType(Type.PERSON);
+		SimpleXMLSerializer<Thing> serializer = new SimpleXMLSerializer<Thing>();
+		byte[] data;
+		try {
+			data = serializer.serialize(thing);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
+
+		ByteBuffer b = ByteBuffer.allocate(data.length + 8);
+		b.putLong(1000);
+		b.put(data);
+
+		byte[] buff = b.array();
+
+		//Location loc = new Location("Other");
+		Intent broadcastIntent = new Intent("edu.gmu.hodum.SEND_DATA");
+		broadcastIntent.putExtra("latitude", 37.5d);
+		broadcastIntent.putExtra("longitude", -73.25d);
+		broadcastIntent.putExtra("radius",200.0d);
+		broadcastIntent.putExtra("data",buff);
+		sendBroadcast(broadcastIntent);
+	}
+	private void sendBroadcastPerson(Location location)
+	{
+
+		Thing thing = new Thing();
+		thing.setDescription("Testing with Location!");
+		thing.setElevation(230.0);
+		thing.setLatitude(location.getLatitude());
+		thing.setLongitude(location.getLongitude());
+		thing.setFriendliness(55.0);
+		thing.setRelevance(67.0);
+		thing.setType(Type.PERSON);
+
 		SimpleXMLSerializer<Thing> serializer = new SimpleXMLSerializer<Thing>();
 		byte[] data;
 		try {
