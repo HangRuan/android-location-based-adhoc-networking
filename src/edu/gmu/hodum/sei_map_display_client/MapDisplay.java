@@ -12,20 +12,30 @@ import com.google.android.maps.Overlay;
 import com.google.android.maps.OverlayItem;
 
 import edu.gmu.hodum.ContentDatabaseAPI;
+import edu.gmu.hodum.sei.common.Objective;
 import edu.gmu.hodum.sei.common.Thing;
+
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.DrawFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Picture;
 import android.graphics.PorterDuff;
+import android.graphics.PorterDuff.Mode;
+
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Region;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.SensorListener;
 import android.hardware.SensorManager;
@@ -42,6 +52,7 @@ import android.widget.LinearLayout;
 public class MapDisplay extends MapActivity {
 
 	public static final String NEW_DATA = "edu.gmu.hodum.NEW_DATA_IN_DATABASE";
+	public static final String INITIALIZE_NETWORK = "edu.gmu.hodum.INITIALIZE_NETWORK";
 	
 	private static int E6 = 10000000;
 	ContentDatabaseAPI api;
@@ -54,7 +65,16 @@ public class MapDisplay extends MapActivity {
 	private double lastLongUR=-1;
 	private SensorManager mSensorManager;
     private RotateView mRotateView;
-
+    private Objective objective;
+    private Drawable drawableGreenPerson;
+    private Drawable drawableRedPerson;
+    private Drawable drawableBluePerson;
+    private Drawable drawableGreenVehicle;
+    private Drawable drawableBlueVehicle;
+    private Drawable drawableRedVehicle;
+    private Drawable drawableResource;
+    private Drawable drawableLandmark;
+    
 	final int MAX_POINT_CNT = 3;
 
 	/** Called when the activity is first created. */
@@ -62,32 +82,59 @@ public class MapDisplay extends MapActivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
+		Bitmap immutableBitmap = BitmapFactory.decodeResource( getResources(), R.drawable.androidmarker );
 
-		 mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-	        mRotateView = new RotateView(this);
-	        mapView = new MapView(this, "05g0RFzyrsupQODNRFXrkv6QdxU2QGFnXYpAN8w");
-	        mRotateView.addView(mapView);
-	      LinearLayout mainLayout = (LinearLayout)findViewById(R.id.mainLayout);
-	      mainLayout.addView(mRotateView);  
+		drawableGreenPerson = this.getResources().getDrawable(R.drawable.androidmarker);
+		drawableBluePerson = this.getResources().getDrawable(R.drawable.blue_androidmarker);
+		drawableRedPerson = this.getResources().getDrawable(R.drawable.red_androidmarker);
+		Bitmap mutableBitmap = immutableBitmap.copy( Bitmap.Config.ARGB_8888, true );
+		immutableBitmap.recycle();
+		immutableBitmap = null;
+		Drawable d1 = new BitmapDrawable( mutableBitmap );
+		d1.setColorFilter( 0xff00ff00, PorterDuff.Mode.SRC_ATOP );
+		
+		drawableGreenVehicle = this.getResources().getDrawable(R.drawable.green_auto_icon);
+		drawableBlueVehicle = this.getResources().getDrawable(R.drawable.blue_auto_icon);
+		drawableRedVehicle = this.getResources().getDrawable(R.drawable.red_auto_icon);
+		drawableResource = this.getResources().getDrawable(R.drawable.sym_def_app_icon);
+		drawableLandmark = d1;
+		
+		Intent broadcastIntent = new Intent(INITIALIZE_NETWORK);
+		broadcastIntent.putExtra("channel", "8");
+		this.sendBroadcast(broadcastIntent);
+		
+//		drawableLandmark = this.getResources().getDrawable(R.drawable.btn_radio_on_selected);
+//		 mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+//	        mRotateView = new RotateView(this);
+//	        mapView = new MapView(this, "05g0RFzyrsupQODNRFXrkv6QdxU2QGFnXYpAN8w");
+//	        mRotateView.addView(mapView);
+//	      LinearLayout mainLayout = (LinearLayout)findViewById(R.id.mainLayout);
+//	      mainLayout.addView(mRotateView);  
 		api = new ContentDatabaseAPI(this);
 
-		//mapView = (MapView) findViewById(R.id.mapview);
+		mapView = (MapView) findViewById(R.id.mapview);
 		mapView.setBuiltInZoomControls(true);
+		//mapView.setClickable(true);
 
-//		Button btnDisplayItems = (Button)findViewById(R.id.btn_display_items);
-//		btnDisplayItems.setOnClickListener(new OnClickListener(){
-//
-//			@Override
-//			public void onClick(View arg0) {
-//
-//				boundingOverlay = new BoundingOverlay(MapDisplay.this);
-//				List<Overlay> mapOverlays = mapView.getOverlays();
-//				mapOverlays.add(boundingOverlay);
-//
-//			}
-//
-//		});
+		Button btnDisplayItems = (Button)findViewById(R.id.btn_display_items);
+		btnDisplayItems.setOnClickListener(new OnClickListener(){
 
+			@Override
+			public void onClick(View arg0) {
+
+				boundingOverlay = new BoundingOverlay(MapDisplay.this);
+				List<Overlay> mapOverlays = mapView.getOverlays();
+				mapOverlays.add(boundingOverlay);
+
+			}
+
+		});
+
+		objective = api.getPatrolObjective();
+
+		addObjectiveOverlay();
+		
+		
 		receiver = new MyNewDataReceiver();
 		receiver.registerHandler(newDataHandler);
 		IntentFilter filter1 = new IntentFilter(NEW_DATA);
@@ -98,21 +145,28 @@ public class MapDisplay extends MapActivity {
 	@Override
     protected void onResume() {
         super.onResume();
-        mSensorManager.registerListener(mRotateView,
-                SensorManager.SENSOR_ORIENTATION,
-                SensorManager.SENSOR_DELAY_UI);
+//        mSensorManager.registerListener(mRotateView,
+//                SensorManager.SENSOR_ORIENTATION,
+//                SensorManager.SENSOR_DELAY_UI);
        /// mMyLocationOverlay.enableMyLocation();
     }
+	
+	private void addObjectiveOverlay()
+	{
+		RouteOverlay overlay = new RouteOverlay(objective.getLocations());
+		List<Overlay> mapOverlays = mapView.getOverlays();
+		mapOverlays.add(overlay);
+	}
 
     @Override
     protected void onStop() {
-        mSensorManager.unregisterListener(mRotateView);
+//        mSensorManager.unregisterListener(mRotateView);
       //  mMyLocationOverlay.disableMyLocation();
         super.onStop();
     }
     
 	synchronized public void displayThingsWithinBounds(double latLL, double longLL, double latUR, double longUR){
-		System.out.println("Bounds: " +latLL+","+longLL+","+latUR+","+longUR);
+//		System.out.println("Bounds: " +latLL+","+longLL+","+latUR+","+longUR);
 		lastLatLL = latLL;
 		lastLongLL = longLL;
 		lastLatUR = latUR;
@@ -122,14 +176,33 @@ public class MapDisplay extends MapActivity {
 		System.out.println("The Vector of Things has "+things.size() +" Thing(s) in it.");
 
 		List<Overlay> mapOverlays = mapView.getOverlays();
-		Drawable drawablePerson = this.getResources().getDrawable(R.drawable.androidmarker);
-		Drawable drawableVehicle = this.getResources().getDrawable(R.drawable.ic_lock_airplane_mode);
-		Drawable drawableResource = this.getResources().getDrawable(R.drawable.sym_def_app_icon);
-		Drawable drawableLandmark = this.getResources().getDrawable(R.drawable.btn_radio_on_selected);
+		
+		
+		float[] array = 
+			new float[] 
+			          {1.0f,0,0,0,0,
+				0,0,0,0,0,
+				0,0,0,0,0,
+				0,0,0,0,0};
+				
+		
+		ColorMatrix matrix=new ColorMatrix(array);
+		ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
+		
+		int red = Color.parseColor("#FF0000");
+		Mode mMode = Mode.SRC_ATOP;
+		
+		//drawablePerson.setColorFilter(0xffff0000, Mode.SCREEN);
+		//drawablePerson.setAlpha(255);
+	
+		
 
-
-		SimpleItemizedOverlay personOverlay = new SimpleItemizedOverlay(drawablePerson, this);
-		SimpleItemizedOverlay vehicleOverlay = new SimpleItemizedOverlay(drawableVehicle, this);
+		SimpleItemizedOverlay personGreenOverlay = new SimpleItemizedOverlay(drawableGreenPerson, this);
+		SimpleItemizedOverlay personBlueOverlay = new SimpleItemizedOverlay(drawableBluePerson, this);
+		SimpleItemizedOverlay personRedOverlay = new SimpleItemizedOverlay(drawableRedPerson, this);
+		SimpleItemizedOverlay vehicleGreenOverlay = new SimpleItemizedOverlay(drawableGreenVehicle, this);
+		SimpleItemizedOverlay vehicleBlueOverlay = new SimpleItemizedOverlay(drawableBlueVehicle, this);
+		SimpleItemizedOverlay vehicleRedOverlay = new SimpleItemizedOverlay(drawableRedVehicle, this);
 		SimpleItemizedOverlay resourceOverlay = new SimpleItemizedOverlay(drawableResource, this);
 		SimpleItemizedOverlay landmarkOverlay = new SimpleItemizedOverlay(drawableLandmark, this);
 
@@ -145,17 +218,43 @@ public class MapDisplay extends MapActivity {
 
 			case PERSON:
 				item = new OverlayItem(point, thing.getDescription(), "I'm at: "+lat+","+lon);
-				personOverlay.addOverlay(item);
+				if(thing.getRelevance()<200.0)
+				{
+					personRedOverlay.addOverlay(item);
+				}
+				else if(thing.getRelevance() <1000.0)
+				{
+					personBlueOverlay.addOverlay(item);
+				}
+				else
+				{
+					personGreenOverlay.addOverlay(item);
+				}
 				break;
 			case VEHICLE:
 				item = new OverlayItem(point, thing.getDescription(), "I'm at: "+lat+","+lon);
-				vehicleOverlay.addOverlay(item);
+				if(thing.getRelevance()<200.0)
+				{
+					vehicleRedOverlay.addOverlay(item);
+				}
+				else if(thing.getRelevance() <1000.0)
+				{
+					vehicleBlueOverlay.addOverlay(item);
+				}
+				else
+				{
+					vehicleGreenOverlay.addOverlay(item);
+				}
+				
+				break;
 			case RESOURCE:
 				item = new OverlayItem(point, thing.getDescription(), "I'm at: "+lat+","+lon);
 				resourceOverlay.addOverlay(item);
+				break;
 			case LANDMARK:
 				item = new OverlayItem(point, thing.getDescription(), "I'm at: "+lat+","+lon);
 				landmarkOverlay.addOverlay(item);
+				break;
 			}
 
 
@@ -164,11 +263,23 @@ public class MapDisplay extends MapActivity {
 
 		//empty overlays will crash mapview, so check if empty
 
-		if(personOverlay.size()>0){
-			mapOverlays.add(personOverlay);
+		if(personGreenOverlay.size()>0){
+			mapOverlays.add(personGreenOverlay);
 		}
-		if(vehicleOverlay.size()>0){
-			mapOverlays.add(vehicleOverlay);
+		if(personBlueOverlay.size()>0){
+			mapOverlays.add(personBlueOverlay);
+		}
+		if(personRedOverlay.size()>0){
+			mapOverlays.add(personRedOverlay);
+		}
+		if(vehicleGreenOverlay.size()>0){
+			mapOverlays.add(vehicleGreenOverlay);
+		}
+		if(vehicleBlueOverlay.size()>0){
+			mapOverlays.add(vehicleBlueOverlay);
+		}
+		if(vehicleRedOverlay.size()>0){
+			mapOverlays.add(vehicleRedOverlay);
 		}
 		if(resourceOverlay.size()>0){
 			mapOverlays.add(resourceOverlay);
@@ -181,6 +292,7 @@ public class MapDisplay extends MapActivity {
 			mapOverlays.remove(boundingOverlay);
 			boundingOverlay = null;
 		}
+		addObjectiveOverlay();
 		mapView.invalidate();
 	}
 

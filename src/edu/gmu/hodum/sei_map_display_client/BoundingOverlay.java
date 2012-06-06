@@ -29,7 +29,7 @@ public class BoundingOverlay extends Overlay{
 		this.mapDisplay = mapDisplay;
 		points = new GeoPoint[MAX_POINT_CNT];
 	}
-	
+
 	@Override
 	public boolean onTouchEvent(MotionEvent motionEvent, MapView mapView) {
 
@@ -40,7 +40,7 @@ public class BoundingOverlay extends Overlay{
 		int pointCnt = motionEvent.getPointerCount();
 
 		if (pointCnt <= MAX_POINT_CNT){
-			if (pointerIndex <= MAX_POINT_CNT - 1){
+			if (pointerIndex <= MAX_POINT_CNT){
 
 				for (int i = 0; i < pointCnt; i++) {
 					int id = motionEvent.getPointerId(i);
@@ -49,7 +49,7 @@ public class BoundingOverlay extends Overlay{
 					points[id] = mapView.getProjection().fromPixels( (int) motionEvent.getX(i), (int) motionEvent.getY(i));
 				}
 
-				
+
 				//System.out.println("onTouchEvent, action: "+action+" GeoPoint: "+ p.getLatitudeE6()+","+p.getLongitudeE6());
 				switch (action){
 				case MotionEvent.ACTION_DOWN:
@@ -79,7 +79,7 @@ public class BoundingOverlay extends Overlay{
 					else if (pointerId == 1){
 						point2 = p;
 					}
-					*/
+					 */
 
 					break;
 				case MotionEvent.ACTION_UP:
@@ -88,14 +88,16 @@ public class BoundingOverlay extends Overlay{
 					stateDrawingBox = false;
 					break;
 				case MotionEvent.ACTION_POINTER_UP:
-					System.out.println("ACTION_POINTER_UP");
-					//This is the action for when a user lifts their finger
+					//if(pointerIndex == 1)
+					{
+						System.out.println("ACTION_POINTER_UP");
+						//This is the action for when a user lifts their finger
 
-					//calculate the bounding box/ end the gesture
-					GeoPoint LL = mapView.getProjection().fromPixels(r.left, r.bottom);
-					GeoPoint UR =  mapView.getProjection().fromPixels(r.right, r.top);
-					mapDisplay.displayThingsWithinBounds(LL.getLatitudeE6(), LL.getLongitudeE6(), UR.getLatitudeE6(), UR.getLongitudeE6());
-
+						//calculate the bounding box/ end the gesture
+						GeoPoint LL = mapView.getProjection().fromPixels(r.left, r.bottom);
+						GeoPoint UR =  mapView.getProjection().fromPixels(r.right, r.top);
+						mapDisplay.displayThingsWithinBounds(LL.getLatitudeE6(), LL.getLongitudeE6(), UR.getLatitudeE6(), UR.getLongitudeE6());
+					} 
 					stateDrawingBox = false;
 					isTouch[pointerId] = false;
 					break;
@@ -105,7 +107,7 @@ public class BoundingOverlay extends Overlay{
 				default:
 					isTouch[pointerId] = false;
 				}
-				
+
 				mapView.invalidate();
 			}
 		}

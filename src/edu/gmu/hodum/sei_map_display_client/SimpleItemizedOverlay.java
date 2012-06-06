@@ -38,7 +38,7 @@ public class SimpleItemizedOverlay extends ItemizedOverlay<OverlayItem> {
 		mOverlays.add(overlay);
 		populate();
 	}
-	
+
 	@Override
 	protected boolean onTap(int index) {
 	  OverlayItem item = mOverlays.get(index);
