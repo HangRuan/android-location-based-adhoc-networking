@@ -3,7 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" 
-    android:id="@+id/mainLayout">
+    android:id="@+id/mainLayout">"
 
     <Button 
         android:id="@+id/btn_display_items"
@@ -11,6 +11,13 @@
         android:layout_height="wrap_content"
         android:text="Display Items"/>
     
+    <com.google.android.maps.MapView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/mapview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:apiKey="05g0RFzyrsupQODNRFXrkv6QdxU2QGFnXYpAN8w"
+        android:clickable="true" />
     
 
 </LinearLayout>
