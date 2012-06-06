@@ -220,6 +220,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 			mAndgee.getDevice().getAccelerationStreamAnalyzer().reset();
 			mSensorManager.unregisterListener(mAndgee.getDevice());
 
+			mSensorManager.unregisterListener(this);
+			
 			if (mTts !=null){
 				mTts.shutdown();
 			}
@@ -255,27 +257,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 		}
 
 		return START_STICKY;
-	}
-
-	public void onDestroy()
-	{
-		super.onDestroy();
-
-		Log.d(TAG, "onDestroy");
-
-		mAndgee.getDevice().fireButtonReleasedEvent();
-		mAndgee.getDevice().getAccelerationStreamAnalyzer().reset();
-		mAndgee.removeGestureListener(this);
-		mSensorManager.unregisterListener(mAndgee.getDevice());
-
-		try
-		{
-			mAndgee.getDevice().disableAccelerationSensors();
-		}
-		catch (Exception e)
-		{
-			Log.e(getClass().toString(), e.getMessage(), e);
-		}
 	}
 
 	public IBinder onBind(Intent intent)
@@ -613,9 +594,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 	public void triggerRecognizer(){
 
-		System.out.println("Allow check");
 		if(allowLock.tryLock()){
-			System.out.println("Allowed");
 			if(isAllowed){
 				if(learningMode){
 					if (isLearning)
