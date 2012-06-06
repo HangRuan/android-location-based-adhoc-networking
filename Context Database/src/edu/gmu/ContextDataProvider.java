@@ -498,148 +498,148 @@ public class ContextDataProvider {
 			
 			
 			ContentValues space_time = new ContentValues();
-			space_time.put("timestamp",System.currentTimeMillis());
-			row = db.insert(SPACE_TIME, null, space_time);
-
+//			space_time.put("timestamp",System.currentTimeMillis());
+//			row = db.insert(SPACE_TIME, null, space_time);
+//
 			ContentValues location = new ContentValues();
-			location.put("latitude", 38.889300);
-			location.put("longitude", -77.048271);
-			location.put("elevation", 125.5);
-			location.put("time", System.currentTimeMillis());
-			location.put("space_time_id", 1);
-			location.put("type_id", getLocationTypeId(db,"GPS"));
-			row = db.insert(LOCATION, null, location);
-
+//			location.put("latitude", 38.889300);
+//			location.put("longitude", -77.048271);
+//			location.put("elevation", 125.5);
+//			location.put("time", System.currentTimeMillis());
+//			location.put("space_time_id", 1);
+//			location.put("type_id", getLocationTypeId(db,"GPS"));
+//			row = db.insert(LOCATION, null, location);
+//
 			ContentValues friendliness = new ContentValues();
-			friendliness.put("timestamp",System.currentTimeMillis());
-			friendliness.put("rating",30.0);
-			row = db.insert(FRIENDLINESS, null,friendliness);
-
-
-			ContentValues person1 = new ContentValues();
-			person1.put("description", "Tall Man");
-			person1.put("current_rating",30.0);
-			person1.put("space_time_id", 1);
-			row = db.insert(PERSON_TABLE, null, person1);
-
-			ContentValues person_friendliness = new ContentValues();
-			person_friendliness.put("person_id", 1);
-			person_friendliness.put("friendliness_id", 1);
-			db.insert(PERSON_FRIENDLINESS, null, person_friendliness);
-
-			//Now add a vehicle
-
-			space_time = new ContentValues();
-			space_time.put("timestamp",System.currentTimeMillis());
-			row = db.insert(SPACE_TIME, null, space_time);
-
-			location = new ContentValues();
-			location.put("latitude", 38.888216);
-			location.put("longitude", -77.049207);
-			location.put("elevation", 125.5);
-			location.put("time", System.currentTimeMillis());
-			location.put("space_time_id", row);
-			location.put("type_id", getLocationTypeId(db,"GPS"));
-			row = db.insert(LOCATION, null, location);
-
-			friendliness = new ContentValues();
-			friendliness.put("timestamp",System.currentTimeMillis());
-			friendliness.put("rating",-30.0);
-			row = db.insert(FRIENDLINESS, null,friendliness);
-
-
-			ContentValues vehicle1 = new ContentValues();
-			vehicle1.put("description", "Toyota Pickup");
-			vehicle1.put("color", "Red");
-			vehicle1.put("current_rating",30.0);
-			vehicle1.put("vehicle_type_id", getVehicleTypeId(db,"Pickup Truck"));
-			vehicle1.put("space_time_id", 2);
-			row = db.insert(VEHICLE_TABLE, null, vehicle1);
-
-			ContentValues vehicle_friendliness = new ContentValues();
-			vehicle_friendliness.put("vehicle_id", 1);
-			vehicle_friendliness.put("friendliness_id", 2);
-			db.insert(VEHICLE_FRIENDLINESS, null, vehicle_friendliness);
-
-			//Now add a landmark
-
-			space_time = new ContentValues();
-			space_time.put("timestamp",System.currentTimeMillis());
-			row = db.insert(SPACE_TIME, null, space_time);
-
-			location = new ContentValues();
-			location.put("latitude", 38.889255);
-			location.put("longitude", -77.049897);
-			location.put("elevation", 125.5);
-			location.put("time", System.currentTimeMillis());
-			location.put("space_time_id", row);
-			location.put("type_id", getLocationTypeId(db,"GPS"));
-			row = db.insert(LOCATION, null, location);
-
-
-
-			ContentValues landmark1 = new ContentValues();
-			landmark1.put("description", "Lincoln Memorial");
-			landmark1.put("current_rating",67.0);
-			landmark1.put("landmark_type_id", getLandmarkTypeId(db,"Monument"));
-			landmark1.put("space_time_id", 3);
-			row = db.insert(LANDMARK_TABLE, null, landmark1);
-
-			friendliness = new ContentValues();
-			friendliness.put("timestamp",System.currentTimeMillis());
-			friendliness.put("rating",-30.0);
-			row = db.insert(FRIENDLINESS, null,friendliness);
-
-			ContentValues landmark_friendliness = new ContentValues();
-			landmark_friendliness.put("landmark_id", 1);
-			landmark_friendliness.put("friendliness_id", row);
-			db.insert(LANDMARK_FRIENDLINESS, null, landmark_friendliness);
-
-
-			//Now add a resource
-
-
-
-
-			space_time = new ContentValues();
-			space_time.put("timestamp",System.currentTimeMillis());
-			long space_time_row = db.insert(SPACE_TIME, null, space_time);
-
-			location = new ContentValues();
-			location.put("latitude", 38.889118);
-			location.put("longitude", -77.04693);
-			location.put("elevation", 125.5);
-			location.put("time", System.currentTimeMillis());
-			location.put("space_time_id", space_time_row);
-			location.put("type_id", getLocationTypeId(db,"GPS"));
-			row = db.insert(LOCATION, null, location);
-
-
-
-			ContentValues resource1 = new ContentValues();
-			resource1.put("description", "Gas Station");
-			resource1.put("value", 12);
-			resource1.put("current_rating",-45.0);
-			resource1.put("resource_type_id", getResourceTypeId(db,"Fuel"));
-			resource1.put("space_time_id", space_time_row);
-			row = db.insert(RESOURCE_TABLE, null, resource1);
-
-			friendliness = new ContentValues();
-			friendliness.put("timestamp",System.currentTimeMillis());
-			friendliness.put("rating",-30.0);
-			row = db.insert(FRIENDLINESS, null,friendliness);
-
-			ContentValues resource_friendliness = new ContentValues();
-			resource_friendliness.put("resource_id", 1);
-			resource_friendliness.put("friendliness_id", row);
-			db.insert(RESOURCE_FRIENDLINESS, null, resource_friendliness);
+//			friendliness.put("timestamp",System.currentTimeMillis());
+//			friendliness.put("rating",30.0);
+//			row = db.insert(FRIENDLINESS, null,friendliness);
+//
+//
+//			ContentValues person1 = new ContentValues();
+//			person1.put("description", "Tall Man");
+//			person1.put("current_rating",30.0);
+//			person1.put("space_time_id", 1);
+//			row = db.insert(PERSON_TABLE, null, person1);
+//
+//			ContentValues person_friendliness = new ContentValues();
+//			person_friendliness.put("person_id", 1);
+//			person_friendliness.put("friendliness_id", 1);
+//			db.insert(PERSON_FRIENDLINESS, null, person_friendliness);
+//
+//			//Now add a vehicle
+//
+//			space_time = new ContentValues();
+//			space_time.put("timestamp",System.currentTimeMillis());
+//			row = db.insert(SPACE_TIME, null, space_time);
+//
+//			location = new ContentValues();
+//			location.put("latitude", 38.888216);
+//			location.put("longitude", -77.049207);
+//			location.put("elevation", 125.5);
+//			location.put("time", System.currentTimeMillis());
+//			location.put("space_time_id", row);
+//			location.put("type_id", getLocationTypeId(db,"GPS"));
+//			row = db.insert(LOCATION, null, location);
+//
+//			friendliness = new ContentValues();
+//			friendliness.put("timestamp",System.currentTimeMillis());
+//			friendliness.put("rating",-30.0);
+//			row = db.insert(FRIENDLINESS, null,friendliness);
+//
+//
+//			ContentValues vehicle1 = new ContentValues();
+//			vehicle1.put("description", "Toyota Pickup");
+//			vehicle1.put("color", "Red");
+//			vehicle1.put("current_rating",30.0);
+//			vehicle1.put("vehicle_type_id", getVehicleTypeId(db,"Pickup Truck"));
+//			vehicle1.put("space_time_id", 2);
+//			row = db.insert(VEHICLE_TABLE, null, vehicle1);
+//
+//			ContentValues vehicle_friendliness = new ContentValues();
+//			vehicle_friendliness.put("vehicle_id", 1);
+//			vehicle_friendliness.put("friendliness_id", 2);
+//			db.insert(VEHICLE_FRIENDLINESS, null, vehicle_friendliness);
+//
+//			//Now add a landmark
+//
+//			space_time = new ContentValues();
+//			space_time.put("timestamp",System.currentTimeMillis());
+//			row = db.insert(SPACE_TIME, null, space_time);
+//
+//			location = new ContentValues();
+//			location.put("latitude", 38.889255);
+//			location.put("longitude", -77.049897);
+//			location.put("elevation", 125.5);
+//			location.put("time", System.currentTimeMillis());
+//			location.put("space_time_id", row);
+//			location.put("type_id", getLocationTypeId(db,"GPS"));
+//			row = db.insert(LOCATION, null, location);
+//
+//
+//
+//			ContentValues landmark1 = new ContentValues();
+//			landmark1.put("description", "Lincoln Memorial");
+//			landmark1.put("current_rating",67.0);
+//			landmark1.put("landmark_type_id", getLandmarkTypeId(db,"Monument"));
+//			landmark1.put("space_time_id", 3);
+//			row = db.insert(LANDMARK_TABLE, null, landmark1);
+//
+//			friendliness = new ContentValues();
+//			friendliness.put("timestamp",System.currentTimeMillis());
+//			friendliness.put("rating",-30.0);
+//			row = db.insert(FRIENDLINESS, null,friendliness);
+//
+//			ContentValues landmark_friendliness = new ContentValues();
+//			landmark_friendliness.put("landmark_id", 1);
+//			landmark_friendliness.put("friendliness_id", row);
+//			db.insert(LANDMARK_FRIENDLINESS, null, landmark_friendliness);
+//
+//
+//			//Now add a resource
+//
+//
+//
+//
+//			space_time = new ContentValues();
+//			space_time.put("timestamp",System.currentTimeMillis());
+//			long space_time_row = db.insert(SPACE_TIME, null, space_time);
+//
+//			location = new ContentValues();
+//			location.put("latitude", 38.889118);
+//			location.put("longitude", -77.04693);
+//			location.put("elevation", 125.5);
+//			location.put("time", System.currentTimeMillis());
+//			location.put("space_time_id", space_time_row);
+//			location.put("type_id", getLocationTypeId(db,"GPS"));
+//			row = db.insert(LOCATION, null, location);
+//
+//
+//
+//			ContentValues resource1 = new ContentValues();
+//			resource1.put("description", "Gas Station");
+//			resource1.put("value", 12);
+//			resource1.put("current_rating",-45.0);
+//			resource1.put("resource_type_id", getResourceTypeId(db,"Fuel"));
+//			resource1.put("space_time_id", space_time_row);
+//			row = db.insert(RESOURCE_TABLE, null, resource1);
+//
+//			friendliness = new ContentValues();
+//			friendliness.put("timestamp",System.currentTimeMillis());
+//			friendliness.put("rating",-30.0);
+//			row = db.insert(FRIENDLINESS, null,friendliness);
+//
+//			ContentValues resource_friendliness = new ContentValues();
+//			resource_friendliness.put("resource_id", 1);
+//			resource_friendliness.put("friendliness_id", row);
+//			db.insert(RESOURCE_FRIENDLINESS, null, resource_friendliness);
 
 
 			//Now add an objective
 			
 			space_time = new ContentValues();
 			space_time.put("timestamp",System.currentTimeMillis());
-			space_time_row = db.insert(SPACE_TIME, null, space_time);
+			long space_time_row = db.insert(SPACE_TIME, null, space_time);
 
 			location = new ContentValues();
 			location.put("latitude", 38.889620);

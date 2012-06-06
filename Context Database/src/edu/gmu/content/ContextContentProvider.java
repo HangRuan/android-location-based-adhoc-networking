@@ -36,7 +36,7 @@ public class ContextContentProvider extends ContentProvider {
 	
 	private static final int PATROL_OBJECTIVE = 15;
 	private static final int HUMANITARIAN_OBJECTIVE = 16;
-	
+	private static final int PATROL_OBJECTIVE_ROUTE = 17;
 	
 	public static final String baseURI = "edu.gmu.provider";
 	
@@ -59,6 +59,7 @@ public class ContextContentProvider extends ContentProvider {
 		
 		sUriMatcher.addURI(baseURI + ".cursor.dir","objective/patrol",PATROL_OBJECTIVE);
 		sUriMatcher.addURI(baseURI + ".cursor.dir","objective/humanitarian",HUMANITARIAN_OBJECTIVE);
+		sUriMatcher.addURI(baseURI + ".cursor.dir","objective/patrol/route",PATROL_OBJECTIVE_ROUTE);
 		
 //		sUriMatcher.addURI(baseURI,"vehicle",ALL_VEHICLES);
 //		sUriMatcher.addURI(baseURI,"vehicle/#",SINGLE_VEHICLE);
@@ -87,7 +88,7 @@ public class ContextContentProvider extends ContentProvider {
 //	public static final String LANDMARK_CONTENT_TYPE = "content://edu.gmu.landmark.cursor.item/landmark";
 	
 	public static final String OBJECTIVE_CONTENT_TYPE = "content://edu.gmu.cursor.item/objective";
-	
+	public static final String OBJECTIVE_ROUTE_CONTENT_TYPE = "content://edu.gmu.cursor.dir/objective/route";
 	
 	
 	@Override
@@ -116,7 +117,8 @@ public class ContextContentProvider extends ContentProvider {
 			return PERSON_LOCATION_CONTENT_TYPE;
 		case VEHICLE_LOCATION:
 			return VEHICLE_LOCATION_CONTENT_TYPE;
-			
+		case PATROL_OBJECTIVE_ROUTE:
+			return OBJECTIVE_ROUTE_CONTENT_TYPE;
 		}
 		return null;
 	}
@@ -174,6 +176,9 @@ public class ContextContentProvider extends ContentProvider {
 			break;
 		case PATROL_OBJECTIVE:
 			ret = db.getPatrolObjective();
+			break;
+		case PATROL_OBJECTIVE_ROUTE:
+			ret = db.getCurrentLocationForObjective(Long.parseLong(selectionArgs[0]));
 			break;
 		default:
 			throw new IllegalArgumentException("Unkown URI:" + uri);
