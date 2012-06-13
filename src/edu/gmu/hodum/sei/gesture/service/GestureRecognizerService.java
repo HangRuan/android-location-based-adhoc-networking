@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -41,6 +42,7 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.TextToSpeech.OnInitListener;
+import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -58,7 +60,7 @@ import event.GestureEvent;
 import event.GestureListener;
 import event.StateEvent;
 
-public class GestureRecognizerService extends Service implements GestureListener, SensorEventListener, OnInitListener
+public class GestureRecognizerService extends Service implements GestureListener, SensorEventListener, OnInitListener, OnUtteranceCompletedListener
 {
 	private static final String TAG = "gestureSvc";
 	private static final int LEARN_KEY = KeyEvent.KEYCODE_T;
@@ -100,7 +102,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 	private boolean isAllowed = true;
 	private Timer allowTimer = null;
 
-	final private SensorEvtManager sensorEvtManager = new SensorEvtManager();
+	final private SensorEvtManager sensorEvtManager = new SensorEvtManager(this);
 	private Lock evtLock = new ReentrantLock();
 
 	private float NOISE;
@@ -116,11 +118,13 @@ public class GestureRecognizerService extends Service implements GestureListener
 	private boolean learningMode;
 
 	private String recognizedGesture;
+	
+	private float compassVal;
 
 	//delays
-	private long eventDelay;
-	private long gestureRecognizeTime; //in milliseconds 1/1000th of a second
-	private long startRecognizerTime; //in milliseconds 1/1000th of a second
+	//private long eventDelay;
+	//private long gestureRecognizeTime; //in milliseconds 1/1000th of a second
+	//private long startRecognizerTime; //in milliseconds 1/1000th of a second
 
 	private Handler handler = new Handler();
 
@@ -221,7 +225,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 			mSensorManager.unregisterListener(mAndgee.getDevice());
 
 			mSensorManager.unregisterListener(this);
-			
+
 			if (mTts !=null){
 				mTts.shutdown();
 			}
@@ -321,13 +325,16 @@ public class GestureRecognizerService extends Service implements GestureListener
 		START = prefs.getFloat(this.getString(R.string.prefname_gesture_start), Float.parseFloat(this.getString(R.string.prefval_gesture_start)));
 
 		//get the delay between accelerometer events
-		eventDelay = prefs.getLong(this.getString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay)));
+		//eventDelay = prefs.getLong(this.getString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay)));
+		sensorEvtManager.setEventDelay(prefs.getLong(this.getString(R.string.prefname_event_delay), Long.parseLong(this.getString(R.string.prefval_event_delay))));
 
 		//get the window of time between the first and the last sensor event to start the recognizer
-		startRecognizerTime = prefs.getLong(this.getString(R.string.prefname_recognizer_start_window), Long.parseLong(this.getString(R.string.prefval_recognizer_start_window)));
+		//startRecognizerTime = prefs.getLong(this.getString(R.string.prefname_recognizer_start_window), Long.parseLong(this.getString(R.string.prefval_recognizer_start_window)));
+		sensorEvtManager.setStartRecognizerTime(prefs.getLong(this.getString(R.string.prefname_recognizer_start_window), Long.parseLong(this.getString(R.string.prefval_recognizer_start_window))));
 
 		//get the time that the full gesture recognizer is active
-		gestureRecognizeTime = prefs.getLong(this.getString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
+		//gestureRecognizeTime = prefs.getLong(this.getString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
+		sensorEvtManager.setGestureRecognizeTime(prefs.getLong(this.getString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time))));
 
 		//get the text-to-speech setting
 		enableSpeech = prefs.getBoolean(this.getString(R.string.prefname_enable_speech), Boolean.parseBoolean(this.getString(R.string.prefval_enable_speech)));
@@ -346,49 +353,62 @@ public class GestureRecognizerService extends Service implements GestureListener
 		float y = event.values[1];
 		float z = event.values[2];
 
-		if (!mInitialized) {
-			mLastX = x;
-			mLastY = y;
-			mLastZ = z;
-			mInitialized = true;
-		} else {
-			float deltaX = Math.abs(mLastX - x);
-			float deltaY = Math.abs(mLastY - y);
-			float deltaZ = Math.abs(mLastZ - z);
-			mLastX = x;
-			mLastY = y;
-			mLastZ = z;
+		if(STATE != RecognizerState.COMPASS_MODE){
+			//x is the compass value
+			compassVal = x;
+
+		}
+		else{
+			if (!mInitialized) {
+				mLastX = x;
+				mLastY = y;
+				mLastZ = z;
+				mInitialized = true;
+			} else {
+				float deltaX = Math.abs(mLastX - x);
+				float deltaY = Math.abs(mLastY - y);
+				float deltaZ = Math.abs(mLastZ - z);
+				mLastX = x;
+				mLastY = y;
+				mLastZ = z;
 
 
-			if(		deltaX > START	||
-					deltaY > START	|| 
-					deltaZ > START){
-				sensorEvtManager.addEvt(System.currentTimeMillis(), SensorEvtType.ACTIVATE);
-			}
-			//if greater than noise
-			else if(deltaX > NOISE	||
-					deltaY > NOISE	|| 
-					deltaZ > NOISE){
-				sensorEvtManager.addEvt(System.currentTimeMillis(), SensorEvtType.NORMAL);
-			}
-			//less than noise level
-			else{
-				sensorEvtManager.addEvt(System.currentTimeMillis(), SensorEvtType.QUIET);
+				if(		deltaX > START	||
+						deltaY > START	|| 
+						deltaZ > START){
+					if(evtLock.tryLock()){
+						sensorEvtManager.addEvt(System.currentTimeMillis(), SensorEvtType.ACTIVATE);
+						evtLock.unlock();
+					}
+
+				}
+				//if greater than noise
+				else if(deltaX > NOISE	||
+						deltaY > NOISE	|| 
+						deltaZ > NOISE){
+					if(evtLock.tryLock()){
+						sensorEvtManager.addEvt(System.currentTimeMillis(), SensorEvtType.NORMAL);
+						evtLock.unlock();
+					}
+				}
+				//less than noise level
+				else{
+					if(evtLock.tryLock()){
+						sensorEvtManager.addEvt(System.currentTimeMillis(), SensorEvtType.QUIET);
+						evtLock.unlock();
+					}
+				}
 			}
 		}
-
 	}
 
-	static enum SensorEvtType{
-		QUIET,
-		NORMAL,
-		ACTIVATE
-	}
+
 	static enum RecognizerState{
 		DEACTIVATED,
 		ACTIVATED,
 		CONFIGURING,
-		CHOICE_MODE
+		CHOICE_MODE,
+		COMPASS_MODE
 	}
 
 	synchronized void setState(RecognizerState state){
@@ -403,103 +423,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 	}
 	synchronized boolean getLearningMode(){
 		return this.learningMode;
-	}
-
-	private class SensorEvtManager {
-		final private Vector<Evt> evts = new Vector<Evt>();
-		private long nextSampleTime = 0;
-
-		SensorEvtManager(){
-		}
-
-		public synchronized void addEvt(long time, SensorEvtType type){
-			if(evtLock.tryLock()){
-				if(time > nextSampleTime){
-
-					if(GestureRecognizerService.this.getState() == RecognizerState.DEACTIVATED){
-						//discards QUIET and CONFIGURING Evts					
-
-						if (type == SensorEvtType.ACTIVATE){
-
-							System.out.println("Sensor event triggered, evts.size = "+evts.size());
-							//there are not two events yet
-							if(evts.size()<2){
-								evts.add(new Evt(time, type));
-							}
-							//this is the third event
-							else{
-
-								//removes values which may be too old
-								int i = evts.size()-1;
-								while(i>0){
-									System.out.println("remove");
-									if (time - evts.get(i).getTime() > startRecognizerTime){
-										evts.remove(i);
-									}
-									i--;
-								}
-								evts.add(new Evt(time, type));
-
-								//checks to make sure that there are enough sensor events to activate the recognizer
-								if(evts.size() == 3){
-									evts.clear();
-
-									//activates the recognizer
-									System.out.println("Recognizer triggered");
-									updateUI("Gesture Start");
-									setState(RecognizerState.ACTIVATED);
-									triggerRecognizer();
-
-								}
-							}
-						}
-					}
-					else if(GestureRecognizerService.this.getState() == RecognizerState.ACTIVATED || GestureRecognizerService.this.getState() == RecognizerState.CHOICE_MODE){
-						//while activated, wait for "quiet" period
-
-						if(type == SensorEvtType.QUIET){
-							evts.add(new Evt(time, type));
-							if(evts.get(evts.size()-1).getTime() - evts.get(0).getTime() > gestureRecognizeTime){
-								//stop the recognizer
-								evts.clear();
-								GestureRecognizerService.this.triggerRecognizer();
-
-								//catches "gesture not recognized and many "simple" gestures that do not require additional user input
-								if (GestureRecognizerService.this.getState() == RecognizerState.ACTIVATED){
-									setState(RecognizerState.DEACTIVATED);	
-								}
-								
-								//updateUI("Recognizer Stopped");
-							}
-						}
-						//start over if there is not a quiet event
-						else{
-							evts.clear();
-						}
-					}
-
-					nextSampleTime = time + eventDelay;
-				}//sample time
-
-				evtLock.unlock();
-			}
-		}
-
-		private class Evt{
-			private final long time;
-			private final SensorEvtType type;
-			Evt(long time, SensorEvtType type){
-				this.time = time;
-				this.type = type;
-			}
-			public long getTime() {
-				return time;
-			}
-			public SensorEvtType getType() {
-				return type;
-			}
-
-		}
 	}
 
 	public void gestureReceived(GestureEvent event)
@@ -534,13 +457,18 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 							if(recognizedGesture == GestureRecognizerService.PERSON_GESTURE){
 								updateUI("Deactivated mode with finished person gesture");
-								/*
+								
 								LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 								Location start = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-								GeoMath.getLocationFromStartBearingAndDistance(
+								System.out.println(start.getLatitude()+","+start.getLongitude());
+								Location person = GeoMath.getLocationFromStartBearingAndDistance(
 										start,
+										compassVal,
 										Float.parseFloat(choice.getCurrentVal()));
-								 */
+								System.out.println(person.getLatitude()+","+person.getLongitude());
+								
+								sendBroadcastPerson(person);
+								
 							}
 							choice = null;
 						}
@@ -578,8 +506,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 						updateUI("Person Recognized");
 						choice = new MetricDistanceChoice();
 						updateUI(choice.getCurrentUIString());
-						
-						this.setState(RecognizerState.CHOICE_MODE);
+
+						this.setState(RecognizerState.COMPASS_MODE);
 						this.triggerRecognizer();
 					}
 				}
@@ -843,7 +771,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 	public void updateUI(String text){
 		if(enableSpeech){
-			mTts.speak(text, TextToSpeech.QUEUE_ADD, null);
+				mTts.speak(text, TextToSpeech.QUEUE_ADD, null);
 		}
 		if(enableToast){
 			Toast.makeText(this, text, Toast.LENGTH_LONG).show();
@@ -922,11 +850,24 @@ public class GestureRecognizerService extends Service implements GestureListener
 	}
 
 	@Override
-	public void onInit(int arg0) {
+	public void onInit(int status) {
+		if(status == TextToSpeech.SUCCESS){
+			mTts.setOnUtteranceCompletedListener(this);
+		}
 	}
 
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
+	}
+
+	@Override
+	public void onUtteranceCompleted(String text) {
+		if(STATE == RecognizerState.COMPASS_MODE){
+			if(text.equals("3")){
+				this.setState(RecognizerState.CHOICE_MODE);
+			}
+		}
+
 	}
 
 
