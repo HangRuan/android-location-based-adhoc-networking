@@ -73,7 +73,7 @@ public class SensorEvtManager {
 						triggered = false;
 
 						//catches "gesture not recognized and many "simple" gestures that do not require additional user input
-						//service.setState(RecognizerState.DEACTIVATED);	
+						service.setState(RecognizerState.DEACTIVATED);	
 						
 
 						//updateUI("Recognizer Stopped");

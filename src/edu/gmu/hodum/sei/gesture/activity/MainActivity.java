@@ -58,7 +58,6 @@ public class MainActivity extends GestureActivity {
 	}
 
 	public void btnTrainGestures_onClick(View view){
-		System.out.println("TEst");
 		this.startActivityForResult(new Intent(this, TrainGestureTypeListActivity.class), TRAINING);
 	}
 	public void btnSettings_onClick(View view){

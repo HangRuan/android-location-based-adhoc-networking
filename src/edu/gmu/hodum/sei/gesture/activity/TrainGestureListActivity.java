@@ -35,6 +35,7 @@ public class TrainGestureListActivity extends ListActivity
 
 	private static final String TAG = "traininglist";
 	private static String[] details;
+	/*
 	private static final Class<?> nextIntentClasses[] = { 
 		TrainGestureActivity.class,
 		TrainGestureActivity.class, 
@@ -44,7 +45,7 @@ public class TrainGestureListActivity extends ListActivity
 		TrainGestureActivity.class,
 		TrainGestureActivity.class,
 		};
-
+*/
 	private LayoutInflater mInflater;
 	private Vector<RowData> data;
 	private RowData rd;
@@ -181,15 +182,20 @@ public class TrainGestureListActivity extends ListActivity
 
 	private void startNextActivity(int index)
 	{
+		Bundle bundle = new Bundle();
+		bundle.putInt(GESTURE_ID, index);
+		bundle.putString(GESTURE_PATH, gesturePath);
+
+		Intent intent = new Intent(this, TrainGestureActivity.class);
+		intent.putExtras(bundle);
+		startActivityForResult(intent, 1);
+		
+		/* Old if statement around code above 
 		if (0 <= index && index < nextIntentClasses.length)
 		{
-			Bundle bundle = new Bundle();
-			bundle.putInt(GESTURE_ID, index);
-
-			Intent intent = new Intent(this, nextIntentClasses[index]);
-			intent.putExtras(bundle);
-			startActivityForResult(intent, 1);
+			
 		}
+		*/
 	}
 	
 	public void onActivityResult(int requestCode, int resultcode, Intent data){
