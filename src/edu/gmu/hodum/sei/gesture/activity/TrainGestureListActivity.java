@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Vector;
 
 import android.app.Activity;
+import android.app.ListActivity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.ParseException;
@@ -22,13 +23,15 @@ import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
 import edu.gmu.hodum.sei.gesture.util.CustomAdapter;
 import edu.gmu.hodum.sei.gesture.util.RowData;
 import edu.gmu.hodum.sei.gesture.R;
-import event.GestureEvent;
 
-public class TrainGestureListActivity extends GestureListActivity
+public class TrainGestureListActivity extends ListActivity
 {
 	public static final String GESTURE_ID = "edu.gmu.swe632.fruit.GESTURE_ID";
+	public static final String GESTURE_PATH = "edu.gmu.swe632.fruit.GESTURE_PATH";
 	public static final String NOT_TRAINED = "Not trained";
 	public static final String TRAINED = "Gesture trained";
+	private String gesturePath;
+	String[] gestureNames;
 
 	private static final String TAG = "traininglist";
 	private static String[] details;
@@ -53,6 +56,12 @@ public class TrainGestureListActivity extends GestureListActivity
 
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.list);
+		
+		//get the path from the intent
+		Bundle bundle = getIntent().getExtras();
+		
+		gesturePath = bundle.getString(TrainGestureListActivity.GESTURE_PATH);
+		
 		initialize();
 
 		this.registerForContextMenu(this.getListView());
@@ -63,7 +72,7 @@ public class TrainGestureListActivity extends GestureListActivity
 		super.onResume();
 		Log.d(TAG, "onResume");
 
-		GestureRecognizerService.loadGestures();
+		GestureRecognizerService.loadGestures(gesturePath);
 		initialize();
 	}
 
@@ -80,7 +89,6 @@ public class TrainGestureListActivity extends GestureListActivity
 		super.onDestroy();
 		Log.d(TAG, "onDestroy");
 	}
-
 
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
@@ -100,7 +108,7 @@ public class TrainGestureListActivity extends GestureListActivity
 			RowData rowData = adapter.getItem((int) id); 
 			String name = rowData.getTitle();
 			GestureRecognizerService.deleteGesture(name);
-			GestureRecognizerService.loadGestures();
+			GestureRecognizerService.loadGestures(gesturePath);
 			initialize();
 			return true;
 		case R.id.cancel:
@@ -118,7 +126,13 @@ public class TrainGestureListActivity extends GestureListActivity
 	private void initialize()
 	{
 		Map<Integer, String> mGestureIdMapping = GestureRecognizerService.GestureIdMapping;
-		String[] gestureNames = GestureRecognizerService.GESTURE_NAMES;
+		if(gesturePath.equals(GestureRecognizerService.PATH_MAIN)){
+			gestureNames = GestureRecognizerService.GESTURE_NAMES_MAIN;
+		}
+		else {
+			gestureNames = GestureRecognizerService.GESTURE_NAMES_CHOICE;
+		}
+		
 		details = new String[gestureNames.length];
 
 		for (String value : mGestureIdMapping.values())
@@ -139,11 +153,11 @@ public class TrainGestureListActivity extends GestureListActivity
 		mInflater = (LayoutInflater) getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 		data = new Vector<RowData>();
 
-		for (int j = 0; j < GestureRecognizerService.GESTURE_NAMES.length; j++)
+		for (int j = 0; j < gestureNames.length; j++)
 		{
 			try
 			{
-				rd = new RowData(j, GestureRecognizerService.GESTURE_NAMES[j], details[j]);
+				rd = new RowData(j, gestureNames[j], details[j]);
 			}
 			catch (ParseException e)
 			{
@@ -183,31 +197,9 @@ public class TrainGestureListActivity extends GestureListActivity
 			toast("Gesture trained");
 			this.setResult(Activity.RESULT_OK);
 		}
-		/*
-		else{
-			toast("Canceled from list");
-		}
-		*/
 	}
-
-	public void gestureReceived(GestureEvent event)
-	{
-		if (event.getProbability() > 0.9)
-		{
-			String gesture = GestureRecognizerService.GestureIdMapping.get(event.getId());
-
-			if (gesture != null)
-			{
-				Log.d(TAG, "Gesture received " + gesture);
-
-
-				if (gesture.equalsIgnoreCase(GestureRecognizerService.SOS_GESTURE))
-					Toast.makeText(this, "SOS recognized", Toast.LENGTH_LONG).show();
-				else if (gesture.equalsIgnoreCase(GestureRecognizerService.SUPPLIES_GESTURE))
-					Toast.makeText(this, "Supplies recognized", Toast.LENGTH_LONG).show();
-				else
-					Toast.makeText(this, "Unrecognized gesture", Toast.LENGTH_LONG).show();
-			}
-		}
+	
+	public void toast(String text){
+		Toast.makeText(this, text, Toast.LENGTH_LONG).show();
 	}
 }

@@ -24,42 +24,32 @@
                 
             </intent-filter>
         </activity>
+        
+        <activity
+            android:name=".activity.TrainGestureTypeListActivity"
+            android:label="Train Gesture Types"
+            android:launchMode="singleTask" >
+        </activity>
+        
         <activity
             android:name=".activity.TrainGestureListActivity"
             android:label="Train Gestures"
             android:launchMode="singleTask" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
         </activity>
+        
         <activity
             android:name=".activity.TrainGestureActivity"
             android:label="Train Gesture" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
         </activity>
+        
         <activity
             android:name=".activity.SetPreferenceActivity"
             android:label="Settings" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
         </activity>
+        
         <activity
             android:name=".activity.CalibrateActivity"
             android:label="Calibrate" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
         </activity>
 
         <receiver android:name=".widget.GestureWidgetProvider" >

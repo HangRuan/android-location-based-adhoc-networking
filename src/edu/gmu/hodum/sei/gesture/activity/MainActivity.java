@@ -58,7 +58,8 @@ public class MainActivity extends GestureActivity {
 	}
 
 	public void btnTrainGestures_onClick(View view){
-		this.startActivityForResult(new Intent(this, TrainGestureListActivity.class), TRAINING);
+		System.out.println("TEst");
+		this.startActivityForResult(new Intent(this, TrainGestureTypeListActivity.class), TRAINING);
 	}
 	public void btnSettings_onClick(View view){
 		Intent intent = new Intent(this, GestureRecognizerService.class);
@@ -90,8 +91,6 @@ public class MainActivity extends GestureActivity {
 		// TODO Auto-generated method stub
 		
 	}
-
-
 
 }
 

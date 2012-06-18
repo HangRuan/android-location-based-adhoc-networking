@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="gestures_main">
+        <item>S O S</item>
+        <item>SUPPLIES</item>
+        <item>PERSON</item>
+        <item>VEHICLE</item>
+        <item>VEHICLE</item>
+    </string-array>
+</resources>

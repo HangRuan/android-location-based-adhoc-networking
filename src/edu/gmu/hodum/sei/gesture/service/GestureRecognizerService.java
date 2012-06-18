@@ -9,7 +9,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -37,7 +36,6 @@ import android.location.Location;
 import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
@@ -82,7 +80,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 	public static final Andgee mAndgee = Andgee.getInstance();
 	public static final Map<Integer, String> GestureIdMapping = new HashMap<Integer, String>();
 
-	public static final String[] GESTURE_NAMES = new String[] {SOS_GESTURE,SUPPLIES_GESTURE,PERSON_GESTURE,GO_NEXT_GESTURE,GO_BACK_GESTURE,CONFIRM_GESTURE,CANCEL_GESTURE };
+	public static final String[] GESTURE_NAMES_MAIN = new String[] {SOS_GESTURE,SUPPLIES_GESTURE,PERSON_GESTURE};
+	public static final String[] GESTURE_NAMES_CHOICE = new String[] {GO_NEXT_GESTURE,GO_BACK_GESTURE,CONFIRM_GESTURE,CANCEL_GESTURE};
 
 	private SensorManager mSensorManager;
 	private Sensor mAccelerometer;
@@ -102,7 +101,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 	private boolean isAllowed = true;
 	private Timer allowTimer = null;
 
-	final private SensorEvtManager sensorEvtManager = new SensorEvtManager(this);
+	private SensorEvtManager sensorEvtManager;
 	private Lock evtLock = new ReentrantLock();
 
 	private float NOISE;
@@ -121,12 +120,11 @@ public class GestureRecognizerService extends Service implements GestureListener
 	
 	private float compassVal;
 
-	//delays
-	//private long eventDelay;
-	//private long gestureRecognizeTime; //in milliseconds 1/1000th of a second
-	//private long startRecognizerTime; //in milliseconds 1/1000th of a second
-
-	private Handler handler = new Handler();
+	//private Handler handler = new Handler();
+	
+	//These are the file directory paths used to store the main and choice mode gestures
+	public static String PATH_MAIN = Environment.getExternalStorageDirectory() + "/Android/data/" + mPackageName + "/gestures/";
+	public static String PATH_CHOICE = Environment.getExternalStorageDirectory() + "/Android/data/" + mPackageName + "/gestures/choice/";
 
 	private GestureChoice choice;
 
@@ -144,6 +142,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);      
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+		sensorEvtManager = new SensorEvtManager(this);
 
 		setDefaultPrefs();
 		loadPrefs();
@@ -151,6 +150,27 @@ public class GestureRecognizerService extends Service implements GestureListener
 		setState(RecognizerState.DEACTIVATED);
 	}
 
+	private void registerListeners(){
+		//register listeners to various components
+		System.out.println("Andgee mSensorManager register listener: " + mSensorManager.registerListener(
+				mAndgee.getDevice(), 
+				SensorManager.SENSOR_ACCELEROMETER,
+				SensorManager.SENSOR_DELAY_GAME));
+
+		System.out.println("mSensorManager.registerListener: "+  mSensorManager.registerListener(
+				this, 
+				mAccelerometer, 
+				SensorManager.SENSOR_DELAY_NORMAL));
+		
+		mAndgee.addGestureListener(this);
+		
+		try{
+			mAndgee.getDevice().enableAccelerationSensors();
+		}
+		catch (IOException e){
+			Log.e(getClass().toString(), e.getMessage(), e);
+		}
+	}
 	public int onStartCommand(Intent intent, int flags, int startId){
 		String command = intent.getAction();
 
@@ -161,26 +181,9 @@ public class GestureRecognizerService extends Service implements GestureListener
 			//toggle button state
 
 			setState(RecognizerState.DEACTIVATED);
-			setLearningMode(false);
-
-			//turn on gesture recognizer functionality
-			System.out.println("Andgee mSensorManager register listener: " + mSensorManager.registerListener(
-					mAndgee.getDevice(), 
-					SensorManager.SENSOR_ACCELEROMETER,
-					SensorManager.SENSOR_DELAY_GAME));
-
-			try{
-				mAndgee.getDevice().enableAccelerationSensors();
-			}
-			catch (IOException e){
-				Log.e(getClass().toString(), e.getMessage(), e);
-			}
-
-			mAndgee.addGestureListener(this);
-			loadGestures();
-
-			boolean bool = mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
-			System.out.println("mSensorManager.registerListener: "+ Boolean.toString(bool));
+			
+			registerListeners();
+			loadGestures(GestureRecognizerService.PATH_MAIN);
 
 			PendingIntent pendIntent = PendingIntent.getActivity(this, 0, new Intent (this, MainActivity.class), 0);
 
@@ -210,10 +213,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 				appWidgetManager.updateAppWidget(widgetId, views);
 			}
 		}
-		else if(command.equals(this.getString(R.string.train))){
-			setLearningMode(true);
-
-		}
 		else if(command.equals(this.getString(R.string.off))){
 			//toggle button state
 
@@ -222,6 +221,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 			mAndgee.getDevice().fireButtonReleasedEvent();
 			mAndgee.getDevice().getAccelerationStreamAnalyzer().reset();
+			
+			mAndgee.removeGestureListener(this);
 			mSensorManager.unregisterListener(mAndgee.getDevice());
 
 			mSensorManager.unregisterListener(this);
@@ -239,12 +240,12 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 			//Now that the service is shutting down, the next steps modify the toggle widget so that pressing the button again will turn on the service
 
-			//create intent to turn off service
+			//create intent to turn on service
 			Intent offIntent = new Intent(this, GestureRecognizerService.class);
 			offIntent.setAction(this.getString(R.string.on));
 			PendingIntent offPendingIntent = PendingIntent.getService(this, 0, offIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-			//set the widget to turn off the service
+			//set the widget to turn on the service
 			AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
 
 			ComponentName gestureWidget = new ComponentName(this, GestureWidgetProvider.class);
@@ -265,7 +266,20 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 	public IBinder onBind(Intent intent)
 	{
+		//sets the learning mode when training gestures
+		String action = intent.getAction();
+		if(action.equals(this.getString(R.string.train))){
+			setLearningMode(true);
+		}
 		return mBinder;
+	}
+	public boolean onUnbind(Intent intent){
+		//
+		String action = intent.getAction();
+		if(action.equals(this.getString(R.string.train))){
+			setLearningMode(false);
+		}
+		return false;
 	}
 
 	public class LocalBinder extends Binder
@@ -353,7 +367,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 		float y = event.values[1];
 		float z = event.values[2];
 
-		if(STATE != RecognizerState.COMPASS_MODE){
+		if(STATE == RecognizerState.COMPASS_MODE){
 			//x is the compass value
 			compassVal = x;
 
@@ -412,7 +426,15 @@ public class GestureRecognizerService extends Service implements GestureListener
 	}
 
 	synchronized void setState(RecognizerState state){
+		System.out.println("Recognizer State is now: "+state.toString());
 		this.STATE = state;
+		
+		if(state  == RecognizerState.DEACTIVATED){
+			StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+			for (StackTraceElement element : elements){
+				System.out.println(element.toString());
+			}
+		}
 	}
 	synchronized RecognizerState getState(){
 		return this.STATE;
@@ -467,6 +489,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 										Float.parseFloat(choice.getCurrentVal()));
 								System.out.println(person.getLatitude()+","+person.getLongitude());
 								
+								loadGestures(GestureRecognizerService.PATH_MAIN);
+								
 								sendBroadcastPerson(person);
 								
 							}
@@ -483,7 +507,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 				}
 				else{
 					//TODO: send Broadcasts for actions
-					Intent intent = new Intent(this.getString(R.string.send_data));
+					//Intent intent = new Intent(this.getString(R.string.send_data));
 					if (gesture.equalsIgnoreCase(GestureRecognizerService.SOS_GESTURE)){
 						updateUI(this.getResources().getString(R.string.sos));
 						//TODO: create intent for SOS
@@ -504,11 +528,13 @@ public class GestureRecognizerService extends Service implements GestureListener
 					}
 					else if (gesture.equalsIgnoreCase(GestureRecognizerService.PERSON_GESTURE)){
 						updateUI("Person Recognized");
-						choice = new MetricDistanceChoice();
-						updateUI(choice.getCurrentUIString());
 
 						this.setState(RecognizerState.COMPASS_MODE);
-						this.triggerRecognizer();
+						loadGestures(GestureRecognizerService.PATH_CHOICE);
+						updateUI("Point device to person");
+						updateUI("3");
+						updateUI("2");
+						updateUI("1");
 					}
 				}
 
@@ -543,14 +569,12 @@ public class GestureRecognizerService extends Service implements GestureListener
 				else{
 					if (isRecognizing)
 					{
-						Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT)
-						.show();
+						Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT).show();
 						GestureRecognizerService.stopRecognizer();
 					}
 					else
 					{
-						Toast.makeText(this, GestureRecognizerService.CAPTURE, Toast.LENGTH_SHORT)
-						.show();
+						Toast.makeText(this, GestureRecognizerService.CAPTURE, Toast.LENGTH_SHORT).show();
 						GestureRecognizerService.startRecognizer();
 					}
 
@@ -633,15 +657,12 @@ public class GestureRecognizerService extends Service implements GestureListener
 		mAndgee.getDevice().fireButtonReleasedEvent();
 	}
 
-	public static void loadGestures()
+	public static void loadGestures(String path)
 	{
 		Log.d(TAG, "load gestures");
 
 		try
 		{
-			File root = Environment.getExternalStorageDirectory();
-
-			String path = root + "/Android/data/" + mPackageName + "/gestures/";
 			File file = new File(path);
 			file.getParentFile().mkdirs();
 
@@ -649,18 +670,11 @@ public class GestureRecognizerService extends Service implements GestureListener
 			{
 				for (String item : file.list())
 				{
-					Log.d(TAG, "A");
 					BufferedReader reader = new BufferedReader(new FileReader(new File(path, item)));
-					Log.d(TAG, "B");
 
-					int id = mAndgee.getDevice().getAccelerationStreamAnalyzer()
-							.loadGesture(reader);
-					Log.d(TAG, "C");
+					int id = mAndgee.getDevice().getAccelerationStreamAnalyzer().loadGesture(reader);
 					String gesture = item.substring(0, item.lastIndexOf("."));
-					Log.d(TAG, "D");
 					GestureIdMapping.put(id, gesture);
-					Log.d(TAG, "E");
-
 					Log.d(TAG, "Loading " + path + item);
 				}
 			}
@@ -671,10 +685,10 @@ public class GestureRecognizerService extends Service implements GestureListener
 		}
 	}
 
-	public static void saveGesture(String name)
+	public static void saveGesture(String name, String path)
 	{
 		Log.d(TAG, "save gesture " + name);
-
+		
 		ProcessingUnitWrapper punitWrapper = new ProcessingUnitWrapper(mAndgee.getDevice()
 				.getAccelerationStreamAnalyzer());
 
@@ -684,9 +698,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 		{
 			try
 			{
-				File root = Environment.getExternalStorageDirectory();
 				String filename = name + ".txt";
-				String path = root + "/Android/data/" + mPackageName + "/gestures/";
+				
 				File file = new File(path, filename);
 				file.getParentFile().mkdirs();
 				file.createNewFile();
@@ -854,6 +867,9 @@ public class GestureRecognizerService extends Service implements GestureListener
 		if(status == TextToSpeech.SUCCESS){
 			mTts.setOnUtteranceCompletedListener(this);
 		}
+		else if (status == TextToSpeech.ERROR){
+			System.out.println();
+		}
 	}
 
 	@Override
@@ -862,9 +878,14 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 	@Override
 	public void onUtteranceCompleted(String text) {
+		System.out.println("onUtteranceCompleted: "+text);
 		if(STATE == RecognizerState.COMPASS_MODE){
-			if(text.equals("3")){
+			System.out.println("Compass recording");
+			if(text.equals("1")){
+				choice = new MetricDistanceChoice();
+				updateUI(choice.getCurrentUIString());
 				this.setState(RecognizerState.CHOICE_MODE);
+				
 			}
 		}
 
