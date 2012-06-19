@@ -35,17 +35,7 @@ public class TrainGestureListActivity extends ListActivity
 
 	private static final String TAG = "traininglist";
 	private static String[] details;
-	/*
-	private static final Class<?> nextIntentClasses[] = { 
-		TrainGestureActivity.class,
-		TrainGestureActivity.class, 
-		TrainGestureActivity.class, 
-		TrainGestureActivity.class,
-		TrainGestureActivity.class,
-		TrainGestureActivity.class,
-		TrainGestureActivity.class,
-		};
-*/
+
 	private LayoutInflater mInflater;
 	private Vector<RowData> data;
 	private RowData rd;
@@ -108,7 +98,7 @@ public class TrainGestureListActivity extends ListActivity
 			CustomAdapter adapter = (CustomAdapter) this.getListAdapter();
 			RowData rowData = adapter.getItem((int) id); 
 			String name = rowData.getTitle();
-			GestureRecognizerService.deleteGesture(name);
+			GestureRecognizerService.deleteGesture(name, gesturePath);
 			GestureRecognizerService.loadGestures(gesturePath);
 			initialize();
 			return true;
@@ -190,12 +180,6 @@ public class TrainGestureListActivity extends ListActivity
 		intent.putExtras(bundle);
 		startActivityForResult(intent, 1);
 		
-		/* Old if statement around code above 
-		if (0 <= index && index < nextIntentClasses.length)
-		{
-			
-		}
-		*/
 	}
 	
 	public void onActivityResult(int requestCode, int resultcode, Intent data){

@@ -113,8 +113,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 	private RecognizerState STATE;
 
-	private int gestureCount;
-	private boolean learningMode;
+	private static int gestureCount;
+	private static boolean learningMode;
 
 	private String recognizedGesture;
 
@@ -125,8 +125,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 	//private Handler handler = new Handler();
 
 	//These are the file directory paths used to store the main and choice mode gestures
-	public static String PATH_MAIN = Environment.getExternalStorageDirectory() + "/Android/data/" + mPackageName + "/gestures/";
-	public static String PATH_CHOICE = Environment.getExternalStorageDirectory() + "/Android/data/" + mPackageName + "/gestures/choice/";
+	public static String PATH_MAIN;
+	public static String PATH_CHOICE;
 
 	private GestureChoice choice;
 
@@ -141,6 +141,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 		mApplicationContext = getApplicationContext();
 		mPackageName = mApplicationContext.getPackageName();
+		PATH_MAIN = Environment.getExternalStorageDirectory() + "/Android/data/" + mPackageName + "/gestures/";
+		PATH_CHOICE = Environment.getExternalStorageDirectory() + "/Android/data/" + mPackageName + "/gestures/choice/";
 
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);      
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
@@ -156,7 +158,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 	private void registerListeners(){
 		//register listeners to various components
 		System.out.println("SENSOR LISTENERS REGISTERED!");
-		
+
 		System.out.println("Andgee mSensorManager register listener: " + mSensorManager.registerListener(
 				mAndgee.getDevice(), 
 				SensorManager.SENSOR_ACCELEROMETER,
@@ -247,7 +249,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 			}
 
 			mIsRegistered = false;
-			
+
 			//Now that the service is shutting down, the next steps modify the toggle widget so that pressing the button again will turn on the service
 
 			//create intent to turn on service
@@ -277,18 +279,19 @@ public class GestureRecognizerService extends Service implements GestureListener
 	public IBinder onBind(Intent intent)
 	{
 		//sets the learning mode when training gestures
+		/*
+		System.out.println("onBind");
 		String action = intent.getAction();
 		if(action.equals(this.getString(R.string.train))){
 			setLearningMode(true);
 		}
+		*/
 		return mBinder;
 	}
 	public boolean onUnbind(Intent intent){
-		//
-		String action = intent.getAction();
-		if(action.equals(this.getString(R.string.train))){
-			setLearningMode(false);
-		}
+		//System.out.println("onUnbind");
+		//setLearningMode(false);
+
 		return false;
 	}
 
@@ -446,17 +449,18 @@ public class GestureRecognizerService extends Service implements GestureListener
 				System.out.println(element.toString());
 			}
 		}
-		*/
+		 */
 	}
 	synchronized RecognizerState getState(){
 		return this.STATE;
 	}
-	synchronized void setLearningMode(boolean val){
-		this.gestureCount = 0;
-		this.learningMode = val;
+	public static synchronized void setLearningMode(boolean val){
+		System.out.println("Set LearningMode: "+val);
+		gestureCount = 0;
+		learningMode = val;
 	}
 	synchronized boolean getLearningMode(){
-		return this.learningMode;
+		return learningMode;
 	}
 
 	public void gestureReceived(GestureEvent event)
@@ -556,7 +560,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 						evtLock.unlock();
 					}
 				}
-				
+
 
 			}
 		}
@@ -571,7 +575,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 		if(allowLock.tryLock()){
 			if(isAllowed){
-				if(learningMode){
+				if( getLearningMode() ){
 					if (isLearning)
 					{
 						Toast.makeText(this, GestureRecognizerService.CAPTURED + " "+ Integer.toString(++gestureCount), Toast.LENGTH_SHORT).show();
@@ -687,16 +691,18 @@ public class GestureRecognizerService extends Service implements GestureListener
 			File file = new File(path);
 			file.getParentFile().mkdirs();
 
-			if (file.list() != null)
-			{
-				for (String item : file.list())
-				{
-					BufferedReader reader = new BufferedReader(new FileReader(new File(path, item)));
+			File subFile;
+			if (file.list() != null){
+				for (String item : file.list()){
+					subFile = new File(path, item);
+					if(!subFile.isDirectory()){
+						BufferedReader reader = new BufferedReader(new FileReader(subFile));
 
-					int id = mAndgee.getDevice().getAccelerationStreamAnalyzer().loadGesture(reader);
-					String gesture = item.substring(0, item.lastIndexOf("."));
-					GestureIdMapping.put(id, gesture);
-					Log.d(TAG, "Loading " + path + item);
+						int id = mAndgee.getDevice().getAccelerationStreamAnalyzer().loadGesture(reader);
+						String gesture = item.substring(0, item.lastIndexOf("."));
+						GestureIdMapping.put(id, gesture);
+						Log.d(TAG, "Loading " + path + item);
+					}
 				}
 			}
 		}
@@ -751,11 +757,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 		}
 	}
 
-	public static void deleteGesture(String name){
+	public static void deleteGesture(String name, String path){
 		//delete individual gesture from the file system and gesture Id map by name
-		File root = Environment.getExternalStorageDirectory();
-
-		String path = root + "/Android/data/" + mPackageName + "/gestures/";
 		File file = new File(path+name+".txt");
 
 		if (file.isFile())
@@ -772,11 +775,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 		resetGestures();
 	}
 
-	public static void deleteGestures(){
+	public static void deleteGestures(String path){
 		//delete all gestures from the file system and the Gesture Id Map
-		File root = Environment.getExternalStorageDirectory();
-
-		String path = root + "/Android/data/" + mPackageName + "/gestures/";
 		File file = new File(path);
 
 		if (file.list() != null)
