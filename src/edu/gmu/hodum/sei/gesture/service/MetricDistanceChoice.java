@@ -2,7 +2,7 @@ package edu.gmu.hodum.sei.gesture.service;
 
 public class MetricDistanceChoice implements GestureChoice{
 	
-	private String[] vals = new String[]{"meters, ten meters, hundred meters, kilometers"};
+	private String[] vals = new String[]{"meters", "ten meters", "hundred meters", "kilometers"};
 	private int index = 0;
 	private int num = 1;
 	
@@ -48,13 +48,17 @@ public class MetricDistanceChoice implements GestureChoice{
 
 	@Override
 	public String getCurrentUIString() {
+		System.out.println("Metric Distance Choice getCurrentUIString");
 		if(mode == Mode.UNITS){
+			System.out.println("Metric Distance Choice UNITS: "+vals[index]);
 			return vals[index];
 		}
 		else {
 			if(num == 1 && index == 0){
+				System.out.println("Metric Distance Choice UNITS: 1 meter");
 				return "1 meter";
 			}
+			System.out.println("Metric Distance Choice UNITS: "+num+" "+vals[index]);
 			return num + " " + vals[index];
 		}
 	}

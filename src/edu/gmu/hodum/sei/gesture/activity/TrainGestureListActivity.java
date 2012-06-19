@@ -20,17 +20,20 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.Toast;
 import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
+import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService.RecognizerMode;
 import edu.gmu.hodum.sei.gesture.util.CustomAdapter;
 import edu.gmu.hodum.sei.gesture.util.RowData;
 import edu.gmu.hodum.sei.gesture.R;
 
 public class TrainGestureListActivity extends ListActivity
 {
-	public static final String GESTURE_ID = "edu.gmu.swe632.fruit.GESTURE_ID";
-	public static final String GESTURE_PATH = "edu.gmu.swe632.fruit.GESTURE_PATH";
+	public static final String GESTURE_ID = "edu.gmu.hodum.sei.gesture.GESTURE_ID";
+	public static final String GESTURE_PATH = "edu.gmu.hodum.sei.gesture.GESTURE_PATH";
+	public static final String GESTURE_LEARNING_METHOD = "edu.gmu.hodum.sei.gesture.GESTURE_LEARNING_METHOD";
 	public static final String NOT_TRAINED = "Not trained";
 	public static final String TRAINED = "Gesture trained";
 	private String gesturePath;
+	private String learningMethod;
 	String[] gestureNames;
 
 	private static final String TAG = "traininglist";
@@ -52,6 +55,15 @@ public class TrainGestureListActivity extends ListActivity
 		Bundle bundle = getIntent().getExtras();
 		
 		gesturePath = bundle.getString(TrainGestureListActivity.GESTURE_PATH);
+		learningMethod = bundle.getString(TrainGestureListActivity.GESTURE_LEARNING_METHOD);
+		
+		if(gesturePath.equals(GestureRecognizerService.PATH_MAIN)){
+			GestureRecognizerService.setRecognizerMode(RecognizerMode.ACTIVATE_ON_TRIGGERS);
+		}
+		else{
+			GestureRecognizerService.setRecognizerMode(RecognizerMode.ACTIVATE_ON_NOT_QUIET);
+		}
+		
 		
 		initialize();
 
@@ -175,6 +187,7 @@ public class TrainGestureListActivity extends ListActivity
 		Bundle bundle = new Bundle();
 		bundle.putInt(GESTURE_ID, index);
 		bundle.putString(GESTURE_PATH, gesturePath);
+		bundle.putString(GESTURE_LEARNING_METHOD, learningMethod);
 
 		Intent intent = new Intent(this, TrainGestureActivity.class);
 		intent.putExtras(bundle);

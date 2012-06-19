@@ -112,21 +112,21 @@ public class GestureRecognizerService extends Service implements GestureListener
 	private TextToSpeech mTts;
 
 	private RecognizerState STATE;
+	private static RecognizerMode MODE;
 
 	private static int gestureCount;
 	private static boolean learningMode;
-
-	private String recognizedGesture;
 
 	private float compassVal; //controls the compass value for pointing to objects at a distance
 
 	boolean mIsRegistered; //are the sensors registered
 
-	//private Handler handler = new Handler();
-
 	//These are the file directory paths used to store the main and choice mode gestures
 	public static String PATH_MAIN;
 	public static String PATH_CHOICE;
+	
+	public static String LEARNING_METHOD_ACTIVATED = "ACTIVATED";
+	public static String LEARNING_METHOD_QUIET = "QUIET";
 
 	private GestureChoice choice;
 
@@ -147,12 +147,11 @@ public class GestureRecognizerService extends Service implements GestureListener
 		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);      
 		mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 		sensorEvtManager = new SensorEvtManager(this);
-		mIsRegistered = false; 
+		mIsRegistered = false;
 
 		setDefaultPrefs();
 		loadPrefs();
 
-		setState(RecognizerState.DEACTIVATED);
 	}
 
 	private void registerListeners(){
@@ -162,7 +161,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 		System.out.println("Andgee mSensorManager register listener: " + mSensorManager.registerListener(
 				mAndgee.getDevice(), 
 				SensorManager.SENSOR_ACCELEROMETER,
-				SensorManager.SENSOR_DELAY_GAME));
+				SensorManager.SENSOR_DELAY_FASTEST));
 
 		System.out.println("mSensorManager.registerListener: "+  mSensorManager.registerListener(
 				this, 
@@ -188,11 +187,13 @@ public class GestureRecognizerService extends Service implements GestureListener
 			//toggle button state
 
 			setState(RecognizerState.DEACTIVATED);
+			setRecognizerMode(RecognizerMode.ACTIVATE_ON_TRIGGERS);
 
 			if(mIsRegistered == false){
 				registerListeners();
 				mIsRegistered = true;
 			}
+			resetGestures();
 			loadGestures(GestureRecognizerService.PATH_MAIN);
 
 			PendingIntent pendIntent = PendingIntent.getActivity(this, 0, new Intent (this, MainActivity.class), 0);
@@ -285,7 +286,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 		if(action.equals(this.getString(R.string.train))){
 			setLearningMode(true);
 		}
-		*/
+		 */
 		return mBinder;
 	}
 	public boolean onUnbind(Intent intent){
@@ -382,6 +383,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 		if(STATE == RecognizerState.COMPASS_MODE){
 			//x is the compass value
+			System.out.println("Compass value: "+x);
 			compassVal = x;
 
 		}
@@ -435,11 +437,12 @@ public class GestureRecognizerService extends Service implements GestureListener
 		ACTIVATED,
 		CONFIGURING,
 		CHOICE_MODE,
-		COMPASS_MODE
+		COMPASS_MODE,
 	}
+	
 
 	synchronized void setState(RecognizerState state){
-		//System.out.println("Recognizer State is now: "+state.toString());
+		System.out.println("Recognizer State is now: "+state.toString());
 		this.STATE = state;
 
 		/*
@@ -454,8 +457,22 @@ public class GestureRecognizerService extends Service implements GestureListener
 	synchronized RecognizerState getState(){
 		return this.STATE;
 	}
+	
+	public static enum RecognizerMode{
+		ACTIVATE_ON_TRIGGERS,
+		ACTIVATE_ON_NOT_QUIET
+	}
+	
+	public static synchronized void setRecognizerMode(RecognizerMode mode){
+		System.out.println("Recognizer Mode is now: "+mode.toString());
+		MODE = mode;
+
+	}
+	synchronized static RecognizerMode getRecognizerMode(){
+		return MODE;
+	}
+	
 	public static synchronized void setLearningMode(boolean val){
-		System.out.println("Set LearningMode: "+val);
 		gestureCount = 0;
 		learningMode = val;
 	}
@@ -463,13 +480,13 @@ public class GestureRecognizerService extends Service implements GestureListener
 		return learningMode;
 	}
 
-	public void gestureReceived(GestureEvent event)
-	{
+	public void gestureReceived(GestureEvent event){
+		
+		evtLock.lock();
 		Log.d(TAG, event.getId() + " " + GestureIdMapping.get(event.getId()) + " with prob. "
 				+ event.getProbability());
 
-		if (event.getProbability() > 0.9)
-		{
+		if (event.getProbability() > 0.7){
 			String gesture = GestureRecognizerService.GestureIdMapping.get(event.getId());
 
 			if (gesture != null)
@@ -480,36 +497,45 @@ public class GestureRecognizerService extends Service implements GestureListener
 				if(this.getState() == RecognizerState.CHOICE_MODE){
 
 					if(gesture.equalsIgnoreCase(GestureRecognizerService.GO_NEXT_GESTURE)){
+						updateUI ("Go Forward");
 						choice.goNext();
 						this.updateUI(choice.getCurrentUIString());
 					}
 					else if(gesture.equalsIgnoreCase(GestureRecognizerService.GO_BACK_GESTURE)){
+						updateUI ("Go Back");
 						choice.goBack();
 						this.updateUI(choice.getCurrentUIString());
 					}
 					else if(gesture.equalsIgnoreCase(GestureRecognizerService.CONFIRM_GESTURE)){
 						choice.onConfirm();
+						updateUI ("Confirmed a choice");
 						updateUI (choice.getCurrentUIString());
 
 						if(choice.isFinished()){
+							updateUI ("Finished Choosing");
 							this.setState(RecognizerState.DEACTIVATED);
 
-							if(recognizedGesture == GestureRecognizerService.PERSON_GESTURE){
-								updateUI("Deactivated mode with finished person gesture");
+							if(choice instanceof MetricDistanceChoice){
 
 								LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 								Location start = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-								System.out.println(start.getLatitude()+","+start.getLongitude());
+								System.out.println("Start Location: "+start.getLatitude()+","+start.getLongitude());
+
+								System.out.println("CompassVal: "+compassVal);
 								Location person = GeoMath.getLocationFromStartBearingAndDistance(
 										start,
 										compassVal,
 										Float.parseFloat(choice.getCurrentVal()));
-								System.out.println(person.getLatitude()+","+person.getLongitude());
+								System.out.println("Person Location: "+person.getLatitude()+","+person.getLongitude());
 
+								resetGestures();
 								loadGestures(GestureRecognizerService.PATH_MAIN);
 
+								updateUI ("Sending Person Broadcast");
 								sendBroadcastPerson(person);
 
+								setRecognizerMode(RecognizerMode.ACTIVATE_ON_TRIGGERS);
+								this.setState(RecognizerState.DEACTIVATED);	
 							}
 							choice = null;
 						}
@@ -518,6 +544,10 @@ public class GestureRecognizerService extends Service implements GestureListener
 						}
 					}
 					else if(gesture.equalsIgnoreCase(GestureRecognizerService.CANCEL_GESTURE)){
+						updateUI ("Canceled");
+						resetGestures();
+						loadGestures(GestureRecognizerService.PATH_MAIN);
+						setRecognizerMode(RecognizerMode.ACTIVATE_ON_TRIGGERS);
 						this.setState(RecognizerState.DEACTIVATED);	
 					}
 
@@ -533,6 +563,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 						//Test code
 						sendBroadcast(1);
+						this.setState(RecognizerState.DEACTIVATED);
 					}
 					else if (gesture.equalsIgnoreCase(GestureRecognizerService.SUPPLIES_GESTURE)){
 						updateUI(this.getResources().getString(R.string.supplies));
@@ -542,32 +573,39 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 						//Test code
 						sendBroadcast(2);
+						this.setState(RecognizerState.DEACTIVATED);
 					}
 					else if (gesture.equalsIgnoreCase(GestureRecognizerService.PERSON_GESTURE)){
 						updateUI("Person Recognized");
 
-						this.setState(RecognizerState.COMPASS_MODE);
-						loadGestures(GestureRecognizerService.PATH_CHOICE);
-						updateUI("Point device to person");
-						updateUI("3");
-						updateUI("2");
-						updateUI("1");
+						getDirection();
 
+						resetGestures();
+						loadGestures(GestureRecognizerService.PATH_CHOICE);
+
+						//wait for 3 seconds for the compass value to be recorded 
+						try {
+							Thread.sleep(3000);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+						setRecognizerMode(RecognizerMode.ACTIVATE_ON_NOT_QUIET);
 						choice = new MetricDistanceChoice();
 						updateUI(choice.getCurrentUIString());
-						evtLock.lock();
 						this.setState(RecognizerState.CHOICE_MODE);
-						evtLock.unlock();
 					}
 				}
-
-
 			}
 		}
 		else{
 			updateUI(this.getResources().getString(R.string.gesture_not_recognized));
-			this.setState(RecognizerState.DEACTIVATED);
+			if(this.getState() == RecognizerState.ACTIVATED){
+				this.setState(RecognizerState.DEACTIVATED);
+			}
 		}
+		evtLock.unlock();
 	}
 
 
@@ -849,6 +887,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 	private void sendBroadcastPerson(Location location)
 	{
 
+		System.out.println("SendBroadcast Person");
+
 		Thing thing = new Thing();
 		thing.setDescription("Testing with Location!");
 		thing.setElevation(230.0);
@@ -898,21 +938,17 @@ public class GestureRecognizerService extends Service implements GestureListener
 	}
 
 	@Override
-	public void onUtteranceCompleted(String text) {
-		System.out.println("onUtteranceCompleted: "+text);
+	public void onUtteranceCompleted(String arg0) {
+	}
 
-		/* Inactive b/c onUtteranceCompleted does not trigger properly
-		 * 
-		 * if(STATE == RecognizerState.COMPASS_MODE){
-			System.out.println("Compass recording");
-			if(text.equals("1")){
-				choice = new MetricDistanceChoice();
-				updateUI(choice.getCurrentUIString());
-				this.setState(RecognizerState.CHOICE_MODE);
-
-			}
-		}
-		 */
+	private void getDirection(){
+		//sets to Compass Mode and gets a compass value from the onSensorEvent
+		//will need to switch out of compass mode to the next relevant mode, which may be deactivated or choice
+		this.setState(RecognizerState.COMPASS_MODE);
+		updateUI("Point direction and hold still");
+		updateUI("3");
+		updateUI("2");
+		updateUI("1");
 	}
 
 

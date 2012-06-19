@@ -16,7 +16,8 @@ import android.widget.Toast;
 
 public class TrainGestureTypeListActivity extends ListActivity{
 	private static final String TAG = "trainingtypelist";
-	public static final String GESTURE_PATH = "edu.gmu.swe632.fruit.GESTURE_PATH";
+	public static final String GESTURE_PATH = "edu.gmu.hodum.sei.gesture.GESTURE_PATH";
+	public static final String GESTURE_LEARNING_METHOD = "edu.gmu.hodum.sei.gesture.GESTURE_LEARNING_METHOD";
 	
 	public void onCreate(Bundle savedInstanceState)
 	{
@@ -42,9 +43,11 @@ public class TrainGestureTypeListActivity extends ListActivity{
 		Bundle bundle = new Bundle();
 		if(position == 0){
 			bundle.putString(GESTURE_PATH, GestureRecognizerService.PATH_MAIN);
+			bundle.putString(GESTURE_LEARNING_METHOD, GestureRecognizerService.LEARNING_METHOD_ACTIVATED);
 		}
 		else{
 			bundle.putString(GESTURE_PATH, GestureRecognizerService.PATH_CHOICE);
+			bundle.putString(GESTURE_LEARNING_METHOD, GestureRecognizerService.LEARNING_METHOD_QUIET);
 		}
 
 		Intent intent = new Intent(this, TrainGestureListActivity.class);
