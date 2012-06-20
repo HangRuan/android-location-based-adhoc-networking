@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, ProjectAActivity!</string>
-    <string name="app_name">Project A</string>
-    <string name="fireLabel">Fire Event</string>
-    <string name="evacPointLabel">Local Evacuation</string>
-    <string name="evacAllLabel">Evacuate All</string>
-    <string name="wifi_channel">Wifi Channel</string>
-    <string name="geoMessage">Geo Message</string>
-    <string name="broadcastMessage">Broadcast Message</string>
-    <string name="start_auto_send">Start Auto Send</string>
-    <string name="stop_auto_send">Stop Auto Send</string>
+    
+    <string name="app_name">AugmentedReality</string>
 </resources>

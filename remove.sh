@@ -1,0 +1,16 @@
+rm -rf ./javadocs/com/jwetherell/augmented_reality/common/.svn
+rm -rf ./javadocs/com/jwetherell/augmented_reality/data/.svn
+rm -rf ./javadocs/com/jwetherell/augmented_reality/ui/.svn
+rm -rf ./javadocs/com/jwetherell/augmented_reality/ui/objects/.svn
+rm -rf ./javadocs/resources/.svn
+rm -rf ./res/values/.svn
+rm -rf ./src/com/.svn
+rm -rf ./src/com/jwetherell/.svn
+rm -rf ./src/com/jwetherell/augmented_reality/.svn
+rm -rf ./src/com/jwetherell/augmented_reality/activity/.svn
+rm -rf ./src/com/jwetherell/augmented_reality/camera/.svn
+rm -rf ./src/com/jwetherell/augmented_reality/common/.svn
+rm -rf ./src/com/jwetherell/augmented_reality/data/.svn
+rm -rf ./src/com/jwetherell/augmented_reality/ui/.svn
+rm -rf ./src/com/jwetherell/augmented_reality/ui/objects/.svn
+rm -rf ./src/com/jwetherell/augmented_reality/widget/.svn
