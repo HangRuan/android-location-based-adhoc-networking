@@ -357,7 +357,12 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		String networkName = "eth0 ";
 		if (Build.VERSION.SDK_INT == Build.VERSION_CODES.ICE_CREAM_SANDWICH) 
 		{
-			cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329_apsta.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
+			cmd1 = "busybox insmod /system/lib/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329_apsta.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
+		}
+		else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.HONEYCOMB || Build.VERSION.SDK_INT == Build.VERSION_CODES.HONEYCOMB_MR1 || 
+				Build.VERSION.SDK_INT == Build.VERSION_CODES.HONEYCOMB_MR2)
+		{
+			cmd1 = "busybox insmod /lib/modules/dhd.ko firmware_path=/system/etc/wifi/bcm4330_aps.bin nvram_path=/system/etc/wifi/nvram_net.txt_us\n";
 		}
 //		else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.GINGERBREAD_MR1)
 //		{

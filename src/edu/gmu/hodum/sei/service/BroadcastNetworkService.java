@@ -54,7 +54,7 @@ public class BroadcastNetworkService extends Service implements Sender, Receiver
 				new SendDataAsyncTask().execute(intent.getExtras(),null);
 			}
 		}
-		return START_STICKY;
+		return START_NOT_STICKY;
 	}
 
 	@Override
