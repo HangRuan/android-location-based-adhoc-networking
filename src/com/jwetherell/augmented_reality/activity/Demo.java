@@ -129,6 +129,11 @@ public class Demo extends AugmentedReality {
 		case R.id.exit:
 			finish();
 			break;
+		case R.id.switchPlanType:
+			patrolPlan = !patrolPlan;
+			item.setTitle("Switch to: " +((patrolPlan)? "Patrol":"Humanitarian"));
+			contextData.setTypeOfPlan((patrolPlan)? "Patrol":"Humanitarian");
+			ARData.clearAndAddMarkers(contextData.getMarkers());
 		}
 		return true;
 	}

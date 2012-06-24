@@ -5,6 +5,9 @@
     <item android:id="@+id/showZoomBar" 
           android:title="Hide Zoom Bar">
     </item>
+    <item android:id="@+id/switchPlanType" 
+          android:title="Switch to: Humanitarian">
+    </item>
     <item android:id="@+id/exit" 
           android:title="Exit">
     </item>
