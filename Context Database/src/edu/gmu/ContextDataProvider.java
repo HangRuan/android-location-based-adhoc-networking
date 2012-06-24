@@ -774,6 +774,81 @@ public class ContextDataProvider {
 			objective1.put("objective_type_id", getObjectiveTypeId(db,"Patrol"));
 			objective1.put("space_time_id", space_time_row);
 			row = db.insert(OBJECTIVE_TABLE, null, objective1);
+			
+			
+			//Add a Humanitarian Objective
+			space_time = new ContentValues();
+			space_time.put("timestamp",System.currentTimeMillis());
+			space_time_row = db.insert(SPACE_TIME, null, space_time);
+
+			location = new ContentValues();
+			location.put("latitude", 35.349157);
+			location.put("longitude", -116.597363);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", getLocationTypeId(db,"GPS"));
+			row = db.insert(LOCATION, null, location);
+			
+			location = new ContentValues();
+			location.put("latitude", 35.349352);
+			location.put("longitude", -116.595315);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", getLocationTypeId(db,"GPS"));
+			row = db.insert(LOCATION, null, location);
+			
+			location = new ContentValues();
+			location.put("latitude", 35.349464);
+			location.put("longitude", -116.594274);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", getLocationTypeId(db,"GPS"));
+			row = db.insert(LOCATION, null, location);
+			
+			location = new ContentValues();
+			location.put("latitude", 35.350360);
+			location.put("longitude", -116.594896);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", getLocationTypeId(db,"GPS"));
+			row = db.insert(LOCATION, null, location);
+			
+			location = new ContentValues();
+			location.put("latitude", 35.350390);
+			location.put("longitude", -116.593678);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", getLocationTypeId(db,"GPS"));
+			row = db.insert(LOCATION, null, location);
+			
+			location = new ContentValues();
+			location.put("latitude", 35.350612);
+			location.put("longitude", -116.593081);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", getLocationTypeId(db,"GPS"));
+			row = db.insert(LOCATION, null, location);
+			
+			location = new ContentValues();
+			location.put("latitude", 35.349893);
+			location.put("longitude", -116.591055);
+			location.put("elevation", 125.5);
+			location.put("time", System.currentTimeMillis());
+			location.put("space_time_id", space_time_row);
+			location.put("type_id", getLocationTypeId(db,"GPS"));
+			row = db.insert(LOCATION, null, location);
+			
+			ContentValues objective2 = new ContentValues();
+			objective1.put("description", "Patrol");
+			objective1.put("objective_type_id", getObjectiveTypeId(db,"Humanitarian"));
+			objective1.put("space_time_id", space_time_row);
+			row = db.insert(OBJECTIVE_TABLE, null, objective1);
 		}
 
 		@Override
@@ -904,6 +979,13 @@ public class ContextDataProvider {
 			
 			return ret;
 		}
+		
+		private Cursor getPersonTypeForPerson(Long id)
+		{
+			String sql = "SELECT PersonType.type from person_type PersonType, person p where p.id=" + id.longValue() +
+			" AND p.person_type_id = VehicleType.id";
+			return getReadableDatabase().rawQuery(sql,	null);
+		}
 
 		private long insertPerson(ContentValues values)
 		{
@@ -965,8 +1047,8 @@ public class ContextDataProvider {
 
 		private Cursor getVehicleTypeForVehicle(Long id)
 		{
-			String sql = "SELECT VehicleType.type from vehicle_type VehicleType, resource r where r.id=" + id.longValue() +
-			" AND r.vehicle_type_id = VehicleType.id";
+			String sql = "SELECT VehicleType.type from vehicle_type VehicleType, vehicle v where v.id=" + id.longValue() +
+			" AND v.vehicle_type_id = VehicleType.id";
 			return getReadableDatabase().rawQuery(sql,	null);
 		}
 
@@ -1077,7 +1159,7 @@ public class ContextDataProvider {
 			ContentValues landmark1 = new ContentValues();
 			landmark1.put("description", thing.getDescription());
 			landmark1.put("current_rating",thing.getFriendliness());
-			landmark1.put("landmark_type_id", getLandmarkTypeId(db, thing.getSubType()));
+//			landmark1.put("landmark_type_id", getLandmarkTypeId(db, thing.getSubType()));
 			landmark1.put("space_time_id", space_time_row);
 			long landmark = db.insert(LANDMARK_TABLE, null, landmark1);
 
@@ -1118,7 +1200,7 @@ public class ContextDataProvider {
 			vehicle1.put("description", thing.getDescription());
 			vehicle1.put("color", "");
 			vehicle1.put("current_rating",thing.getFriendliness());
-			vehicle1.put("vehicle_type_id", getVehicleTypeId(db, thing.getSubType()));
+//			vehicle1.put("vehicle_type_id", getVehicleTypeId(db, thing.getSubType()));
 			vehicle1.put("space_time_id", space_time_row);
 			long vehicle_row = db.insert(VEHICLE_TABLE, null, vehicle1);
 
@@ -1181,10 +1263,28 @@ public class ContextDataProvider {
 					null, null, null, null);
 		}
 		
+		private Cursor getHumanitarianObjective()
+		{
+			SQLiteDatabase db = getReadableDatabase();
+			Long objTypeId = getObjectiveTypeId(db,"Humanitarian");
+			return db.query(true, "objective", null,
+					"objective_type_id=?", new String[] {Long.toString(objTypeId)},
+					null, null, null, null);
+		}
+		
 		private Cursor getCurrentLocationForObjective(Long id)
 		{
 			String sql = "SELECT loc.* from location loc, space_time st, objective obj where obj.id=" + id.longValue() +
 			" AND obj.space_time_id = st.id AND loc.space_time_id = st.id ORDER BY loc.time";
+			return getReadableDatabase().rawQuery(sql,	null);
+		}
+		
+		private Cursor getVehicleRelevanceFactor(Long thingID, Long objectiveID)
+		{
+			
+			String sql = "SELECT rel.* from " + OBJECTIVE_VEHICLE_RELEVANCE + " rel, objective obj, vehicle veh " +
+			"where veh.id=" + thingID.longValue() + " AND veh.vehicle_type_id = rel.vehicle_type_id AND " +
+			"obj.objective_type_id = rel.objective_type_id AND obj.id = " + objectiveID.longValue();
 			return getReadableDatabase().rawQuery(sql,	null);
 		}
 
@@ -1222,17 +1322,22 @@ public class ContextDataProvider {
 	public Cursor getCurrentLocationForPerson(Long id)
 	{
 		Cursor cur = mOpenHelper.getCurrentLocationForPerson( id);
-		int rows = cur.getCount();
-		if(rows >0)
-		{
-			cur.moveToFirst();
-			Double lat = cur.getDouble(cur.getColumnIndex("latitude"));
-			System.out.println("Lat:" + lat);
-		}
+//		int rows = cur.getCount();
+//		if(rows >0)
+//		{
+//			cur.moveToFirst();
+//			Double lat = cur.getDouble(cur.getColumnIndex("latitude"));
+//			System.out.println("Lat:" + lat);
+//		}
 
 		return cur;
 	}
 
+	public Cursor getPersonTypeForPerson(Long id)
+	{
+		return mOpenHelper.getPersonTypeForPerson(id);
+	}
+	
 	public Cursor getVehicles()
 	{
 		return mOpenHelper.getVehicles();
@@ -1241,15 +1346,20 @@ public class ContextDataProvider {
 	public Cursor getCurrentLocationForVehicle(Long id)
 	{
 		Cursor cur = mOpenHelper.getCurrentLocationForVehicle( id);
-		int rows = cur.getCount();
-		if(rows >0)
-		{
-			cur.moveToFirst();
-			Double lat = cur.getDouble(cur.getColumnIndex("latitude"));
-			System.out.println("Lat:" + lat);
-		}
+//		int rows = cur.getCount();
+//		if(rows >0)
+//		{
+//			cur.moveToFirst();
+//			Double lat = cur.getDouble(cur.getColumnIndex("latitude"));
+//			System.out.println("Lat:" + lat);
+//		}
 
 		return cur;
+	}
+	
+	public Cursor getVehicleTypeForVehicle(Long id)
+	{
+		return mOpenHelper.getVehicleTypeForVehicle(id);
 	}
 
 	public Cursor getLandmarks()
@@ -1260,13 +1370,13 @@ public class ContextDataProvider {
 	public Cursor getCurrentLocationForLandmark(Long id)
 	{
 		Cursor cur = mOpenHelper.getCurrentLocationForLandmark( id);
-		int rows = cur.getCount();
-		if(rows >0)
-		{
-			cur.moveToFirst();
-			Double lat = cur.getDouble(cur.getColumnIndex("latitude"));
-			System.out.println("Lat:" + lat);
-		}
+//		int rows = cur.getCount();
+//		if(rows >0)
+//		{
+//			cur.moveToFirst();
+//			Double lat = cur.getDouble(cur.getColumnIndex("latitude"));
+//			System.out.println("Lat:" + lat);
+//		}
 
 		return cur;
 	}
@@ -1275,17 +1385,22 @@ public class ContextDataProvider {
 	{
 		return mOpenHelper.getResources();
 	}
+	
+	public Cursor getResourceTypeForResource(Long id)
+	{
+		return mOpenHelper.getResourceTypeForResource(id);
+	}
 
 	public Cursor getCurrentLocationForResource(Long id)
 	{
 		Cursor cur = mOpenHelper.getCurrentLocationForResource( id);
-		int rows = cur.getCount();
-		if(rows >0)
-		{
-			cur.moveToFirst();
-			Double lat = cur.getDouble(cur.getColumnIndex("latitude"));
-			System.out.println("Lat:" + lat);
-		}
+//		int rows = cur.getCount();
+//		if(rows >0)
+//		{
+//			cur.moveToFirst();
+//			Double lat = cur.getDouble(cur.getColumnIndex("latitude"));
+//			System.out.println("Lat:" + lat);
+//		}
 
 		return cur;
 	}
@@ -1326,6 +1441,16 @@ public class ContextDataProvider {
 	public Cursor getPatrolObjective()
 	{
 		return mOpenHelper.getPatrolObjective();
+	}
+	
+	public Cursor getHumanitarianObjective()
+	{
+		return mOpenHelper.getHumanitarianObjective();
+	}
+	
+	public Cursor getVehicleRelevanceFactor(Long thingID, Long objectiveID)
+	{
+		return mOpenHelper.getVehicleRelevanceFactor(thingID, objectiveID);
 	}
 	
 	public Cursor getCurrentLocationForObjective(Long id)

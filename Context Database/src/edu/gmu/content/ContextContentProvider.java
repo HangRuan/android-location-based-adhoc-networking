@@ -37,6 +37,8 @@ public class ContextContentProvider extends ContentProvider {
 	private static final int PATROL_OBJECTIVE = 15;
 	private static final int HUMANITARIAN_OBJECTIVE = 16;
 	private static final int PATROL_OBJECTIVE_ROUTE = 17;
+	private static final int HUMANITARIAN_OBJECTIVE_ROUTE = 19;	
+	private static final int VEHICLE_OBJECTIVE_RELEVANCE = 18;
 	
 	public static final String baseURI = "edu.gmu.provider";
 	
@@ -60,6 +62,9 @@ public class ContextContentProvider extends ContentProvider {
 		sUriMatcher.addURI(baseURI + ".cursor.dir","objective/patrol",PATROL_OBJECTIVE);
 		sUriMatcher.addURI(baseURI + ".cursor.dir","objective/humanitarian",HUMANITARIAN_OBJECTIVE);
 		sUriMatcher.addURI(baseURI + ".cursor.dir","objective/patrol/route",PATROL_OBJECTIVE_ROUTE);
+		sUriMatcher.addURI(baseURI + ".cursor.dir","objective/humanitarian/route",HUMANITARIAN_OBJECTIVE_ROUTE);
+		
+		sUriMatcher.addURI(baseURI + ".cursor.dir","objective/vehicle_objective_relevance/#",VEHICLE_OBJECTIVE_RELEVANCE);
 		
 //		sUriMatcher.addURI(baseURI,"vehicle",ALL_VEHICLES);
 //		sUriMatcher.addURI(baseURI,"vehicle/#",SINGLE_VEHICLE);
@@ -178,6 +183,12 @@ public class ContextContentProvider extends ContentProvider {
 			ret = db.getPatrolObjective();
 			break;
 		case PATROL_OBJECTIVE_ROUTE:
+			ret = db.getCurrentLocationForObjective(Long.parseLong(selectionArgs[0]));
+			break;
+		case HUMANITARIAN_OBJECTIVE:
+			ret = db.getHumanitarianObjective();
+			break;
+		case HUMANITARIAN_OBJECTIVE_ROUTE:
 			ret = db.getCurrentLocationForObjective(Long.parseLong(selectionArgs[0]));
 			break;
 		default:
