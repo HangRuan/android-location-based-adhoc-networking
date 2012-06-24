@@ -1,5 +1,7 @@
 package edu.gmu.hodum;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 import edu.gmu.hodum.sei.common.*;
@@ -21,7 +23,22 @@ public class ContentDatabaseAPI {
 
 	private static final String baseURI = "content://edu.gmu.provider.cursor.dir";
 
-	
+	private static Map<Thing.Type,Double> humanitarianRelevances = new HashMap<Thing.Type, Double> ();
+	private static Map<Thing.Type,Double> patrolRelevances = new HashMap<Thing.Type, Double> ();
+	static
+	{
+		humanitarianRelevances.put(Thing.Type.PERSON, new Double(-990));
+		humanitarianRelevances.put(Thing.Type.LANDMARK, new Double(990));
+		humanitarianRelevances.put(Thing.Type.RESOURCE, new Double(-990));
+		humanitarianRelevances.put(Thing.Type.VEHICLE, new Double(990));
+
+		patrolRelevances.put(Thing.Type.PERSON, new Double(990));
+		patrolRelevances.put(Thing.Type.LANDMARK, new Double(-990));
+		patrolRelevances.put(Thing.Type.RESOURCE, new Double(990));
+		patrolRelevances.put(Thing.Type.VEHICLE, new Double(-990));
+	}
+
+	private Map<Thing.Type,Double> current = patrolRelevances;
 	private Context ctxt;
 
 	public ContentDatabaseAPI(Context ctxt_)
@@ -51,7 +68,15 @@ public class ContentDatabaseAPI {
 
 	public Vector<Thing> getThings(double latLL, double longLL, double latUR, double longUR)
 	{
-		Objective patrolObjective = getPatrolObjective();
+		Objective objective;
+		if(current == patrolRelevances)
+		{
+			objective = getPatrolObjective();
+		}
+		else
+		{
+			objective = getHumanitarianObjective();
+		}
 		Vector<Thing> ret = new Vector<Thing>();
 		ContentResolver cr = ctxt.getContentResolver();
 
@@ -78,8 +103,8 @@ public class ContentDatabaseAPI {
 
 					thng.setRelevance(java.lang.Math.random());
 					thng.setDescription(cur.getString(cur.getColumnIndex("description")));
-					
-					
+
+
 					thng.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
 
 					thng.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
@@ -87,7 +112,7 @@ public class ContentDatabaseAPI {
 					thng.setElevation(cur2.getDouble(cur2.getColumnIndex("elevation")));
 					if(thng.getLatitude()> latLL && thng.getLatitude() <latUR && thng.getLongitude()>longLL && thng.getLongitude()<longUR)
 					{
-						thng.setRelevance(calculateRelevance(thng,patrolObjective));
+						thng.setRelevance(calculateRelevance(thng,objective));
 						ret.add(thng);
 					}
 				}
@@ -117,8 +142,8 @@ public class ContentDatabaseAPI {
 
 					thng.setRelevance(java.lang.Math.random());
 					thng.setDescription(cur.getString(cur.getColumnIndex("description")));
-					
-					
+
+
 					thng.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
 
 					thng.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
@@ -126,7 +151,7 @@ public class ContentDatabaseAPI {
 					thng.setElevation(cur2.getDouble(cur2.getColumnIndex("elevation")));
 					if(thng.getLatitude()> latLL && thng.getLatitude() <latUR && thng.getLongitude()>longLL && thng.getLongitude()<longUR)
 					{
-						thng.setRelevance(calculateRelevance(thng,patrolObjective));
+						thng.setRelevance(calculateRelevance(thng,objective));
 						ret.add(thng);
 					}
 				}
@@ -156,7 +181,7 @@ public class ContentDatabaseAPI {
 
 					thng.setRelevance(java.lang.Math.random());
 					thng.setDescription(cur.getString(cur.getColumnIndex("description")));
-					
+
 					thng.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
 
 					thng.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
@@ -164,7 +189,7 @@ public class ContentDatabaseAPI {
 					thng.setElevation(cur2.getDouble(cur2.getColumnIndex("elevation")));
 					if(thng.getLatitude()> latLL && thng.getLatitude() <latUR && thng.getLongitude()>longLL && thng.getLongitude()<longUR)
 					{
-						thng.setRelevance(calculateRelevance(thng,patrolObjective));
+						thng.setRelevance(calculateRelevance(thng,objective));
 						ret.add(thng);
 					}
 				}
@@ -192,9 +217,9 @@ public class ContentDatabaseAPI {
 					thng.setId(cur.getLong(cur.getColumnIndex("id")));
 					thng.setFriendliness(cur.getDouble(cur.getColumnIndex("current_rating")));
 
-					
+
 					thng.setDescription(cur.getString(cur.getColumnIndex("description")));
-					
+
 					thng.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
 
 					thng.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
@@ -202,7 +227,7 @@ public class ContentDatabaseAPI {
 					thng.setElevation(cur2.getDouble(cur2.getColumnIndex("elevation")));
 					if(thng.getLatitude()> latLL && thng.getLatitude() <latUR && thng.getLongitude()>longLL && thng.getLongitude()<longUR)
 					{
-						thng.setRelevance(calculateRelevance(thng,patrolObjective));
+						thng.setRelevance(calculateRelevance(thng,objective));
 						ret.add(thng);
 					}
 				}
@@ -212,9 +237,10 @@ public class ContentDatabaseAPI {
 		cur.close();
 		return ret;
 	}
-	
+
 	public Objective getPatrolObjective()
 	{
+		current = patrolRelevances;
 		ContentResolver cr = ctxt.getContentResolver();
 		Objective ret = null;
 		Cursor cur = cr.query(Uri.parse( baseURI+"/objective/patrol"), null, null, null, null); 
@@ -236,13 +262,13 @@ public class ContentDatabaseAPI {
 				for(int i=0; i<cur2.getCount(); i++)
 				{
 					Location loc = new Location("Other");
-				
+
 					loc.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
 
 					loc.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
 
 					loc.setAltitude(cur2.getDouble(cur2.getColumnIndex("elevation")));
-					
+
 					ret.addLocation(loc);
 					cur2.moveToNext();
 				}
@@ -250,13 +276,54 @@ public class ContentDatabaseAPI {
 		}
 		return ret;
 	}
-	
+
+
+	public Objective getHumanitarianObjective()
+	{
+		current = humanitarianRelevances;
+		ContentResolver cr = ctxt.getContentResolver();
+		Objective ret = null;
+		Cursor cur = cr.query(Uri.parse( baseURI+"/objective/humanitarian"), null, null, null, null); 
+		if(cur == null)
+		{
+			System.out.println("Damnit!");
+		}
+		else
+		{
+			if(cur.moveToFirst())
+			{
+				Long id = cur.getLong(cur.getColumnIndex("id"));
+				ret = new Objective();
+				ret.setId(id);
+				ret.setDescription(cur.getString(cur.getColumnIndex("description")));
+				ret.setType(Objective.ObjectiveType.PATROL);
+				Cursor cur2 = cr.query(Uri.parse( baseURI+"/objective/humanitarian/route"), null, null, new String[]{String.valueOf(id.longValue())}, null);
+				cur2.moveToFirst();
+				for(int i=0; i<cur2.getCount(); i++)
+				{
+					Location loc = new Location("Other");
+
+					loc.setLatitude(cur2.getDouble(cur2.getColumnIndex("latitude")));
+
+					loc.setLongitude(cur2.getDouble(cur2.getColumnIndex("longitude")));
+
+					loc.setAltitude(cur2.getDouble(cur2.getColumnIndex("elevation")));
+
+					ret.addLocation(loc);
+					cur2.moveToNext();
+				}
+			}
+		}
+		return ret;
+	}
+
+
 	private double calculateRelevance(Thing thing, Objective objective)
 	{
 		double ret = Double.POSITIVE_INFINITY;
-		
+
 		Vector<Location> locations = objective.getLocations();
-		
+
 		for(int i=0; i<locations.size()-1;i++)
 		{
 			Location a = locations.get(i);
@@ -271,7 +338,7 @@ public class ContentDatabaseAPI {
 			}
 		}
 		ret *= 100000;
-		
+		ret += current.get(thing.getType());
 		return ret;
 	}
 }
