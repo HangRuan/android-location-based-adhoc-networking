@@ -92,15 +92,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 	public static String mPackageName;
 	private static Context mApplicationContext;
 
-	//private boolean isRecognizing = false;
-	//private boolean isLearning = false;
-
 	private float mLastX, mLastY, mLastZ;
 	private boolean mInitialized;
-
-	//private Lock allowLock = new ReentrantLock();
-	//private boolean isAllowed = true;
-	//private Timer allowTimer = null;
 
 	private SensorEvtManager sensorEvtManager;
 	Lock evtLock = new ReentrantLock();
@@ -115,7 +108,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 	private static RecognizerState STATE;
 
 	private static int gestureCount;
-	//private static boolean learningMode;
 
 	boolean mListenersRegistered; //are the sensor listeners registered
 
@@ -375,7 +367,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 		//get compass values
 		if(event.sensor.getType() == Sensor.TYPE_ORIENTATION){
-			//System.out.println("Compass value: "+x);
 			compassVal = x;
 		}
 		//get accelerometer values
@@ -427,17 +418,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 		gestureCount = 0;
 	}
 
-	/*
-	public static synchronized void setLearningMode(boolean val){
-		gestureCount = 0;
-		//learningMode = val;
-	}
-	 */
-	/*
-	synchronized boolean getLearningMode(){
-		return learningMode;
-	}
-	 */
 	public void gestureReceived(GestureEvent event){
 
 		evtLock.lock();
@@ -458,7 +438,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 				Log.d(TAG, "Gesture received " + gesture);
 
 				//Choice Mode Gestures
-				if(GestureRecognizerService.getState() == RecognizerState.CHOICE_ACTIVATED){
+				if(GestureRecognizerService.getState() == RecognizerState.CHOICE_ACTIVATED ||
+						GestureRecognizerService.getState() == RecognizerState.CHOICE_DEACTIVATED){
 
 					if(gesture.equalsIgnoreCase(GestureRecognizerService.GO_NEXT_GESTURE)){
 						updateUI ("Go Forward");
@@ -501,9 +482,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 							}
 							choice = null;
 						}
-						else{
-
-						}
 					}
 					else if(gesture.equalsIgnoreCase(GestureRecognizerService.CANCEL_GESTURE)){
 						updateUI ("Canceled");
@@ -542,6 +520,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 						updateUI("Person Recognized");
 
 						updateUI("Point in the direction and shake");
+						resetGestures();
 						GestureRecognizerService.setState(RecognizerState.COMPASS_MODE);
 					}
 				}
@@ -588,19 +567,18 @@ public class GestureRecognizerService extends Service implements GestureListener
 		else {
 			updateUI((360-direction)+" degrees west of north");
 		}
+		
 		resetGestures();
-
-
 		if(mainGesture == PERSON_GESTURE){
+			GestureRecognizerService.setState(RecognizerState.CHOICE_DEACTIVATED);
 			setPath(GestureRecognizerService.PATH_CHOICE);
-			loadGestures();
-
+		
 			choice = new MetricDistanceChoice();
 
 			updateUI("How far away?");
 			updateUI(choice.getCurrentUIString());
-
-			GestureRecognizerService.setState(RecognizerState.CHOICE_DEACTIVATED);
+			loadGestures();
+			
 		}
 	}
 
@@ -610,43 +588,41 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 		//Learning the main gestures
 		if (state == RecognizerState.LEARNING_MAIN_DEACTIVATED){
-			GestureRecognizerService.startLearning();
 			GestureRecognizerService.setState(RecognizerState.LEARNING_MAIN_ACTIVATED);
+			GestureRecognizerService.startLearning();
 		}
 		else if (state == RecognizerState.LEARNING_MAIN_ACTIVATED){
-			GestureRecognizerService.stopLearning();
 			GestureRecognizerService.setState(RecognizerState.LEARNING_MAIN_DEACTIVATED);
 			Toast.makeText(this, GestureRecognizerService.CAPTURED + " "+ Integer.toString(++gestureCount), Toast.LENGTH_SHORT).show();
+			GestureRecognizerService.stopLearning();
 			updateUI("Gesture Captured");
 		}
 
 		//Learning the choice gestures
 		else if (state == RecognizerState.LEARNING_CHOICE_DEACTIVATED){
-			GestureRecognizerService.startLearning();
 			GestureRecognizerService.setState(RecognizerState.LEARNING_CHOICE_ACTIVATED);
-
+			GestureRecognizerService.startLearning();
 		}
 		else if(state == RecognizerState.LEARNING_CHOICE_ACTIVATED){
-			GestureRecognizerService.stopLearning();
-			Toast.makeText(this, GestureRecognizerService.CAPTURED + " "+ Integer.toString(++gestureCount), Toast.LENGTH_SHORT).show();
 			GestureRecognizerService.setState(RecognizerState.LEARNING_CHOICE_DEACTIVATED);
+			Toast.makeText(this, GestureRecognizerService.CAPTURED + " "+ Integer.toString(++gestureCount), Toast.LENGTH_SHORT).show();
 			updateUI("Gesture Captured");
+			GestureRecognizerService.stopLearning();
 		}
 
 		//Recognizing the main gestures
 		if (state == RecognizerState.MAIN_DEACTIVATED || 
 				state == RecognizerState.TEST_MAIN_DEACTIVATED){
-			GestureRecognizerService.startRecognizer();
 			if(state == RecognizerState.MAIN_DEACTIVATED){
 				GestureRecognizerService.setState(RecognizerState.MAIN_ACTIVATED);
 			}
 			else {
 				GestureRecognizerService.setState(RecognizerState.TEST_MAIN_ACTIVATED);
 			}
+			GestureRecognizerService.startRecognizer();
 		}
 		else if (state == RecognizerState.MAIN_ACTIVATED ||
 				state == RecognizerState.TEST_MAIN_ACTIVATED){
-			GestureRecognizerService.stopRecognizer();
 			if (state == RecognizerState.MAIN_ACTIVATED){
 				GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);
 			}
@@ -654,96 +630,35 @@ public class GestureRecognizerService extends Service implements GestureListener
 				GestureRecognizerService.setState(RecognizerState.TEST_MAIN_DEACTIVATED);
 			}
 			Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT).show();
+			GestureRecognizerService.stopRecognizer();
 		}
 
 		//Recognizing the choice gestures
 		if (state == RecognizerState.CHOICE_DEACTIVATED ||
 				state == RecognizerState.TEST_CHOICE_DEACTIVATED){
-			GestureRecognizerService.startRecognizer();
 			if(state == RecognizerState.CHOICE_DEACTIVATED){
 				GestureRecognizerService.setState(RecognizerState.CHOICE_ACTIVATED);
 			}
 			else{
 				GestureRecognizerService.setState(RecognizerState.TEST_CHOICE_ACTIVATED);
 			}
+			GestureRecognizerService.startRecognizer();
 		}
 		else if (state == RecognizerState.CHOICE_ACTIVATED ||
 				state == RecognizerState.TEST_CHOICE_ACTIVATED){
-			GestureRecognizerService.stopRecognizer();
+			
 			if(state == RecognizerState.CHOICE_ACTIVATED){
 				GestureRecognizerService.setState(RecognizerState.CHOICE_DEACTIVATED);	
 			}
 			else{
 				GestureRecognizerService.setState(RecognizerState.TEST_CHOICE_DEACTIVATED);
 			}
-
 			Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT).show();
+			GestureRecognizerService.stopRecognizer();
 		}
 
 	}
 
-
-	/*
-	public void triggerRecognizer(){
-
-		RecognizerState state = this.getState();
-		if(allowLock.tryLock()){
-			if(isAllowed){
-				//in a learning state
-				if( state == RecognizerState.LEARNING_CHOICE_ACTIVATED || 
-						state == RecognizerState.LEARNING_CHOICE_DEACTIVATED ||
-						state == RecognizerState.LEARNING_MAIN_ACTIVATED ||
-						state == RecognizerState.LEARNING_MAIN_DEACTIVATED ){
-
-					if (isLearning){
-						Toast.makeText(this, GestureRecognizerService.CAPTURED + " "+ Integer.toString(++gestureCount), Toast.LENGTH_SHORT).show();
-						GestureRecognizerService.stopLearning();
-					}
-					else{
-						//Toast.makeText(this, GestureRecognizerService.CAPTURE, Toast.LENGTH_SHORT).show();
-						GestureRecognizerService.startLearning();
-					}
-
-					isLearning = !isLearning;
-					isAllowed = false;
-					Log.d(TAG, "disallow");
-				}
-				else{
-					if (isRecognizing){
-						Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT).show();
-						GestureRecognizerService.stopRecognizer();
-					}
-					else{
-						Toast.makeText(this, GestureRecognizerService.CAPTURE, Toast.LENGTH_SHORT).show();
-						GestureRecognizerService.startRecognizer();
-					}
-
-					isRecognizing = !isRecognizing;
-					isAllowed = false;
-					Log.d(TAG, "disallow");
-				}
-
-				if (allowTimer != null){
-					allowTimer.cancel();
-				}
-
-				allowTimer = new Timer();
-				allowTimer.schedule(new AllowTask(), 1000);
-			}
-			allowLock.unlock();
-		}
-
-	}
-
-	private class AllowTask extends TimerTask{
-		public void run(){
-			allowLock.lock();
-			GestureRecognizerService.this.isAllowed = true;
-			Log.d(TAG, "allow");
-			allowLock.unlock();
-		}
-	}
-	 */
 	public void stateReceived(StateEvent event){
 		if (event.getState() == event.STATE_RECOGNIZING)
 			Log.d(TAG, "State is RECOGNIZING");
