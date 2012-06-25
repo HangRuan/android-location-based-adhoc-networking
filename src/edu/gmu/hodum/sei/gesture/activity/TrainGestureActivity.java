@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import edu.gmu.hodum.sei.gesture.R;
 import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
 import edu.gmu.hodum.sei.gesture.service.RecognizerState;
@@ -12,6 +13,7 @@ import edu.gmu.hodum.sei.gesture.service.RecognizerState;
 public class TrainGestureActivity extends Activity{
 	private int gestureId;
 	private String gesturePath;
+	private String gestureName;
 	private static final String TAG = "traingesture";
 
 	public void onCreate(Bundle savedInstanceState){
@@ -20,32 +22,33 @@ public class TrainGestureActivity extends Activity{
 
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.train);
+		
+		TextView label = (TextView) this.findViewById(R.id.label);
+		
+		TextView instructions = (TextView) this.findViewById(R.id.instructions);
 
 		Bundle bundle = getIntent().getExtras();
 		gestureId = bundle.getInt(TrainGestureListActivity.GESTURE_ID);
 		gesturePath = bundle.getString(TrainGestureListActivity.GESTURE_PATH);
 		
-		//GestureRecognizerService.setLearningMode(true);
 		GestureRecognizerService.resetGestureCount();
 		if(gesturePath.equals(GestureRecognizerService.PATH_MAIN)){
 			GestureRecognizerService.setState(RecognizerState.LEARNING_MAIN_DEACTIVATED);
+			gestureName = GestureRecognizerService.GESTURE_NAMES_MAIN[gestureId];
+			instructions.setText("Shake three times to start training.");
 		}
 		else{
 			GestureRecognizerService.setState(RecognizerState.LEARNING_CHOICE_DEACTIVATED);
+			gestureName = GestureRecognizerService.GESTURE_NAMES_CHOICE[gestureId];
+			instructions.setText("Shake once to start training.");
 		}
+		label.setText(gestureName);
 	}
 
 	public void btnDone_onClick(View view){
 		
 		//saves the gesture to file, and closes the activity
-		String gestureName;
 		
-		if(gesturePath.equals(GestureRecognizerService.PATH_MAIN)){
-			gestureName = GestureRecognizerService.GESTURE_NAMES_MAIN[gestureId];
-		}
-		else{
-			gestureName = GestureRecognizerService.GESTURE_NAMES_CHOICE[gestureId];	
-		}
 		GestureRecognizerService.finalizeLearning();
 		GestureRecognizerService.setPath(gesturePath);
 		GestureRecognizerService.saveGesture(gestureName);
