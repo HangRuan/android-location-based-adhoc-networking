@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
@@ -44,9 +43,6 @@ import android.view.KeyEvent;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 import control.Andgee;
-import edu.gmu.hodum.sei.common.SimpleXMLSerializer;
-import edu.gmu.hodum.sei.common.Thing;
-import edu.gmu.hodum.sei.common.Thing.Type;
 import edu.gmu.hodum.sei.gesture.R;
 import edu.gmu.hodum.sei.gesture.activity.MainActivity;
 import edu.gmu.hodum.sei.gesture.util.GeoMath;
@@ -55,8 +51,7 @@ import event.GestureEvent;
 import event.GestureListener;
 import event.StateEvent;
 
-public class GestureRecognizerService extends Service implements GestureListener, SensorEventListener, OnInitListener, OnUtteranceCompletedListener
-{
+public class GestureRecognizerService extends Service implements GestureListener, SensorEventListener, OnInitListener, OnUtteranceCompletedListener{
 	private static final String TAG = "gestureSvc";
 	private static final int LEARN_KEY = KeyEvent.KEYCODE_T;
 	private static final int RECOGNIZE_KEY = KeyEvent.KEYCODE_SPACE;
@@ -498,6 +493,25 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 								GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);
 							}
+							else if(mainGesture.equals(GestureRecognizerService.LANDMARK_GESTURE)){
+								Location start = getCurrentLocation();
+
+								System.out.println("CompassVal: "+compassValHolder);
+								Location end = GeoMath.getLocationFromStartBearingAndDistance2(
+										start,
+										compassValHolder,
+										Float.parseFloat(choice.getCurrentVal()));
+								System.out.println("Landmark Location: "+end.getLatitude()+","+end.getLongitude());
+
+								resetGestures();
+								setPath(GestureRecognizerService.PATH_MAIN);
+								loadGestures();
+
+								updateUI ("Sending Landmark Broadcast");
+								Broadcaster.sendBroadcastLandmark(end, this);
+
+								GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);
+							}
 							choice = null;
 						}
 					}
@@ -516,6 +530,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 					if (gesture.equalsIgnoreCase(GestureRecognizerService.SUPPLIES_GESTURE)){
 						updateUI(this.getResources().getString(R.string.supplies));
 
+						updateUI ("Sending Supplies Broadcast");
 						Broadcaster.sendBroadcastResource(getCurrentLocation(), this);
 						GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);
 					}
@@ -590,7 +605,9 @@ public class GestureRecognizerService extends Service implements GestureListener
 		}
 		
 		resetGestures();
-		if(mainGesture == PERSON_GESTURE){
+		if(mainGesture == PERSON_GESTURE ||
+				mainGesture == LANDMARK_GESTURE ||
+				mainGesture == VEHICLE_GESTURE){
 			GestureRecognizerService.setState(RecognizerState.CHOICE_DEACTIVATED);
 			setPath(GestureRecognizerService.PATH_CHOICE);
 		
@@ -599,7 +616,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 			updateUI("How far away?");
 			updateUI(choice.getCurrentUIString());
 			loadGestures();
-			
 		}
 	}
 

@@ -2,7 +2,7 @@ package edu.gmu.hodum.sei.gesture.service;
 
 public class MetricDistanceChoice implements GestureChoice{
 
-	private String[] vals = new String[]{"1 meter", "2 meters", "5 meters", "10 meters", "20 meters", "50 meters", "100 meters", "200 meters", "500 meters"};
+	private String[] vals = new String[]{"10 meters", "20 meters", "50 meters", "100 meters", "200 meters", "500 meters"};
 	private int index = 0;
 	private int num = 1;
 
@@ -49,22 +49,17 @@ public class MetricDistanceChoice implements GestureChoice{
 		int val = num;
 
 		switch (index){
-		case 0: val = 1;
-		case 1: val = 2;
+		case 0: val = 10;
 		break;
-		case 2: val = 5;
+		case 1: val = 20;
 		break;
-		case 3: val = 10;
+		case 2: val = 50;
 		break;
-		case 4: val = 20;
+		case 3: val = 100;
 		break;
-		case 5: val = 50;
+		case 4: val = 200;
 		break;
-		case 6: val = 100;
-		break;
-		case 7: val = 200;
-		break;
-		case 8: val = 500;
+		case 5: val = 500;
 		break;
 		default: val = 0;
 		break;

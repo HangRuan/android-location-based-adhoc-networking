@@ -60,6 +60,8 @@ public class GeoMath {
 	
 	public static Location getLocationFromStartBearingAndDistance2(Location location, float angle, float distance){
 
+		distance = distance / 1000f;
+		
 		double lat1 = location.getLatitude() * Math.PI / 180;
 		double lon1 = location.getLongitude()* Math.PI / 180;
 		double bearing = angle *Math.PI / 180;

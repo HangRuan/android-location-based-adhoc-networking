@@ -51,7 +51,7 @@ public class Broadcaster {
 		System.out.println("SendBroadcast Person");
 
 		Thing thing = new Thing();
-		thing.setDescription("Testing with Location!");
+		thing.setDescription("A Person ");
 		thing.setElevation(230.0);
 		thing.setLatitude(loc.getLatitude());
 		thing.setLongitude(loc.getLongitude());
