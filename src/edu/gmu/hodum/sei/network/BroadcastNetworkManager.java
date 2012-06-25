@@ -352,6 +352,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 	public void initNetwork(String channel) {
 		String val = null;
 		
+		String cmd0 =null;
 		String cmd1;
 		String cmd1a = null;
 		String networkName = "eth0 ";
@@ -362,6 +363,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 		else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.HONEYCOMB || Build.VERSION.SDK_INT == Build.VERSION_CODES.HONEYCOMB_MR1 || 
 				Build.VERSION.SDK_INT == Build.VERSION_CODES.HONEYCOMB_MR2)
 		{
+			cmd0 = "busybox rmmod dhd.ko";
 			cmd1 = "busybox insmod /lib/modules/dhd.ko firmware_path=/system/etc/wifi/bcm4330_aps.bin nvram_path=/system/etc/wifi/nvram_net.txt_us\n";
 		}
 //		else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.GINGERBREAD_MR1)
@@ -372,12 +374,16 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 //		}
 		else
 		{
+			cmd0 = "busybox rmmod bcm4329.ko";
 			cmd1 = "busybox insmod /system/modules/bcm4329.ko firmware_path=/system/vendor/firmware/fw_bcm4329.bin nvram_path=/system/vendor/firmware/nvram_net.txt\n";
 		}
 		ipAddress = Constants.networkPrefix +  String.valueOf((int)(100*Math.random()));
 		{
 			try {
 
+				
+				wifi.setWifiEnabled(false);
+				Thread.sleep(5000);
 				String su = "su";
 				String cmd2 = "ifconfig " + networkName  + ipAddress + " netmask 255.255.255.0\n";// getFilesDir() + "/" + Constants.NEXUS_SCRIPT1 + " load \n";
 				String cmd3 = context.getFilesDir() + "/" + "iwconfig " + networkName + "mode ad-hoc\n";
@@ -389,6 +395,7 @@ public class BroadcastNetworkManager implements NetworkManager, Sender {
 				DataOutputStream  output=new DataOutputStream(p.getOutputStream());
 				InputStream inputStrm = p.getInputStream();
 				InputStream errorStrm = p.getErrorStream();
+//				output.writeBytes(cmd0);
 				output.writeBytes(cmd1);
 				if(cmd1a != null)
 				{
