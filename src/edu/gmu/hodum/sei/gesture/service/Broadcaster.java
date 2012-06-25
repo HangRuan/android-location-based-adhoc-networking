@@ -156,7 +156,7 @@ public class Broadcaster {
 	public static void sendBroadcastResource(Location loc, Context context){
 
             Thing thing = new Thing();
-            thing.setDescription("Testing!");
+            thing.setDescription("Supplies!");
             thing.setElevation(230.0);
             thing.setLatitude(loc.getLatitude());
             thing.setLongitude(loc.getLongitude());
