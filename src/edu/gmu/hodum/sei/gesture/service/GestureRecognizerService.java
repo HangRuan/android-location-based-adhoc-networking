@@ -65,9 +65,10 @@ public class GestureRecognizerService extends Service implements GestureListener
 	public static final String CAPTURE = "Capturing gesture";
 	public static final String CAPTURED = "Gesture captured";
 
-	public static final String SOS_GESTURE = "SOS";
+	public static final String LANDMARK_GESTURE = "Landmark";
 	public static final String SUPPLIES_GESTURE = "Supplies";
 	public static final String PERSON_GESTURE = "Person";
+	public static final String VEHICLE_GESTURE = "Vehicle";
 
 	public static final String GO_NEXT_GESTURE = "Go Forward";
 	public static final String GO_BACK_GESTURE = "Go Back";
@@ -77,7 +78,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 	public static final Andgee mAndgee = Andgee.getInstance();
 	public static final Map<Integer, String> GestureIdMapping = new HashMap<Integer, String>();
 
-	public static final String[] GESTURE_NAMES_MAIN = new String[] {SOS_GESTURE,SUPPLIES_GESTURE,PERSON_GESTURE};
+	public static final String[] GESTURE_NAMES_MAIN = new String[] {LANDMARK_GESTURE,SUPPLIES_GESTURE,PERSON_GESTURE,VEHICLE_GESTURE};
 	public static final String[] GESTURE_NAMES_CHOICE = new String[] {GO_NEXT_GESTURE,GO_BACK_GESTURE,CONFIRM_GESTURE,CANCEL_GESTURE};
 
 	//Sensors
@@ -458,27 +459,44 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 						if(choice.isFinished()){
 
-							if(choice instanceof MetricDistanceChoice){
-
-								LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-								Location start = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-								System.out.println("Start Location: "+start.getLatitude()+","+start.getLongitude());
+							if(mainGesture.equals(GestureRecognizerService.PERSON_GESTURE)){
+								
+								Location start = getCurrentLocation();
 
 								System.out.println("CompassVal: "+compassValHolder);
-								Location person = GeoMath.getLocationFromStartBearingAndDistance2(
+								Location end = GeoMath.getLocationFromStartBearingAndDistance2(
 										start,
 										compassValHolder,
 										Float.parseFloat(choice.getCurrentVal()));
-								System.out.println("Person Location: "+person.getLatitude()+","+person.getLongitude());
+								System.out.println("Person Location: "+end.getLatitude()+","+end.getLongitude());
 
 								resetGestures();
 								setPath(GestureRecognizerService.PATH_MAIN);
 								loadGestures();
 
 								updateUI ("Sending Person Broadcast");
-								sendBroadcastPerson(person);
+								Broadcaster.sendBroadcastPerson(end, this);
 
 								GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);	
+							}
+							else if(mainGesture.equals(GestureRecognizerService.VEHICLE_GESTURE)){
+								Location start = getCurrentLocation();
+
+								System.out.println("CompassVal: "+compassValHolder);
+								Location end = GeoMath.getLocationFromStartBearingAndDistance2(
+										start,
+										compassValHolder,
+										Float.parseFloat(choice.getCurrentVal()));
+								System.out.println("Vehicle Location: "+end.getLatitude()+","+end.getLongitude());
+
+								resetGestures();
+								setPath(GestureRecognizerService.PATH_MAIN);
+								loadGestures();
+
+								updateUI ("Sending Vehicle Broadcast");
+								Broadcaster.sendBroadcastVehicle(end, this);
+
+								GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);
 							}
 							choice = null;
 						}
@@ -494,25 +512,11 @@ public class GestureRecognizerService extends Service implements GestureListener
 				}
 				else{
 					//TODO: send Broadcasts for actions
-					//Intent intent = new Intent(this.getString(R.string.send_data));
-					if (gesture.equalsIgnoreCase(GestureRecognizerService.SOS_GESTURE)){
-						updateUI(this.getResources().getString(R.string.sos));
-						//TODO: create intent for SOS
-						//
-						//this.sendBroadcast(intent);
 
-						//Test code
-						sendBroadcast(1);
-						GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);
-					}
-					else if (gesture.equalsIgnoreCase(GestureRecognizerService.SUPPLIES_GESTURE)){
+					if (gesture.equalsIgnoreCase(GestureRecognizerService.SUPPLIES_GESTURE)){
 						updateUI(this.getResources().getString(R.string.supplies));
-						//TODO: create intent for Supplies
-						//
-						//this.sendBroadcast(intent);
 
-						//Test code
-						sendBroadcast(2);
+						Broadcaster.sendBroadcastResource(getCurrentLocation(), this);
 						GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);
 					}
 					else if (gesture.equalsIgnoreCase(GestureRecognizerService.PERSON_GESTURE)){
@@ -523,6 +527,23 @@ public class GestureRecognizerService extends Service implements GestureListener
 						resetGestures();
 						GestureRecognizerService.setState(RecognizerState.COMPASS_MODE);
 					}
+					else if(gesture.equalsIgnoreCase(GestureRecognizerService.VEHICLE_GESTURE)){
+						mainGesture = GestureRecognizerService.VEHICLE_GESTURE;
+						updateUI("Vehicle Recognized");
+
+						updateUI("Point in the direction and shake");
+						resetGestures();
+						GestureRecognizerService.setState(RecognizerState.COMPASS_MODE);						
+					}
+					else if(gesture.equalsIgnoreCase(GestureRecognizerService.LANDMARK_GESTURE)){
+						mainGesture = GestureRecognizerService.LANDMARK_GESTURE;
+						updateUI("Landmark Recognized");
+
+						updateUI("Point in the direction and shake");
+						resetGestures();
+						GestureRecognizerService.setState(RecognizerState.COMPASS_MODE);						
+					}
+					
 				}
 			}
 		}
@@ -823,77 +844,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 		}
 	}
 
-	private void sendBroadcast(int counter){
-
-		Thing thing = new Thing();
-		thing.setDescription("Testing!");
-		thing.setElevation(230.0);
-		thing.setLatitude(38.88255 + (.02*counter));
-		thing.setLongitude(-77.049897 + (.02*counter));
-		thing.setFriendliness(55.0);
-		thing.setRelevance(67.0);
-		thing.setType(Type.PERSON);
-		SimpleXMLSerializer<Thing> serializer = new SimpleXMLSerializer<Thing>();
-		byte[] data;
-		try {
-			data = serializer.serialize(thing);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
-		}
-
-		ByteBuffer b = ByteBuffer.allocate(data.length + 8);
-		b.putLong(1000);
-		b.put(data);
-
-		byte[] buff = b.array();
-
-		//Location loc = new Location("Other");
-		Intent broadcastIntent = new Intent("edu.gmu.hodum.SEND_DATA");
-		broadcastIntent.putExtra("latitude", 37.5d);
-		broadcastIntent.putExtra("longitude", -73.25d);
-		broadcastIntent.putExtra("radius",200.0d);
-		broadcastIntent.putExtra("data",buff);
-		sendBroadcast(broadcastIntent);
-	}
-	private void sendBroadcastPerson(Location location)
-	{
-		System.out.println("SendBroadcast Person");
-
-		Thing thing = new Thing();
-		thing.setDescription("Testing with Location!");
-		thing.setElevation(230.0);
-		thing.setLatitude(location.getLatitude());
-		thing.setLongitude(location.getLongitude());
-		thing.setFriendliness(55.0);
-		thing.setRelevance(67.0);
-		thing.setType(Type.PERSON);
-
-		SimpleXMLSerializer<Thing> serializer = new SimpleXMLSerializer<Thing>();
-		byte[] data;
-		try {
-			data = serializer.serialize(thing);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
-		}
-
-		ByteBuffer b = ByteBuffer.allocate(data.length + 8);
-		b.putLong(1000);
-		b.put(data);
-
-		byte[] buff = b.array();
-
-		//Location loc = new Location("Other");
-		Intent broadcastIntent = new Intent("edu.gmu.hodum.SEND_DATA");
-		broadcastIntent.putExtra("latitude", 37.5d);
-		broadcastIntent.putExtra("longitude", -73.25d);
-		broadcastIntent.putExtra("radius",200.0d);
-		broadcastIntent.putExtra("data",buff);
-		sendBroadcast(broadcastIntent);
-	}
+	
 
 	@Override
 	public void onInit(int status) {
@@ -911,5 +862,12 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 	@Override
 	public void onUtteranceCompleted(String arg0) {
+	}
+	
+	private Location getCurrentLocation(){
+		LocationManager lm = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+		Location start = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+		System.out.println("Start Location: "+start.getLatitude()+","+start.getLongitude());
+		return start;
 	}
 }
