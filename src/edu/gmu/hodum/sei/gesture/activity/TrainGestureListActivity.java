@@ -20,6 +20,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.Toast;
 import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
+import edu.gmu.hodum.sei.gesture.service.RecognizerState;
 import edu.gmu.hodum.sei.gesture.util.CustomAdapter;
 import edu.gmu.hodum.sei.gesture.util.RowData;
 import edu.gmu.hodum.sei.gesture.R;
@@ -48,10 +49,10 @@ public class TrainGestureListActivity extends ListActivity
 
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 		setContentView(R.layout.list);
-		
+
 		//get the path from the intent
 		Bundle bundle = getIntent().getExtras();
-		
+
 		gesturePath = bundle.getString(TrainGestureListActivity.GESTURE_PATH);
 		learningMethod = bundle.getString(TrainGestureListActivity.GESTURE_LEARNING_METHOD);
 
@@ -62,8 +63,16 @@ public class TrainGestureListActivity extends ListActivity
 		super.onResume();
 		Log.d(TAG, "onResume");
 
-		GestureRecognizerService.loadGestures(gesturePath);
+		GestureRecognizerService.setPath(gesturePath);
+		GestureRecognizerService.loadGestures();
 		initialize();
+
+		if(gesturePath.equals(GestureRecognizerService.PATH_MAIN)){
+			GestureRecognizerService.setState(RecognizerState.TEST_MAIN_DEACTIVATED);
+		}
+		else {
+			GestureRecognizerService.setState(RecognizerState.TEST_CHOICE_DEACTIVATED);
+		}
 	}
 
 	public void onPause(){
@@ -86,7 +95,7 @@ public class TrainGestureListActivity extends ListActivity
 	public boolean onContextItemSelected(MenuItem item) {
 		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
 		long id = this.getListAdapter().getItemId(info.position);
-		
+
 		switch (item.getItemId()) {
 		case R.id.select:
 			startNextActivity(info.position);	
@@ -95,8 +104,9 @@ public class TrainGestureListActivity extends ListActivity
 			CustomAdapter adapter = (CustomAdapter) this.getListAdapter();
 			RowData rowData = adapter.getItem((int) id); 
 			String name = rowData.getTitle();
-			GestureRecognizerService.deleteGesture(name, gesturePath);
-			GestureRecognizerService.loadGestures(gesturePath);
+			GestureRecognizerService.setPath(gesturePath);
+			GestureRecognizerService.deleteGesture(name);
+			GestureRecognizerService.loadGestures();
 			initialize();
 			return true;
 		case R.id.cancel:
@@ -118,7 +128,7 @@ public class TrainGestureListActivity extends ListActivity
 		else {
 			gestureNames = GestureRecognizerService.GESTURE_NAMES_CHOICE;
 		}
-		
+
 		details = new String[gestureNames.length];
 
 		for (String value : mGestureIdMapping.values()){
@@ -171,16 +181,16 @@ public class TrainGestureListActivity extends ListActivity
 		Intent intent = new Intent(this, TrainGestureActivity.class);
 		intent.putExtras(bundle);
 		startActivityForResult(intent, 1);
-		
+
 	}
-	
+
 	public void onActivityResult(int requestCode, int resultcode, Intent data){
 		if(resultcode ==  Activity.RESULT_OK){
 			toast("Gesture trained");
 			this.setResult(Activity.RESULT_OK);
 		}
 	}
-	
+
 	public void toast(String text){
 		Toast.makeText(this, text, Toast.LENGTH_LONG).show();
 	}

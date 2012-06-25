@@ -7,15 +7,14 @@ import android.util.Log;
 import android.view.View;
 import edu.gmu.hodum.sei.gesture.R;
 import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
+import edu.gmu.hodum.sei.gesture.service.RecognizerState;
 
-public class TrainGestureActivity extends Activity
-{
+public class TrainGestureActivity extends Activity{
 	private int gestureId;
 	private String gesturePath;
 	private static final String TAG = "traingesture";
 
-	public void onCreate(Bundle savedInstanceState)
-	{
+	public void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate");
 
@@ -26,7 +25,14 @@ public class TrainGestureActivity extends Activity
 		gestureId = bundle.getInt(TrainGestureListActivity.GESTURE_ID);
 		gesturePath = bundle.getString(TrainGestureListActivity.GESTURE_PATH);
 		
-		GestureRecognizerService.setLearningMode(true);
+		//GestureRecognizerService.setLearningMode(true);
+		GestureRecognizerService.resetGestureCount();
+		if(gesturePath.equals(GestureRecognizerService.PATH_MAIN)){
+			GestureRecognizerService.setState(RecognizerState.LEARNING_MAIN_DEACTIVATED);
+		}
+		else{
+			GestureRecognizerService.setState(RecognizerState.LEARNING_CHOICE_DEACTIVATED);
+		}
 	}
 
 	public void btnDone_onClick(View view){
@@ -41,19 +47,12 @@ public class TrainGestureActivity extends Activity
 			gestureName = GestureRecognizerService.GESTURE_NAMES_CHOICE[gestureId];	
 		}
 		GestureRecognizerService.finalizeLearning();
-		GestureRecognizerService.saveGesture(gestureName, gesturePath);
+		GestureRecognizerService.setPath(gesturePath);
+		GestureRecognizerService.saveGesture(gestureName);
 		GestureRecognizerService.resetGestures();
 		this.setResult(Activity.RESULT_OK);
 		
-		cleanup();
 		finish();
-	}
-	public void onBackPressed(){
-		cleanup();
-		this.finish();
-	}
-	public void cleanup(){
-		GestureRecognizerService.setLearningMode(false);
 	}
 	
 	

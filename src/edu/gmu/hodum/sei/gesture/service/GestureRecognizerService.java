@@ -11,8 +11,6 @@ import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.Vector;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -94,15 +92,15 @@ public class GestureRecognizerService extends Service implements GestureListener
 	public static String mPackageName;
 	private static Context mApplicationContext;
 
-	private boolean isRecognizing = false;
-	private boolean isLearning = false;
+	//private boolean isRecognizing = false;
+	//private boolean isLearning = false;
 
 	private float mLastX, mLastY, mLastZ;
 	private boolean mInitialized;
 
-	private Lock allowLock = new ReentrantLock();
-	private boolean isAllowed = true;
-	private Timer allowTimer = null;
+	//private Lock allowLock = new ReentrantLock();
+	//private boolean isAllowed = true;
+	//private Timer allowTimer = null;
 
 	private SensorEvtManager sensorEvtManager;
 	Lock evtLock = new ReentrantLock();
@@ -114,21 +112,24 @@ public class GestureRecognizerService extends Service implements GestureListener
 	private boolean enableToast;
 	private TextToSpeech mTts;
 
-	private RecognizerState STATE;
+	private static RecognizerState STATE;
 
 	private static int gestureCount;
-	private static boolean learningMode;
+	//private static boolean learningMode;
 
 	boolean mListenersRegistered; //are the sensor listeners registered
 
 	//These are the file directory paths used to store the main and choice mode gestures
 	public static String PATH_MAIN;
 	public static String PATH_CHOICE;
+	public static String currentPath; 
 
 	public static String LEARNING_METHOD_ACTIVATED = "ACTIVATED";
 	public static String LEARNING_METHOD_QUIET = "QUIET";
 
 	private GestureChoice choice;
+
+	public static final String INITIALIZE_NETWORK = "edu.gmu.hodum.INITIALIZE_NETWORK";
 
 	public void onCreate(){
 		super.onCreate();
@@ -151,6 +152,13 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 		setDefaultPrefs();
 		loadPrefs();
+	}
+
+	static synchronized String getPath(){
+		return currentPath;
+	}
+	public static synchronized void setPath(String path){
+		currentPath = path;
 	}
 
 	private void registerListeners(){
@@ -221,16 +229,22 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 		//button pressed on widget
 		if(command.equals(this.getString(R.string.on))){
-			//toggle button state
 
-			setState(RecognizerState.DEACTIVATED);
+			//start the network, if needed
+			Intent broadcastIntent = new Intent(INITIALIZE_NETWORK);
+			broadcastIntent.putExtra("channel", "8");
+			this.sendBroadcast(broadcastIntent);
+
+			//toggle button state
+			setState(RecognizerState.MAIN_DEACTIVATED);
 
 			if(mListenersRegistered == false){
 				registerListeners();
 				mListenersRegistered = true;
 			}
 			resetGestures();
-			loadGestures(GestureRecognizerService.PATH_MAIN);
+			setPath(GestureRecognizerService.PATH_MAIN);
+			loadGestures();
 
 			PendingIntent pendIntent = PendingIntent.getActivity(this, 0, new Intent (this, MainActivity.class), 0);
 
@@ -400,45 +414,51 @@ public class GestureRecognizerService extends Service implements GestureListener
 		}
 	}
 
-	static enum RecognizerState{
-		DEACTIVATED,
-		ACTIVATED,
-		CONFIGURING,
-		CHOICE_MODE,
-		COMPASS_MODE,
-	}
-
-	synchronized void setState(RecognizerState state){
+	public synchronized static void setState(RecognizerState state){
 		System.out.println("Recognizer State is now: "+state.toString());
-		this.STATE = state;
+		STATE = state;
 	}
 
-	synchronized RecognizerState getState(){
-		return this.STATE;
+	synchronized static RecognizerState getState(){
+		return STATE;
 	}
 
+	public static synchronized void resetGestureCount(){
+		gestureCount = 0;
+	}
+
+	/*
 	public static synchronized void setLearningMode(boolean val){
 		gestureCount = 0;
-		learningMode = val;
+		//learningMode = val;
 	}
+	 */
+	/*
 	synchronized boolean getLearningMode(){
 		return learningMode;
 	}
-
+	 */
 	public void gestureReceived(GestureEvent event){
 
 		evtLock.lock();
+		RecognizerState state = getState();
 		Log.d(TAG, event.getId() + " " + GestureIdMapping.get(event.getId()) + " with prob. " + event.getProbability());
 
-		if (event.getProbability() > 0.7){
+		if (event.getProbability() > 0.8){
 			String gesture = GestureRecognizerService.GestureIdMapping.get(event.getId());
 
-			if (gesture != null)
-			{
+			//if a test state, just output the gesture recognized
+			if(state == RecognizerState.TEST_CHOICE_ACTIVATED || 
+					state == RecognizerState.TEST_CHOICE_DEACTIVATED || 
+					state == RecognizerState.TEST_MAIN_ACTIVATED ||
+					state == RecognizerState.TEST_MAIN_DEACTIVATED){
+				updateUI("Test Mode "+gesture + " recognized");
+			}
+			else if (gesture != null){
 				Log.d(TAG, "Gesture received " + gesture);
 
 				//Choice Mode Gestures
-				if(this.getState() == RecognizerState.CHOICE_MODE){
+				if(GestureRecognizerService.getState() == RecognizerState.CHOICE_ACTIVATED){
 
 					if(gesture.equalsIgnoreCase(GestureRecognizerService.GO_NEXT_GESTURE)){
 						updateUI ("Go Forward");
@@ -456,8 +476,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 						updateUI (choice.getCurrentUIString());
 
 						if(choice.isFinished()){
-							updateUI ("Finished Choosing");
-							this.setState(RecognizerState.DEACTIVATED);
 
 							if(choice instanceof MetricDistanceChoice){
 
@@ -473,12 +491,13 @@ public class GestureRecognizerService extends Service implements GestureListener
 								System.out.println("Person Location: "+person.getLatitude()+","+person.getLongitude());
 
 								resetGestures();
-								loadGestures(GestureRecognizerService.PATH_MAIN);
+								setPath(GestureRecognizerService.PATH_MAIN);
+								loadGestures();
 
 								updateUI ("Sending Person Broadcast");
 								sendBroadcastPerson(person);
 
-								this.setState(RecognizerState.DEACTIVATED);	
+								GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);	
 							}
 							choice = null;
 						}
@@ -489,8 +508,9 @@ public class GestureRecognizerService extends Service implements GestureListener
 					else if(gesture.equalsIgnoreCase(GestureRecognizerService.CANCEL_GESTURE)){
 						updateUI ("Canceled");
 						resetGestures();
-						loadGestures(GestureRecognizerService.PATH_MAIN);
-						this.setState(RecognizerState.DEACTIVATED);	
+						setPath(GestureRecognizerService.PATH_MAIN);
+						loadGestures();
+						GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);	
 					}
 
 				}
@@ -505,7 +525,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 						//Test code
 						sendBroadcast(1);
-						this.setState(RecognizerState.DEACTIVATED);
+						GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);
 					}
 					else if (gesture.equalsIgnoreCase(GestureRecognizerService.SUPPLIES_GESTURE)){
 						updateUI(this.getResources().getString(R.string.supplies));
@@ -515,23 +535,22 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 						//Test code
 						sendBroadcast(2);
-						this.setState(RecognizerState.DEACTIVATED);
+						GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);
 					}
 					else if (gesture.equalsIgnoreCase(GestureRecognizerService.PERSON_GESTURE)){
 						mainGesture = GestureRecognizerService.PERSON_GESTURE;
 						updateUI("Person Recognized");
 
 						updateUI("Point in the direction and shake");
-						this.setState(RecognizerState.COMPASS_MODE);
-
+						GestureRecognizerService.setState(RecognizerState.COMPASS_MODE);
 					}
 				}
 			}
 		}
 		else{
 			updateUI(this.getResources().getString(R.string.gesture_not_recognized));
-			if(this.getState() == RecognizerState.ACTIVATED){
-				this.setState(RecognizerState.DEACTIVATED);
+			if(GestureRecognizerService.getState() == RecognizerState.MAIN_ACTIVATED){
+				GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);
 			}
 		}
 		evtLock.unlock();
@@ -540,26 +559,142 @@ public class GestureRecognizerService extends Service implements GestureListener
 	public void triggerCompassRead(){
 		compassValHolder = compassVal;
 
+		int direction = (int)compassValHolder;
+
+		if(direction<0||direction>360){
+			System.err.println("Invalid compass direction");
+		}
+		else if (direction == 0 || direction == 360){
+			updateUI("Directly north");
+		}
+		else if(direction<90){
+			updateUI(direction+" degrees east of north");
+		}
+		else if (direction == 90){
+			updateUI("Directly east");
+		}
+		else if(direction<180){
+			updateUI((180-direction)+" degrees east of south");
+		}
+		else if (direction ==180){
+			updateUI("Directly south");
+		}
+		else if(direction<270){
+			updateUI((direction-180)+" degrees west of south");
+		}
+		else if (direction == 270){
+			updateUI("Directly west");
+		}
+		else {
+			updateUI((360-direction)+" degrees west of north");
+		}
 		resetGestures();
 
 
 		if(mainGesture == PERSON_GESTURE){
-			loadGestures(GestureRecognizerService.PATH_CHOICE);
+			setPath(GestureRecognizerService.PATH_CHOICE);
+			loadGestures();
 
 			choice = new MetricDistanceChoice();
-			
+
 			updateUI("How far away?");
 			updateUI(choice.getCurrentUIString());
 
-			this.setState(RecognizerState.CHOICE_MODE);
+			GestureRecognizerService.setState(RecognizerState.CHOICE_DEACTIVATED);
 		}
 	}
 
 	public void triggerRecognizer(){
 
+		RecognizerState state = GestureRecognizerService.getState();
+
+		//Learning the main gestures
+		if (state == RecognizerState.LEARNING_MAIN_DEACTIVATED){
+			GestureRecognizerService.startLearning();
+			GestureRecognizerService.setState(RecognizerState.LEARNING_MAIN_ACTIVATED);
+		}
+		else if (state == RecognizerState.LEARNING_MAIN_ACTIVATED){
+			GestureRecognizerService.stopLearning();
+			GestureRecognizerService.setState(RecognizerState.LEARNING_MAIN_DEACTIVATED);
+			Toast.makeText(this, GestureRecognizerService.CAPTURED + " "+ Integer.toString(++gestureCount), Toast.LENGTH_SHORT).show();
+			updateUI("Gesture Captured");
+		}
+
+		//Learning the choice gestures
+		else if (state == RecognizerState.LEARNING_CHOICE_DEACTIVATED){
+			GestureRecognizerService.startLearning();
+			GestureRecognizerService.setState(RecognizerState.LEARNING_CHOICE_ACTIVATED);
+
+		}
+		else if(state == RecognizerState.LEARNING_CHOICE_ACTIVATED){
+			GestureRecognizerService.stopLearning();
+			Toast.makeText(this, GestureRecognizerService.CAPTURED + " "+ Integer.toString(++gestureCount), Toast.LENGTH_SHORT).show();
+			GestureRecognizerService.setState(RecognizerState.LEARNING_CHOICE_DEACTIVATED);
+			updateUI("Gesture Captured");
+		}
+
+		//Recognizing the main gestures
+		if (state == RecognizerState.MAIN_DEACTIVATED || 
+				state == RecognizerState.TEST_MAIN_DEACTIVATED){
+			GestureRecognizerService.startRecognizer();
+			if(state == RecognizerState.MAIN_DEACTIVATED){
+				GestureRecognizerService.setState(RecognizerState.MAIN_ACTIVATED);
+			}
+			else {
+				GestureRecognizerService.setState(RecognizerState.TEST_MAIN_ACTIVATED);
+			}
+		}
+		else if (state == RecognizerState.MAIN_ACTIVATED ||
+				state == RecognizerState.TEST_MAIN_ACTIVATED){
+			GestureRecognizerService.stopRecognizer();
+			if (state == RecognizerState.MAIN_ACTIVATED){
+				GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);
+			}
+			else{
+				GestureRecognizerService.setState(RecognizerState.TEST_MAIN_DEACTIVATED);
+			}
+			Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT).show();
+		}
+
+		//Recognizing the choice gestures
+		if (state == RecognizerState.CHOICE_DEACTIVATED ||
+				state == RecognizerState.TEST_CHOICE_DEACTIVATED){
+			GestureRecognizerService.startRecognizer();
+			if(state == RecognizerState.CHOICE_DEACTIVATED){
+				GestureRecognizerService.setState(RecognizerState.CHOICE_ACTIVATED);
+			}
+			else{
+				GestureRecognizerService.setState(RecognizerState.TEST_CHOICE_ACTIVATED);
+			}
+		}
+		else if (state == RecognizerState.CHOICE_ACTIVATED ||
+				state == RecognizerState.TEST_CHOICE_ACTIVATED){
+			GestureRecognizerService.stopRecognizer();
+			if(state == RecognizerState.CHOICE_ACTIVATED){
+				GestureRecognizerService.setState(RecognizerState.CHOICE_DEACTIVATED);	
+			}
+			else{
+				GestureRecognizerService.setState(RecognizerState.TEST_CHOICE_DEACTIVATED);
+			}
+
+			Toast.makeText(this, GestureRecognizerService.CAPTURED, Toast.LENGTH_SHORT).show();
+		}
+
+	}
+
+
+	/*
+	public void triggerRecognizer(){
+
+		RecognizerState state = this.getState();
 		if(allowLock.tryLock()){
 			if(isAllowed){
-				if( getLearningMode() ){
+				//in a learning state
+				if( state == RecognizerState.LEARNING_CHOICE_ACTIVATED || 
+						state == RecognizerState.LEARNING_CHOICE_DEACTIVATED ||
+						state == RecognizerState.LEARNING_MAIN_ACTIVATED ||
+						state == RecognizerState.LEARNING_MAIN_DEACTIVATED ){
+
 					if (isLearning){
 						Toast.makeText(this, GestureRecognizerService.CAPTURED + " "+ Integer.toString(++gestureCount), Toast.LENGTH_SHORT).show();
 						GestureRecognizerService.stopLearning();
@@ -608,7 +743,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 			allowLock.unlock();
 		}
 	}
-
+	 */
 	public void stateReceived(StateEvent event){
 		if (event.getState() == event.STATE_RECOGNIZING)
 			Log.d(TAG, "State is RECOGNIZING");
@@ -652,9 +787,9 @@ public class GestureRecognizerService extends Service implements GestureListener
 		mAndgee.getDevice().fireButtonReleasedEvent();
 	}
 
-	public static void loadGestures(String path){
+	public static void loadGestures(){
 		Log.d(TAG, "load gestures");
-
+		String path = GestureRecognizerService.getPath();
 		resetGestures();
 		try{
 			File file = new File(path);
@@ -680,7 +815,8 @@ public class GestureRecognizerService extends Service implements GestureListener
 		}
 	}
 
-	public static void saveGesture(String name, String path){
+	public static void saveGesture(String name){
+		String path = GestureRecognizerService.getPath();
 		Log.d(TAG, "save gesture " + path+name);
 
 		ProcessingUnitWrapper punitWrapper = new ProcessingUnitWrapper(mAndgee.getDevice().getAccelerationStreamAnalyzer());
@@ -719,8 +855,9 @@ public class GestureRecognizerService extends Service implements GestureListener
 		}
 	}
 
-	public static void deleteGesture(String name, String path){
+	public static void deleteGesture(String name){
 		//delete individual gesture from the file system and gesture Id map by name
+		String path = GestureRecognizerService.getPath();
 		File file = new File(path+name+".txt");
 
 		if (file.isFile()){
@@ -736,8 +873,9 @@ public class GestureRecognizerService extends Service implements GestureListener
 		resetGestures();
 	}
 
-	public static void deleteGestures(String path){
+	public static void deleteGestures(){
 		//delete all gestures from the file system and the Gesture Id Map
+		String path = GestureRecognizerService.getPath();
 		File file = new File(path);
 
 		if (file.list() != null){
@@ -746,7 +884,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 				String gesture = item.substring(0, item.lastIndexOf("."));
 				GestureIdMapping.remove(gesture);
 
-				Log.d(TAG, "Deleting " + path + item);
+				Log.d(TAG, "Deleting " + GestureRecognizerService.getPath() + item);
 			}
 		}
 
