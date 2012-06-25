@@ -2,7 +2,7 @@
 <resources>
     <string name="prefval_noise_level_filter">4.0</string>
     <string name="prefval_event_delay">300</string>
-    <string name="prefval_gesture_recognize_time">1000</string>
+    <string name="prefval_gesture_recognize_time">2000</string>
     <string name="prefval_recognizer_start_window">2000</string>
     <string name="prefval_enable_speech">true</string>
     <string name="prefval_gesture_start">7.0</string>

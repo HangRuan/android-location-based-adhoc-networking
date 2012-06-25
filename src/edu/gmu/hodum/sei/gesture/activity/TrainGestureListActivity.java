@@ -20,7 +20,6 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ListView;
 import android.widget.Toast;
 import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
-import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService.RecognizerMode;
 import edu.gmu.hodum.sei.gesture.util.CustomAdapter;
 import edu.gmu.hodum.sei.gesture.util.RowData;
 import edu.gmu.hodum.sei.gesture.R;
@@ -43,8 +42,7 @@ public class TrainGestureListActivity extends ListActivity
 	private Vector<RowData> data;
 	private RowData rd;
 
-	public void onCreate(Bundle savedInstanceState)
-	{
+	public void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate");
 
@@ -56,22 +54,11 @@ public class TrainGestureListActivity extends ListActivity
 		
 		gesturePath = bundle.getString(TrainGestureListActivity.GESTURE_PATH);
 		learningMethod = bundle.getString(TrainGestureListActivity.GESTURE_LEARNING_METHOD);
-		
-		if(gesturePath.equals(GestureRecognizerService.PATH_MAIN)){
-			GestureRecognizerService.setRecognizerMode(RecognizerMode.ACTIVATE_ON_TRIGGERS);
-		}
-		else{
-			GestureRecognizerService.setRecognizerMode(RecognizerMode.ACTIVATE_ON_NOT_QUIET);
-		}
-		
-		
-		initialize();
 
 		this.registerForContextMenu(this.getListView());
 	}
 
-	public void onResume()
-	{
+	public void onResume(){
 		super.onResume();
 		Log.d(TAG, "onResume");
 
@@ -79,16 +66,14 @@ public class TrainGestureListActivity extends ListActivity
 		initialize();
 	}
 
-	public void onPause()
-	{
+	public void onPause(){
 		super.onPause();
 		Log.d(TAG, "onPause");
 
 		GestureRecognizerService.resetGestures();
 	}
 
-	public void onDestroy()
-	{
+	public void onDestroy(){
 		super.onDestroy();
 		Log.d(TAG, "onDestroy");
 	}
@@ -121,13 +106,11 @@ public class TrainGestureListActivity extends ListActivity
 		}
 	}
 
-	public void onListItemClick(ListView parent, View v, int position, long id)
-	{
+	public void onListItemClick(ListView parent, View v, int position, long id){
 		startNextActivity(position);
 	}
 
-	private void initialize()
-	{
+	private void initialize(){
 		Map<Integer, String> mGestureIdMapping = GestureRecognizerService.GestureIdMapping;
 		if(gesturePath.equals(GestureRecognizerService.PATH_MAIN)){
 			gestureNames = GestureRecognizerService.GESTURE_NAMES_MAIN;
@@ -138,12 +121,12 @@ public class TrainGestureListActivity extends ListActivity
 		
 		details = new String[gestureNames.length];
 
-		for (String value : mGestureIdMapping.values())
+		for (String value : mGestureIdMapping.values()){
 			Log.d(TAG, "Map has " + value);
+		}
 
 		int i = 0;
-		for (String gesture : gestureNames)
-		{
+		for (String gesture : gestureNames){
 			Log.d(TAG, "Checking for gesture " + gesture);
 
 			if (mGestureIdMapping.containsValue(gesture))
@@ -156,14 +139,11 @@ public class TrainGestureListActivity extends ListActivity
 		mInflater = (LayoutInflater) getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 		data = new Vector<RowData>();
 
-		for (int j = 0; j < gestureNames.length; j++)
-		{
-			try
-			{
+		for (int j = 0; j < gestureNames.length; j++){
+			try{
 				rd = new RowData(j, gestureNames[j], details[j]);
 			}
-			catch (ParseException e)
-			{
+			catch (ParseException e){
 				e.printStackTrace();
 			}
 
@@ -182,8 +162,7 @@ public class TrainGestureListActivity extends ListActivity
 		getListView().setTextFilterEnabled(true);
 	}
 
-	private void startNextActivity(int index)
-	{
+	private void startNextActivity(int index){
 		Bundle bundle = new Bundle();
 		bundle.putInt(GESTURE_ID, index);
 		bundle.putString(GESTURE_PATH, gesturePath);
