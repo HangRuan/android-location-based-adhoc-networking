@@ -465,7 +465,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 								System.out.println("Start Location: "+start.getLatitude()+","+start.getLongitude());
 
 								System.out.println("CompassVal: "+compassValHolder);
-								Location person = GeoMath.getLocationFromStartBearingAndDistance(
+								Location person = GeoMath.getLocationFromStartBearingAndDistance2(
 										start,
 										compassValHolder,
 										Float.parseFloat(choice.getCurrentVal()));

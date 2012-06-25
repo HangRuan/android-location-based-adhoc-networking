@@ -32,6 +32,8 @@ public class GeoMath {
 
 	}
 	 */
+	
+	/*
 	public static Location getLocationFromStartBearingAndDistance(Location start, float bearing, float distance){
 
 		Float objectFloat = new Float(bearing);
@@ -54,6 +56,27 @@ public class GeoMath {
 		return dest;
 
 	}
+	*/
+	
+	public static Location getLocationFromStartBearingAndDistance2(Location location, float angle, float distance){
+
+		double lat1 = location.getLatitude() * Math.PI / 180;
+		double lon1 = location.getLongitude()* Math.PI / 180;
+		double bearing = angle *Math.PI / 180;
+		double R = 6371;
+		double lat2 = Math.asin(Math.sin(lat1) * Math.cos(distance / R) + Math.cos(lat1) *Math.sin(distance / R) * Math.cos(bearing));
+		double lon2 = lon1 + Math.atan2(Math.sin(bearing) * Math.sin(distance / R) *Math.cos(lat1), Math.cos(distance / R) - Math.sin(lat1) *Math.sin(lat2));
+		lat2 = lat2 / Math.PI * 180;
+		lon2 = lon2 / Math.PI * 180;
+		
+		Location loc = new Location (location);
+		loc.setLatitude(lat2); 
+		loc.setLongitude(lon2);
+		return loc;
+
+	}
+	
+	
 
 }
 
