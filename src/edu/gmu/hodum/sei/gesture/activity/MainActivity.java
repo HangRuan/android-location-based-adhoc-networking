@@ -2,11 +2,11 @@ package edu.gmu.hodum.sei.gesture.activity;
 
 import edu.gmu.hodum.sei.gesture.R;
 import edu.gmu.hodum.sei.gesture.service.GestureRecognizerService;
-import event.GestureEvent;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Toast;
 
 /*
  * This is the main activity that is started after the application is launched. 
@@ -37,7 +37,7 @@ import android.view.View;
  * should be disabled for the duration of the gesture plus the delay for the minimum sensor event. 
  */
 
-public class MainActivity extends GestureActivity {
+public class MainActivity extends Activity {
 
 	final private int SETTINGS = 1;
 	final private int TRAINING = 2; 
@@ -85,12 +85,9 @@ public class MainActivity extends GestureActivity {
 
 	}
 
-	@Override
-	public void gestureReceived(GestureEvent event) {
-		// TODO Auto-generated method stub
-		
+	public void toast(String text){
+		Toast.makeText(this, text, Toast.LENGTH_LONG).show();
 	}
-
 }
 
 

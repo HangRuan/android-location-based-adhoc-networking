@@ -18,86 +18,83 @@ public class SensorEvtManager extends Thread{
 	}
 
 	public synchronized void addEvt(long time, SensorEvtType type){
-		if (service.evtLock.tryLock()){
-			isCommandRecognized = false;
+		isCommandRecognized = false;
 
-			if(time > nextSampleTime){
+		if(time > nextSampleTime){
 
-				if(GestureRecognizerService.getState() == RecognizerState.MAIN_DEACTIVATED || 
-						GestureRecognizerService.getState() == RecognizerState.LEARNING_MAIN_DEACTIVATED ||
-						GestureRecognizerService.getState() == RecognizerState.TEST_MAIN_DEACTIVATED ){
-					
-					//if deactivated, check for activate sensor events
-					if (type == SensorEvtType.ACTIVATE){
+			if(GestureRecognizerService.getState() == RecognizerState.MAIN_DEACTIVATED || 
+					GestureRecognizerService.getState() == RecognizerState.LEARNING_MAIN_DEACTIVATED ||
+					GestureRecognizerService.getState() == RecognizerState.TEST_MAIN_DEACTIVATED ){
 
-						System.out.println("Sensor event triggered, evts.size = "+evts.size());
-						evts.add(new Evt(time, type));
+				//if deactivated, check for activate sensor events
+				if (type == SensorEvtType.ACTIVATE){
 
-						//this is the third event
-						if (evts.size() >= 3) {
-							//removes values which are too old
-							int i = evts.size()-1;
-							while(i>0){
-								if (time - evts.get(i).getTime() > startRecognizerTime){
-									evts.remove(i);
-								}
-								i--;
+					System.out.println("Sensor event triggered, evts.size = "+evts.size());
+					evts.add(new Evt(time, type));
+
+					//this is the third event
+					if (evts.size() >= 3) {
+						//removes values which are too old
+						int i = evts.size()-1;
+						while(i>0){
+							if (time - evts.get(i).getTime() > startRecognizerTime){
+								evts.remove(i);
 							}
+							i--;
+						}
 
-							//checks to make sure that there are still enough sensor events to activate the recognizer
-							if(evts.size() == 3){
-								evts.clear();
+						//checks to make sure that there are still enough sensor events to activate the recognizer
+						if(evts.size() == 3){
+							evts.clear();
 
-								//activates the recognizer
-								System.out.println("Recognizer triggered");
-								service.updateUI("Gesture Start");
+							//activates the recognizer
+							System.out.println("Recognizer triggered");
+							service.updateUI("Gesture Start");
 
-								service.triggerRecognizer();
-							}
+							service.triggerRecognizer();
 						}
 					}
 				}
-				else if(GestureRecognizerService.getState() == RecognizerState.MAIN_ACTIVATED || 
-						GestureRecognizerService.getState() == RecognizerState.LEARNING_MAIN_ACTIVATED ||
-						GestureRecognizerService.getState() == RecognizerState.TEST_MAIN_ACTIVATED){
-					//while activated, wait for "quiet" period
-					stopRecognizerOnQuiet(time, type);
-				}
-				else if(GestureRecognizerService.getState() == RecognizerState.COMPASS_MODE){
+			}
+			else if(GestureRecognizerService.getState() == RecognizerState.MAIN_ACTIVATED || 
+					GestureRecognizerService.getState() == RecognizerState.LEARNING_MAIN_ACTIVATED ||
+					GestureRecognizerService.getState() == RecognizerState.TEST_MAIN_ACTIVATED){
+				//while activated, wait for "quiet" period
+				stopRecognizerOnQuiet(time, type);
+			}
+			else if(GestureRecognizerService.getState() == RecognizerState.COMPASS_MODE){
 
-					//Reads the compass
-					if (type == SensorEvtType.ACTIVATE){
-						service.triggerCompassRead();
-						isCommandRecognized = true;
-					}
+				//Reads the compass
+				if (type == SensorEvtType.ACTIVATE){
+					service.triggerCompassRead();
+					isCommandRecognized = true;
 				}
-				else if(GestureRecognizerService.getState() == RecognizerState.CHOICE_DEACTIVATED ||
-						GestureRecognizerService.getState() == RecognizerState.LEARNING_CHOICE_DEACTIVATED ||
-						GestureRecognizerService.getState() == RecognizerState.TEST_CHOICE_DEACTIVATED){
+			}
+			else if(GestureRecognizerService.getState() == RecognizerState.CHOICE_DEACTIVATED ||
+					GestureRecognizerService.getState() == RecognizerState.LEARNING_CHOICE_DEACTIVATED ||
+					GestureRecognizerService.getState() == RecognizerState.TEST_CHOICE_DEACTIVATED){
 
-					//recognizer is triggered
-					if (type == SensorEvtType.ACTIVATE){
-						service.updateUI("Gesture Start");
-						service.triggerRecognizer();
-					}
+				//recognizer is triggered
+				if (type == SensorEvtType.ACTIVATE){
+					service.updateUI("Gesture Start");
+					service.triggerRecognizer();
+				}
 
-				}
-				else if(GestureRecognizerService.getState() == RecognizerState.CHOICE_ACTIVATED ||
-						GestureRecognizerService.getState() == RecognizerState.LEARNING_CHOICE_ACTIVATED ||
-						GestureRecognizerService.getState() == RecognizerState.TEST_CHOICE_ACTIVATED){
-					stopRecognizerOnQuiet(time, type);
-				}
-				
-				//calculates the next sample time, dependent on whether a command was recognized
-				if(isCommandRecognized){
-					nextSampleTime = time + eventDelay + commandRecognizedDelay;
-				}
-				else {
-					nextSampleTime = time + eventDelay;
-				}
-			}	//sample time
-			service.evtLock.unlock();
-		}
+			}
+			else if(GestureRecognizerService.getState() == RecognizerState.CHOICE_ACTIVATED ||
+					GestureRecognizerService.getState() == RecognizerState.LEARNING_CHOICE_ACTIVATED ||
+					GestureRecognizerService.getState() == RecognizerState.TEST_CHOICE_ACTIVATED){
+				stopRecognizerOnQuiet(time, type);
+			}
+
+			//calculates the next sample time, dependent on whether a command was recognized
+			if(isCommandRecognized){
+				nextSampleTime = time + eventDelay + commandRecognizedDelay;
+			}
+			else {
+				nextSampleTime = time + eventDelay;
+			}
+		}	//sample time
 
 	}
 
@@ -121,7 +118,7 @@ public class SensorEvtManager extends Thread{
 
 				//stop the recognizer
 				service.triggerRecognizer();
-				
+
 				isCommandRecognized = true;
 			}
 		}

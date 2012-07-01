@@ -62,7 +62,6 @@ public class SetPreferenceActivity extends Activity{
 		Button btnCalibrateNoise = (Button) this.findViewById(R.id.btn_calibrate_noise);
 		btnCalibrateNoise.setOnClickListener(new OnClickListener(){
 
-			@Override
 			public void onClick(View arg0) {
 
 				Intent intent = new Intent(SetPreferenceActivity.this, CalibrateActivity.class);
@@ -75,7 +74,6 @@ public class SetPreferenceActivity extends Activity{
 		Button btnCalibrateStart = (Button) this.findViewById(R.id.btn_calibrate_start);
 		btnCalibrateStart.setOnClickListener(new OnClickListener(){
 
-			@Override
 			public void onClick(View arg0) {
 
 				Intent intent = new Intent(SetPreferenceActivity.this, CalibrateActivity.class);

@@ -81,7 +81,6 @@ public class CalibrateActivity extends Activity implements SensorEventListener, 
 
 	private class UpdateDialog implements Runnable{
 
-		@Override
 		public void run() {
 			pd.incrementProgressBy(1);
 
@@ -151,15 +150,12 @@ public class CalibrateActivity extends Activity implements SensorEventListener, 
 
 	}
 
-	@Override
 	public void onInit(int arg0) {
 	}
 
-	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {		
 	}
 
-	@Override
 	public void onSensorChanged(SensorEvent event) {
 		//gets the 3 values from the accelerometer, computes and stores the average
 		float x = event.values[0];

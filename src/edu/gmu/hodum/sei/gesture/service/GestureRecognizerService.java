@@ -11,12 +11,10 @@ import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 import logic.GestureModel;
 import logic.ProcessingUnitWrapper;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -71,6 +69,7 @@ public class GestureRecognizerService extends Service implements GestureListener
 	public static final String CANCEL_GESTURE = "Cancel";
 
 	public static final Andgee mAndgee = Andgee.getInstance();
+	@SuppressLint("UseSparseArrays")
 	public static final Map<Integer, String> GestureIdMapping = new HashMap<Integer, String>();
 
 	public static final String[] GESTURE_NAMES_MAIN = new String[] {LANDMARK_GESTURE,SUPPLIES_GESTURE,PERSON_GESTURE,VEHICLE_GESTURE};
@@ -92,7 +91,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 	private boolean mInitialized;
 
 	private SensorEvtManager sensorEvtManager;
-	Lock evtLock = new ReentrantLock();
 
 	private float NOISE;
 	private float START;
@@ -318,8 +316,9 @@ public class GestureRecognizerService extends Service implements GestureListener
 			editor.putLong(this.getString(R.string.prefname_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time)));
 
 			//enable speech
-			editor.putBoolean(this.getString(R.string.prefname_enable_speech), Boolean.parseBoolean(this.getString(R.string.prefname_enable_speech)));
+			editor.putBoolean(this.getString(R.string.prefname_enable_speech), Boolean.parseBoolean(this.getString(R.string.prefval_enable_speech)));
 
+			editor.apply();
 		}
 	}
 
@@ -355,7 +354,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 	}
 
-	@Override
 	public void onSensorChanged(SensorEvent event) {
 		float x = event.values[0];
 		float y = event.values[1];
@@ -416,7 +414,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 	public void gestureReceived(GestureEvent event){
 
-		evtLock.lock();
 		RecognizerState state = getState();
 		Log.d(TAG, event.getId() + " " + GestureIdMapping.get(event.getId()) + " with prob. " + event.getProbability());
 
@@ -568,7 +565,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 				GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);
 			}
 		}
-		evtLock.unlock();
 	}
 
 	public void triggerCompassRead(){
@@ -862,7 +858,6 @@ public class GestureRecognizerService extends Service implements GestureListener
 
 	
 
-	@Override
 	public void onInit(int status) {
 		if(status == TextToSpeech.SUCCESS){
 			mTts.setOnUtteranceCompletedListener(this);
@@ -872,11 +867,9 @@ public class GestureRecognizerService extends Service implements GestureListener
 		}
 	}
 
-	@Override
 	public void onAccuracyChanged(Sensor sensor, int accuracy) {
 	}
 
-	@Override
 	public void onUtteranceCompleted(String arg0) {
 	}
 	

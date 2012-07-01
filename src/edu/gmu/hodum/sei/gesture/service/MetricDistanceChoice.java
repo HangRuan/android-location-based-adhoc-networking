@@ -12,7 +12,6 @@ public class MetricDistanceChoice implements GestureChoice{
 
 	}
 
-	@Override
 	public void goNext() {
 
 		if(index <vals.length-1){
@@ -21,7 +20,6 @@ public class MetricDistanceChoice implements GestureChoice{
 
 	}
 
-	@Override
 	public void goBack() {
 
 		if(index >0){
@@ -30,7 +28,6 @@ public class MetricDistanceChoice implements GestureChoice{
 
 	}
 
-	@Override
 	public String getCurrentUIString() {
 		return vals[index];
 	}
@@ -44,7 +41,6 @@ public class MetricDistanceChoice implements GestureChoice{
 
 	}
 
-	@Override
 	public String getCurrentVal() {
 		int val = num;
 
