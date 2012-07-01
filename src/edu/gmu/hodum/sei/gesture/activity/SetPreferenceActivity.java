@@ -30,13 +30,13 @@ public class SetPreferenceActivity extends Activity{
 		this.setContentView(R.layout.set_prefs);
 
 		prefs = PreferenceManager.getDefaultSharedPreferences(this);
-		
+
 		Map<String, ?> map = prefs.getAll();
 		Set<String> keyset = map.keySet();
 		for (String key: keyset){
 			System.out.println(key);
 		}
-		
+
 		//set preferences
 		//spinnerNoise = (Spinner) this.findViewById(R.id.spinner_noise);
 		//String stringNoise = Float.toString(prefs.getFloat(this.getString(R.string.prefname_noise_level_filter), Float.parseFloat(this.getString(R.string.prefval_noise_level_filter))));
@@ -53,12 +53,12 @@ public class SetPreferenceActivity extends Activity{
 		spinnerGestureRecognizeTime = (Spinner) this.findViewById(R.id.spinner_gesture_recognize_time);
 		String stringGestureRecognizeTime = Long.toString(prefs.getLong(this.getString(R.string.prefval_gesture_recognize_time), Long.parseLong(this.getString(R.string.prefval_gesture_recognize_time))));
 		setupSpinner(spinnerGestureRecognizeTime, R.array.prefarray_gesture_recognize_time, stringGestureRecognizeTime);
-		
+
 
 		toggleBtnEnableSpeech = (ToggleButton) this.findViewById(R.id.toggle_enable_speech);
 		Boolean savedVal = prefs.getBoolean(this.getString(R.string.prefname_enable_speech), Boolean.parseBoolean(this.getString(R.string.prefval_enable_speech)));;
 		toggleBtnEnableSpeech.setChecked(savedVal);
-		
+
 		Button btnCalibrateNoise = (Button) this.findViewById(R.id.btn_calibrate_noise);
 		btnCalibrateNoise.setOnClickListener(new OnClickListener(){
 
@@ -68,9 +68,9 @@ public class SetPreferenceActivity extends Activity{
 				intent.setAction(SetPreferenceActivity.this.getString(R.string.calibrate_noise));
 				SetPreferenceActivity.this.startActivity(intent);
 			}
-			
+
 		});
-		
+
 		Button btnCalibrateStart = (Button) this.findViewById(R.id.btn_calibrate_start);
 		btnCalibrateStart.setOnClickListener(new OnClickListener(){
 
@@ -80,9 +80,9 @@ public class SetPreferenceActivity extends Activity{
 				intent.setAction(SetPreferenceActivity.this.getString(R.string.calibrate_start));
 				SetPreferenceActivity.this.startActivity(intent);
 			}
-			
+
 		});
-		
+
 	}
 
 	private void setupSpinner(Spinner spinner, int arrayVals, String prefVal){
@@ -110,30 +110,13 @@ public class SetPreferenceActivity extends Activity{
 
 
 	public void btnSave_onClick(View view){
-		//Get the values of the spinners and save the preferences
-		SharedPreferences.Editor editor = prefs.edit();
-		
-		//String spinnerVal = (String) spinnerNoise.getSelectedItem();
-		//Float floatVal = Float.parseFloat(spinnerVal);
-		//editor.putFloat(this.getString(R.string.prefname_noise_level_filter), floatVal);
-		
-		String spinnerVal = (String) spinnerEventDelay.getSelectedItem();
-		Long longVal = Long.parseLong(spinnerVal);
-		editor.putLong(this.getString(R.string.prefname_event_delay), longVal);
-		
-		spinnerVal = (String) spinnerStartRecognizerTime.getSelectedItem();
-		longVal = Long.parseLong(spinnerVal);
-		editor.putLong(this.getString(R.string.prefname_recognizer_start_window), longVal);
-		
-		spinnerVal = (String) spinnerGestureRecognizeTime.getSelectedItem();
-		longVal = Long.parseLong(spinnerVal);
-		editor.putLong(this.getString(R.string.prefname_gesture_recognize_time), longVal);
-		
-		Boolean toggleVal = toggleBtnEnableSpeech.isChecked();
-		editor.putBoolean(this.getString(R.string.prefname_enable_speech), toggleVal);
-		
-		editor.commit();
+		save();
+		this.setResult(Activity.RESULT_OK);
+		this.finish();
+	}
 
+	public void onBackPressed(){
+		save();
 		this.setResult(Activity.RESULT_OK);
 		this.finish();
 	}
@@ -141,5 +124,31 @@ public class SetPreferenceActivity extends Activity{
 	public void btnCancel_onClick(View view){
 		this.setResult(Activity.RESULT_CANCELED);
 		this.finish();
+	}
+
+	private void save(){
+		//Get the values of the spinners and save the preferences
+		SharedPreferences.Editor editor = prefs.edit();
+
+		//String spinnerVal = (String) spinnerNoise.getSelectedItem();
+		//Float floatVal = Float.parseFloat(spinnerVal);
+		//editor.putFloat(this.getString(R.string.prefname_noise_level_filter), floatVal);
+
+		String spinnerVal = (String) spinnerEventDelay.getSelectedItem();
+		Long longVal = Long.parseLong(spinnerVal);
+		editor.putLong(this.getString(R.string.prefname_event_delay), longVal);
+
+		spinnerVal = (String) spinnerStartRecognizerTime.getSelectedItem();
+		longVal = Long.parseLong(spinnerVal);
+		editor.putLong(this.getString(R.string.prefname_recognizer_start_window), longVal);
+
+		spinnerVal = (String) spinnerGestureRecognizeTime.getSelectedItem();
+		longVal = Long.parseLong(spinnerVal);
+		editor.putLong(this.getString(R.string.prefname_gesture_recognize_time), longVal);
+
+		Boolean toggleVal = toggleBtnEnableSpeech.isChecked();
+		editor.putBoolean(this.getString(R.string.prefname_enable_speech), toggleVal);
+
+		editor.commit();
 	}
 }
