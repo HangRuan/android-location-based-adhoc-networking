@@ -35,12 +35,12 @@ public class TrainGestureActivity extends Activity{
 		if(gesturePath.equals(GestureRecognizerService.PATH_MAIN)){
 			GestureRecognizerService.setState(RecognizerState.LEARNING_MAIN_DEACTIVATED);
 			gestureName = GestureRecognizerService.GESTURE_NAMES_MAIN[gestureId];
-			instructions.setText("Shake three times to start training. Hold still to finish gesture.");
+			instructions.setText("Shake three times before each gesture. Hold still at the end of each gesture. Three to 10 repeats are recommended.");
 		}
 		else{
 			GestureRecognizerService.setState(RecognizerState.LEARNING_CHOICE_DEACTIVATED);
 			gestureName = GestureRecognizerService.GESTURE_NAMES_CHOICE[gestureId];
-			instructions.setText("Shake once to start training. Hold still to finish gesture.");
+			instructions.setText("Shake once before each gesture. Hold still at the end of each gesture. Three to 10 repeats are recommended.");
 		}
 		label.setText(gestureName);
 	}

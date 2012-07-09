@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:onClick="btnDone_onClick"
             android:layout_weight="0.5"
-            android:text="Finish All Training" />
+            android:text="Finish Training" />
         
         <Button
             android:id="@+id/cancel"
@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:onClick="btnCancel_onClick"
             android:layout_weight="0.5"
-            android:text="Cancel All Training" />
+            android:text="Cancel Training" />
 
         
     </LinearLayout>

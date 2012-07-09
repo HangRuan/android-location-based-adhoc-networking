@@ -570,49 +570,59 @@ public class GestureRecognizerService extends Service implements GestureListener
 	public void triggerCompassRead(){
 		compassValHolder = compassVal;
 
+		boolean valid = true;
 		int direction = (int)compassValHolder;
 
 		if(direction<0||direction>360){
 			System.err.println("Invalid compass direction");
+			valid = false;
 		}
-		else if (direction == 0 || direction == 360){
-			updateUI("Directly north");
+		else if ((direction >= 338 && direction <= 360) || (direction>=0 && direction<23)){
+			updateUI("North");
 		}
-		else if(direction<90){
-			updateUI(direction+" degrees east of north");
+		else if(direction<68){
+			updateUI("Northeast");
 		}
-		else if (direction == 90){
-			updateUI("Directly east");
+		else if (direction<113){
+			updateUI("East");
 		}
-		else if(direction<180){
-			updateUI((180-direction)+" degrees east of south");
+		else if(direction<153){
+			updateUI("Southeast");
 		}
-		else if (direction ==180){
-			updateUI("Directly south");
+		else if (direction ==203){
+			updateUI("South");
 		}
-		else if(direction<270){
-			updateUI((direction-180)+" degrees west of south");
+		else if(direction<248){
+			updateUI("Southwest");
 		}
-		else if (direction == 270){
-			updateUI("Directly west");
+		else if (direction<293){
+			updateUI("West");
 		}
 		else {
-			updateUI((360-direction)+" degrees west of north");
+			//if (direction<338){
+			updateUI("Northwest");
 		}
+		
 		
 		resetGestures();
-		if(mainGesture == PERSON_GESTURE ||
-				mainGesture == LANDMARK_GESTURE ||
-				mainGesture == VEHICLE_GESTURE){
-			GestureRecognizerService.setState(RecognizerState.CHOICE_DEACTIVATED);
-			setPath(GestureRecognizerService.PATH_CHOICE);
-		
-			choice = new MetricDistanceChoice();
+		if(valid){
+			if(mainGesture == PERSON_GESTURE ||
+					mainGesture == LANDMARK_GESTURE ||
+					mainGesture == VEHICLE_GESTURE){
+				GestureRecognizerService.setState(RecognizerState.CHOICE_DEACTIVATED);
+				setPath(GestureRecognizerService.PATH_CHOICE);
+			
+				choice = new MetricDistanceChoice();
 
-			updateUI("How far away?");
-			updateUI(choice.getCurrentUIString());
-			loadGestures();
+				updateUI("How far away?");
+				updateUI(choice.getCurrentUIString());
+				loadGestures();
+			}	
 		}
+		else{
+			GestureRecognizerService.setState(RecognizerState.MAIN_DEACTIVATED);
+		}
+		
 	}
 
 	public void triggerRecognizer(){
